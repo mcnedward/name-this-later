@@ -91,6 +91,9 @@ public class GameScreen implements Screen, InputProcessor {
 		case Keys.RIGHT:
 			controller.rightPressed();
 			break;
+		case Keys.SPACE:
+			controller.jumpPressed();
+			break;
 		}
 		return false;
 	}
@@ -109,6 +112,9 @@ public class GameScreen implements Screen, InputProcessor {
 			break;
 		case Keys.RIGHT:
 			controller.rightReleased();
+			break;
+		case Keys.SPACE:
+			controller.jumpReleased();
 			break;
 		}
 		return false;

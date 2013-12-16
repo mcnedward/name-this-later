@@ -13,13 +13,17 @@ import com.badlogic.gdx.utils.Pool;
 public class MikeController {
 
 	public enum Keys {
-		DOWN, LEFT, UP, RIGHT
+		DOWN, LEFT, UP, RIGHT, JUMP
 	}
 
 	private static final float ACCELERATION = 20f;	// The speed of walking
 	private static final float GRAVITY = -20f;		// The gravity of the room
+	private static final float MAX_JUMP_SPEED = 4f;	// The speed of a jump
 	private static final float DAMP = 0.90f;		// Used to smooth out the walking animation
 	private static final float MAX_VEL = 4f;
+	private static final long JUMP_DURATION = 500;	// The maximum time allowed for Mike to be in the air
+
+	private long jumpTime;							// The starting time of Mike's jump
 
 	// This is the rectangle pool used in collision detection
 	// Good to avoid instantiation each frame
@@ -36,6 +40,7 @@ public class MikeController {
 		keys.put(Keys.LEFT, false);
 		keys.put(Keys.UP, false);
 		keys.put(Keys.RIGHT, false);
+		keys.put(Keys.JUMP, false);
 	}
 
 	private World world;
@@ -48,6 +53,15 @@ public class MikeController {
 
 	public void update(float delta) {
 		processInput();
+
+		// Check if Mike is currently jumping. If he is, check the time he has been in the air and drop him after the
+		// maximum time allowed for his jump.
+		if (mike.getState().equals(State.JUMPING)) {
+			if (System.currentTimeMillis() - jumpTime > JUMP_DURATION) {
+				mike.setState(State.IDLE);
+				mike.getVelocity().y = -MAX_JUMP_SPEED;
+			}
+		}
 
 		// Multiply by the delta to convert acceleration to frame units
 		mike.getAcceleration().mul(delta);
@@ -69,41 +83,6 @@ public class MikeController {
 		}
 
 		mike.update(delta);
-	}
-
-	private boolean processInput() {
-		if (keys.get(Keys.DOWN)) {
-			mike.setDirection(Direction.DOWN);
-			if (!mike.getState().equals(State.JUMPING)) {
-				mike.setState(State.RUNNING);
-			}
-			mike.getAcceleration().y = -ACCELERATION;
-		} else if (keys.get(Keys.LEFT)) {
-			mike.setDirection(Direction.LEFT);
-			if (!mike.getState().equals(State.JUMPING)) {
-				mike.setState(State.RUNNING);
-			}
-			mike.getAcceleration().x = -ACCELERATION;
-		} else if (keys.get(Keys.UP)) {
-			mike.setDirection(Direction.UP);
-			if (!mike.getState().equals(State.JUMPING)) {
-				mike.setState(State.RUNNING);
-			}
-			mike.getAcceleration().y = ACCELERATION;
-		} else if (keys.get(Keys.RIGHT)) {
-			mike.setDirection(Direction.RIGHT);
-			if (!mike.getState().equals(State.JUMPING)) {
-				mike.setState(State.RUNNING);
-			}
-			mike.getAcceleration().x = ACCELERATION;
-		} else {
-			if (!mike.getState().equals(State.JUMPING)) {
-				mike.setState(State.IDLE);
-			}
-			mike.getAcceleration().x = 0;
-			mike.getAcceleration().y = 0;
-		}
-		return false;
 	}
 
 	private void checkCollisions(float delta) {
@@ -143,6 +122,87 @@ public class MikeController {
 		mike.getVelocity().mul(1 / delta);
 	}
 
+	private boolean processInput() {
+		if (keys.get(Keys.JUMP)) {
+			if (!mike.getState().equals(State.JUMPING)) {
+				mike.setState(State.JUMPING);
+				jumpTime = System.currentTimeMillis();
+				mike.getVelocity().y = MAX_JUMP_SPEED;
+			}
+		}
+		if (keys.get(Keys.DOWN)) {
+			if (keys.get(Keys.LEFT)) {
+				mike.setDirection(Direction.DOWN_LEFT);
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.RUNNING);
+				}
+				mike.getAcceleration().x = -ACCELERATION;
+				mike.getAcceleration().y = -ACCELERATION;
+			} else if (keys.get(Keys.RIGHT)) {
+				mike.setDirection(Direction.DOWN_RIGHT);
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.RUNNING);
+				}
+				mike.getAcceleration().x = ACCELERATION;
+				mike.getAcceleration().y = -ACCELERATION;
+			} else {
+				mike.setDirection(Direction.DOWN);
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.RUNNING);
+				}
+				mike.getAcceleration().y = -ACCELERATION;
+			}
+		} else if (keys.get(Keys.UP)) {
+			if (keys.get(Keys.LEFT)) {
+				mike.setDirection(Direction.UP_LEFT);
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.RUNNING);
+				}
+				mike.getAcceleration().x = -ACCELERATION;
+				mike.getAcceleration().y = ACCELERATION;
+			} else if (keys.get(Keys.RIGHT)) {
+				mike.setDirection(Direction.UP_RIGHT);
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.RUNNING);
+				}
+				mike.getAcceleration().x = ACCELERATION;
+				mike.getAcceleration().y = ACCELERATION;
+			} else {
+				mike.setDirection(Direction.UP);
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.RUNNING);
+				}
+				mike.getAcceleration().y = ACCELERATION;
+			}
+		} else if (keys.get(Keys.LEFT)) {
+			mike.setDirection(Direction.LEFT);
+			if (!mike.getState().equals(State.JUMPING)) {
+				mike.setState(State.RUNNING);
+			}
+			mike.getAcceleration().x = -ACCELERATION;
+		} else if (keys.get(Keys.RIGHT)) {
+			mike.setDirection(Direction.RIGHT);
+			if (!mike.getState().equals(State.JUMPING)) {
+				mike.setState(State.RUNNING);
+			}
+			mike.getAcceleration().x = ACCELERATION;
+		} else if (keys.get(Keys.DOWN) && keys.get(Keys.LEFT)) {
+			mike.setDirection(Direction.DOWN_LEFT);
+			if (!mike.getState().equals(State.JUMPING)) {
+				mike.setState(State.RUNNING);
+			}
+			mike.getAcceleration().x = -ACCELERATION;
+			mike.getAcceleration().y = -ACCELERATION;
+		} else {
+			if (!mike.getState().equals(State.JUMPING)) {
+				mike.setState(State.IDLE);
+			}
+			mike.getAcceleration().x = 0;
+			mike.getAcceleration().y = 0;
+		}
+		return false;
+	}
+
 	/** Key Presses and Touch Events **/
 
 	public void downPressed() {
@@ -161,6 +221,10 @@ public class MikeController {
 		keys.get(keys.put(Keys.RIGHT, true));
 	}
 
+	public void jumpPressed() {
+		keys.get(keys.put(Keys.JUMP, true));
+	}
+
 	public void downReleased() {
 		keys.get(keys.put(Keys.DOWN, false));
 	}
@@ -175,6 +239,10 @@ public class MikeController {
 
 	public void rightReleased() {
 		keys.get(keys.put(Keys.RIGHT, false));
+	}
+
+	public void jumpReleased() {
+		keys.get(keys.put(Keys.JUMP, false));
 	}
 
 }

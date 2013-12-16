@@ -1,6 +1,10 @@
 package com.awesome.namethislater.view;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.awesome.namethislater.model.Mike;
+import com.awesome.namethislater.model.Mike.Direction;
 import com.awesome.namethislater.model.Mike.State;
 import com.awesome.namethislater.model.World;
 import com.badlogic.gdx.Gdx;
@@ -29,20 +33,14 @@ public class Renderer {
 	ShapeRenderer debugRenderer = new ShapeRenderer();
 
 	/** Textures **/
-	private TextureRegion mikeFrame;
-	private TextureRegion mikeIdleDown;
-	private TextureRegion mikeIdleLeft;
-	private TextureRegion mikeIdleUp;
-	private TextureRegion mikeIdleRight;
-	private TextureRegion mikeJumpLeft;
-	private TextureRegion mikeJumpRight;
-	private Texture blockTexture;
 	private Texture spriteSheet;
-	private TextureRegion[] regions = new TextureRegion[32];
+	private TextureRegion mikeFrame;
 	private Texture touchPad;
 
-	/** Animations **/
-	private Animation walkDown, walkLeft, walkUp, walkRight, downLeft, upLeft, upRight, downRight;
+	/** Animation and Texture Maps **/
+	private Map<Direction, Animation> animationMap = new HashMap<Direction, Animation>();
+	private Map<Direction, TextureRegion> idleMap = new HashMap<Direction, TextureRegion>();
+	private Map<Direction, TextureRegion> jumpMap = new HashMap<Direction, TextureRegion>();
 
 	private SpriteBatch spriteBatch;
 	private boolean debug = false;
@@ -67,63 +65,52 @@ public class Renderer {
 		int width = spriteSheet.getWidth() / 4;
 		int height = spriteSheet.getHeight() / 8;
 
-		TextureRegion[] walkDownFrames = new TextureRegion[3];
-		TextureRegion[] walkLeftFrames = new TextureRegion[3];
-		TextureRegion[] walkUpFrames = new TextureRegion[3];
-		TextureRegion[] walkRightFrames = new TextureRegion[3];
-		TextureRegion[][] animationFrames = new TextureRegion[4][3];
+		// 2-Dimensional array that will hold all the frames for animating the sprite
+		TextureRegion[][] animationFrames = new TextureRegion[8][3];
+		TextureRegion[][] jumpFrames = new TextureRegion[8][1];
 
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 3; j++) {
+		// Loop through the sprite sheet and cut out each frame
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 4; j++) {
 				int x = j * width;
 				int y = i * height;
-				animationFrames[i][j] = new TextureRegion(spriteSheet, x, y, width, height);
+				if (j == 3) {
+					jumpFrames[i][0] = new TextureRegion(spriteSheet, x, y, width, height);
+				} else {
+					animationFrames[i][j] = new TextureRegion(spriteSheet, x, y, width, height);
+				}
 			}
 		}
 
-		mikeIdleDown = new TextureRegion(animationFrames[0][0]);
-		mikeIdleLeft = new TextureRegion(animationFrames[1][0]);
-		mikeIdleUp = new TextureRegion(animationFrames[2][0]);
-		mikeIdleRight = new TextureRegion(animationFrames[3][0]);
-		walkDown = new Animation(RUNNING_FRAME_DURATION, animationFrames[0]);
-		walkLeft = new Animation(RUNNING_FRAME_DURATION, animationFrames[1]);
-		walkUp = new Animation(RUNNING_FRAME_DURATION, animationFrames[2]);
-		walkRight = new Animation(RUNNING_FRAME_DURATION, animationFrames[3]);
+		// Set the frames for the Idle state
+		idleMap.put(Direction.DOWN, new TextureRegion(animationFrames[0][0]));
+		idleMap.put(Direction.LEFT, new TextureRegion(animationFrames[1][0]));
+		idleMap.put(Direction.UP, new TextureRegion(animationFrames[2][0]));
+		idleMap.put(Direction.RIGHT, new TextureRegion(animationFrames[3][0]));
+		idleMap.put(Direction.DOWN_LEFT, new TextureRegion(animationFrames[4][0]));
+		idleMap.put(Direction.UP_LEFT, new TextureRegion(animationFrames[5][0]));
+		idleMap.put(Direction.UP_RIGHT, new TextureRegion(animationFrames[6][0]));
+		idleMap.put(Direction.DOWN_RIGHT, new TextureRegion(animationFrames[7][0]));
+		// Set the animation for each direction
+		animationMap.put(Direction.DOWN, new Animation(RUNNING_FRAME_DURATION, animationFrames[0]));
+		animationMap.put(Direction.LEFT, new Animation(RUNNING_FRAME_DURATION, animationFrames[1]));
+		animationMap.put(Direction.UP, new Animation(RUNNING_FRAME_DURATION, animationFrames[2]));
+		animationMap.put(Direction.RIGHT, new Animation(RUNNING_FRAME_DURATION, animationFrames[3]));
+		animationMap.put(Direction.DOWN_LEFT, new Animation(RUNNING_FRAME_DURATION, animationFrames[4]));
+		animationMap.put(Direction.UP_LEFT, new Animation(RUNNING_FRAME_DURATION, animationFrames[5]));
+		animationMap.put(Direction.UP_RIGHT, new Animation(RUNNING_FRAME_DURATION, animationFrames[6]));
+		animationMap.put(Direction.DOWN_RIGHT, new Animation(RUNNING_FRAME_DURATION, animationFrames[7]));
+		// Set the jump for each direction
+		jumpMap.put(Direction.DOWN, new TextureRegion(jumpFrames[0][0]));
+		jumpMap.put(Direction.LEFT, new TextureRegion(jumpFrames[1][0]));
+		jumpMap.put(Direction.UP, new TextureRegion(jumpFrames[2][0]));
+		jumpMap.put(Direction.RIGHT, new TextureRegion(jumpFrames[3][0]));
+		jumpMap.put(Direction.DOWN_LEFT, new TextureRegion(jumpFrames[4][0]));
+		jumpMap.put(Direction.UP_LEFT, new TextureRegion(jumpFrames[5][0]));
+		jumpMap.put(Direction.UP_RIGHT, new TextureRegion(jumpFrames[6][0]));
+		jumpMap.put(Direction.DOWN_RIGHT, new TextureRegion(jumpFrames[7][0]));
 
 		touchPad = new Texture(Gdx.files.internal("images/touchpad.png"));
-
-		// TextureRegion[] walkLeftFrames = new TextureRegion[5];
-		// for (int i = 0; i < 5; i++) {
-		// // The x refers to the current frame that we want to get. Use the modulus of 3 because for Mike's sprite
-		// // sheet, there are only three sprites for each direction, but there needs to be 5 fps. The y refers to the
-		// // direction that the sprite is facing. In the case of walking left, this should be in row 1.
-		// int x = width * (i % 3);
-		// int y = 0;
-		// walkLeftFrames[i] = new TextureRegion(spriteSheet, x + width, y + height, width, height);
-		// }
-		// mikeIdleLeft = new TextureRegion(walkLeftFrames[0]);
-		// walkLeft = new Animation(RUNNING_FRAME_DURATION, walkLeftFrames);
-		//
-		// mikeJumpLeft = new TextureRegion(spriteSheet, 3 * width, height, width, height);
-		//
-		// TextureRegion[] walkRightFrames = new TextureRegion[5];
-		// for (int i = 0; i < 5; i++) {
-		// // The x refers to the current frame that we want to get. Use the modulus of 3 because for Mike's sprite
-		// // sheet, there are only three sprites for each direction, but there needs to be 5 fps. The y refers to the
-		// // direction that the sprite is facing. In the case of walking right, this should be in row 3. Technically,
-		// // I think I could use flip() on walkingLeftFrames and this would be the same as animating for walking
-		// // right...
-		// int x = width * (i % 3);
-		// int y = 2 * height;
-		// walkRightFrames[i] = new TextureRegion(spriteSheet, x + width, y + height, width, height);
-		// }
-		// mikeIdleRight = new TextureRegion(walkRightFrames[0]);
-		// walkRight = new Animation(RUNNING_FRAME_DURATION, walkRightFrames);
-		//
-		// mikeJumpRight = new TextureRegion(spriteSheet, 3 * width, 3 * height, width, height);
-
-		// mikeTexture = regions[0].getTexture();
-		// blockTexture = new Texture(Gdx.files.internal("images/block.png"));
 	}
 
 	public void render() {
@@ -138,42 +125,14 @@ public class Renderer {
 
 	private void drawMike() {
 		Mike mike = world.getMike();
-		switch (mike.getDirection()) {
-		case DOWN:
-			mikeFrame = mikeIdleDown;
-			if (mike.getState().equals(State.RUNNING)) {
-				mikeFrame = walkDown.getKeyFrame(mike.getStateTime(), true);
-			}
-			break;
-		case LEFT:
-			mikeFrame = mikeIdleLeft;
-			if (mike.getState().equals(State.RUNNING)) {
-				mikeFrame = walkLeft.getKeyFrame(mike.getStateTime(), true);
-			}
-			break;
-		case UP:
-			mikeFrame = mikeIdleUp;
-			if (mike.getState().equals(State.RUNNING)) {
-				mikeFrame = walkUp.getKeyFrame(mike.getStateTime(), true);
-			}
-			break;
-		case RIGHT:
-			mikeFrame = mikeIdleRight;
-			if (mike.getState().equals(State.RUNNING)) {
-				mikeFrame = walkRight.getKeyFrame(mike.getStateTime(), true);
-			}
-			break;
-		default:
-			mikeFrame = mikeIdleDown;
-			break;
+		Direction direction = mike.getDirection();
+		if (mike.getState().equals(State.IDLE)) {
+			mikeFrame = idleMap.get(direction);
+		} else if (mike.getState().equals(State.RUNNING)) {
+			mikeFrame = animationMap.get(direction).getKeyFrame(mike.getStateTime(), true);
+		} else if (mike.getState().equals(State.JUMPING)) {
+			mikeFrame = jumpMap.get(direction);
 		}
-		// mikeFrame = mike.isFacingLeft() ? mikeIdleLeft : mikeIdleRight;
-		// if (mike.getState().equals(State.RUNNING)) {
-		// mikeFrame = mike.isFacingLeft() ? walkLeft.getKeyFrame(mike.getStateTime(), true) : walkRight.getKeyFrame(
-		// mike.getStateTime(), true);
-		// } else if (mike.getState().equals(State.JUMPING)) {
-		// mikeFrame = mike.isFacingLeft() ? mikeJumpLeft : mikeJumpRight;
-		// }
 		spriteBatch.draw(mikeFrame, mike.getPosition().x * ppuX, mike.getPosition().y * ppuY, Mike.SIZE * ppuX,
 				Mike.SIZE * ppuY);
 	}
