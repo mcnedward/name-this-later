@@ -3,6 +3,7 @@ package com.awesome.namethislater.view;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.awesome.namethislater.model.Block;
 import com.awesome.namethislater.model.Mike;
 import com.awesome.namethislater.model.Mike.Direction;
 import com.awesome.namethislater.model.Mike.State;
@@ -36,6 +37,8 @@ public class Renderer {
 	private Texture spriteSheet;
 	private TextureRegion mikeFrame;
 	private Texture touchPad;
+	private Texture grass;
+	private Texture water;
 
 	/** Animation and Texture Maps **/
 	private Map<Direction, Animation> animationMap = new HashMap<Direction, Animation>();
@@ -45,8 +48,8 @@ public class Renderer {
 	private SpriteBatch spriteBatch;
 	private boolean debug = false;
 	private int width, height;
-	private float ppuX;			// Pixels per unit on the X axis
-	private float ppuY;			// Pixels per unit on the Y axis
+	private float ppuX;					// Pixels per unit on the X axis
+	private float ppuY;					// Pixels per unit on the Y axis
 
 	public Renderer(World world, boolean debug) {
 		this.world = world;
@@ -111,13 +114,18 @@ public class Renderer {
 		jumpMap.put(Direction.DOWN_RIGHT, new TextureRegion(jumpFrames[7][0]));
 
 		touchPad = new Texture(Gdx.files.internal("images/touchpad.png"));
+		grass = new Texture(Gdx.files.internal("images/grass.png"));
+		water = new Texture(Gdx.files.internal("images/water.png"));
 	}
 
 	public void render() {
 		spriteBatch.begin();
+		spriteBatch.draw(grass, 0, 0, width, height);
+		drawBlocks();
 		drawMike();
 		spriteBatch.draw(touchPad, 1 * ppuX, 1 * ppuY, 2 * ppuX, 2 * ppuY);
 		spriteBatch.end();
+		drawCollisionBlocks();
 		// drawTouchPad();
 		// if (debug)
 		// drawDebug();
@@ -137,15 +145,29 @@ public class Renderer {
 				Mike.SIZE * ppuY);
 	}
 
+	private void drawBlocks() {
+		for (Block block : world.getDrawableBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
+			spriteBatch.draw(water, block.getPosition().x * ppuX, block.getPosition().y * ppuY, Block.SIZE * ppuX,
+					Block.SIZE * ppuY);
+		}
+	}
+
+	private void drawCollisionBlocks() {
+		debugRenderer.setProjectionMatrix(cam.combined);
+		debugRenderer.begin(ShapeType.Filled);
+		debugRenderer.setColor(new Color(1, 1, 1, 1));
+		for (Rectangle rect : world.getCollisionRects()) {
+			debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
+		}
+		debugRenderer.end();
+	}
+
 	private void drawTouchPad() {
 		debugRenderer.setProjectionMatrix(cam.combined);
 		debugRenderer.identity();
 		debugRenderer.begin(ShapeType.Filled);
 		debugRenderer.setColor(new Color(1, 0, 0, 1f));
-		debugRenderer.ellipse(1, 1, (int) 1, (int) 1);// (CAMERA_WIDTH / 10f,
-														// CAMERA_HEIGHT /
-		// 8f, CAMERA_WIDTH / 6f,
-		// CAMERA_HEIGHT / 4f);
+		debugRenderer.ellipse(1, 1, (int) 1, (int) 1);
 		debugRenderer.end();
 	}
 
@@ -153,11 +175,11 @@ public class Renderer {
 		// Render blocks
 		debugRenderer.setProjectionMatrix(cam.combined);
 		debugRenderer.begin(ShapeType.Filled);
-		// for (Block block : world.getDrawableBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
-		// Rectangle rect = block.getBounds();
-		// debugRenderer.setColor(new Color(1, 0, 0, 1));
-		// debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
-		// }
+		for (Block block : world.getDrawableBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
+			Rectangle rect = block.getBounds();
+			debugRenderer.setColor(new Color(1, 0, 0, 1));
+			debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
+		}
 		// Render Mike
 		Mike mike = world.getMike();
 		Rectangle rect = mike.getBounds();

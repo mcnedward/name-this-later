@@ -36,6 +36,9 @@ public class Level {
 		blocks[6][3] = new Block(new Vector2(6, 3));
 		blocks[6][4] = new Block(new Vector2(6, 4));
 		blocks[6][5] = new Block(new Vector2(6, 5));
+
+		blocks[7][3] = new Block(new Vector2(7, 3));
+		blocks[8][3] = new Block(new Vector2(8, 3));
 	}
 
 	public Block getBlockAt(int x, int y) {
