@@ -3,6 +3,7 @@ package com.awesome.namethislater.screens;
 import com.awesome.namethislater.controller.MikeController;
 import com.awesome.namethislater.model.World;
 import com.awesome.namethislater.view.Renderer;
+import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
@@ -127,15 +128,18 @@ public class GameScreen implements Screen, InputProcessor {
 	}
 
 	@Override
-	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean touchDown(int x, int y, int pointer, int button) {
+		if (!Gdx.app.getType().equals(ApplicationType.Android))
+			return false;
+		System.out.println("TOUCH");
+		return controller.onTouch(x, y, renderer);
 	}
 
 	@Override
-	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean touchUp(int x, int y, int pointer, int button) {
+		if (!Gdx.app.getType().equals(ApplicationType.Android))
+			return false;
+		return true;
 	}
 
 	@Override

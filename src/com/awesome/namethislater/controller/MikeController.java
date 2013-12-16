@@ -8,11 +8,13 @@ import com.awesome.namethislater.model.Mike;
 import com.awesome.namethislater.model.Mike.Direction;
 import com.awesome.namethislater.model.Mike.State;
 import com.awesome.namethislater.model.World;
+import com.awesome.namethislater.view.Renderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
 
 public class MikeController {
+	private static final String TAG = "MikeController";
 
 	public enum Keys {
 		DOWN, LEFT, UP, RIGHT, JUMP
@@ -281,7 +283,123 @@ public class MikeController {
 		return false;
 	}
 
-	/** Key Presses and Touch Events **/
+	/** Touch Events and Key Presses **/
+
+	public boolean onTouch(int x, int y, Renderer renderer) {
+		float cx = renderer.width / 12;
+		float cy = renderer.height / 10;
+		float radius = renderer.width / 5;
+		// Get the maximum and minimum x and y coordinates allowed for the touch pad
+		float maxX = cx + radius;
+		float minX = Math.abs(cx - radius);
+		float maxY = cy + radius;
+		float minY = Math.abs(cy - radius);
+		// Get the maximum and minimum x and y coordinates allowed for the jump button
+		// int jMaxX = jx + jr;
+		// int jMinX = jx - jr;
+		// int jMaxY = jy + jr;
+		// int jMinY = jy - jr;
+
+		// Find the degree that the touch event is at
+		double degree = (Math.atan2(y - cy, x - cx) / (Math.PI / 180));
+		degree *= -1;
+		degree += 360;
+		if (degree > 360) {
+			degree -= 360;
+		}
+
+		// Find the distance from the center of the circle using Pythagorian Theorem
+		// TODO This can be used later to increase the speed of the sprite
+		double a = x - cx;
+		double b = y - cy;
+		double distance = Math.abs(Math.sqrt((a * a) + (b * b)));
+		distance = distance > (maxX - minX) / 2 ? (maxX - minX) / 2 : distance;
+
+		// If the touch event is inside the touch pad, move the sprite
+		if (x <= maxX && x >= minX && y <= maxY && y >= minY) {
+			// Move right
+			if (degree <= 23 && degree >= 0 || degree >= 338 && degree <= 360) {
+				mike.setDirection(Direction.RIGHT);
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.RUNNING);
+				}
+				mike.getAcceleration().x = ACCELERATION;
+			}
+			// Move up-right
+			if (degree > 23 && degree < 68) {
+				mike.setDirection(Direction.UP_RIGHT);
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.RUNNING);
+				}
+				mike.getAcceleration().x = ACCELERATION;
+				mike.getAcceleration().y = ACCELERATION;
+			}
+			// Move up
+			if (degree >= 68 && degree <= 113) {
+				mike.setDirection(Direction.UP);
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.RUNNING);
+				}
+				mike.getAcceleration().y = ACCELERATION;
+			}
+			// Move up-left
+			if (degree > 113 && degree < 158) {
+				mike.setDirection(Direction.UP_LEFT);
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.RUNNING);
+				}
+				mike.getAcceleration().x = -ACCELERATION;
+				mike.getAcceleration().y = ACCELERATION;
+			}
+			// Move left
+			if (degree >= 158 && degree <= 203) {
+				mike.setDirection(Direction.LEFT);
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.RUNNING);
+				}
+				mike.getAcceleration().x = -ACCELERATION;
+			}
+			// Move down-left
+			if (degree > 203 && degree < 258) {
+				mike.setDirection(Direction.DOWN_LEFT);
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.RUNNING);
+				}
+				mike.getAcceleration().x = -ACCELERATION;
+				mike.getAcceleration().y = -ACCELERATION;
+			}
+			// Move down
+			if (degree >= 258 && degree <= 293) {
+				mike.setDirection(Direction.DOWN);
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.RUNNING);
+				}
+				mike.getAcceleration().y = -ACCELERATION;
+			}
+			// Move down-right
+			if (degree > 293 && degree < 338) {
+				mike.setDirection(Direction.DOWN_RIGHT);
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.RUNNING);
+				}
+				mike.getAcceleration().x = ACCELERATION;
+				mike.getAcceleration().y = -ACCELERATION;
+			} else {
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.IDLE);
+				}
+				mike.getAcceleration().x = 0;
+				mike.getAcceleration().y = 0;
+			}
+		} else {
+			if (!mike.getState().equals(State.JUMPING)) {
+				mike.setState(State.IDLE);
+			}
+			mike.getAcceleration().x = 0;
+			mike.getAcceleration().y = 0;
+		}
+		return true;
+	}
 
 	public void downPressed() {
 		keys.get(keys.put(Keys.DOWN, true));

@@ -47,7 +47,7 @@ public class Renderer {
 
 	private SpriteBatch spriteBatch;
 	private boolean debug = false;
-	private int width, height;
+	public int width, height;
 	private float ppuX;					// Pixels per unit on the X axis
 	private float ppuY;					// Pixels per unit on the Y axis
 
@@ -123,7 +123,8 @@ public class Renderer {
 		spriteBatch.draw(grass, 0, 0, width, height);
 		drawBlocks();
 		drawMike();
-		spriteBatch.draw(touchPad, 1 * ppuX, 1 * ppuY, 2 * ppuX, 2 * ppuY);
+		spriteBatch.draw(touchPad, width / 12, height / 10, width / 5, width / 5);	// TODO this is the x and y of the
+																					// corners, not the center
 		spriteBatch.end();
 		drawCollisionBlocks();
 		// drawTouchPad();
