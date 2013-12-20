@@ -56,6 +56,37 @@ public class World {
 		return blocks;
 	}
 
+	public List<Block> getOtherBlocks(int width, int height) {
+		int x = (int) mike.getPosition().x - width;
+		int y = (int) mike.getPosition().y - height;
+		if (x < 0) {
+			x = 0;
+		}
+		if (y < 0) {
+			y = 0;
+		}
+		int x2 = x + 2 * width;
+		int y2 = y + 2 * height;
+		if (x2 > level.getWidth()) {
+			x2 = level.getWidth() - 1;
+		}
+		if (y2 > level.getHeight()) {
+			y2 = level.getHeight() - 1;
+		}
+
+		List<Block> blocks = new ArrayList<Block>();
+		Block block;
+		for (int col = x; col <= x2; col++) {
+			for (int row = y; row <= y2; row++) {
+				block = level.getGrassBlocks()[col][row];
+				if (block != null) {
+					blocks.add(block);
+				}
+			}
+		}
+		return blocks;
+	}
+
 	public Array<Rectangle> getCollisionRects() {
 		return collisionRects;
 	}

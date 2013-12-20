@@ -2,6 +2,7 @@ package com.awesome.namethislater.screens;
 
 import com.awesome.namethislater.controller.MikeController;
 import com.awesome.namethislater.model.World;
+import com.awesome.namethislater.view.Basic3DRenderer;
 import com.awesome.namethislater.view.Renderer;
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
@@ -14,6 +15,7 @@ public class GameScreen implements Screen, InputProcessor {
 
 	private World world;
 	private Renderer renderer;
+	private Basic3DRenderer renderer3D;
 	private MikeController controller;
 
 	private int width, height;
@@ -29,11 +31,13 @@ public class GameScreen implements Screen, InputProcessor {
 
 		controller.update(delta);
 		renderer.render();
+		// renderer3D.render();
 	}
 
 	@Override
 	public void resize(int width, int height) {
 		renderer.setSize(width, height);
+		// renderer3D.setSize(width, height, 0);
 		this.width = width;
 		this.height = height;
 	}
@@ -49,7 +53,8 @@ public class GameScreen implements Screen, InputProcessor {
 	@Override
 	public void show() {
 		world = new World();
-		renderer = new Renderer(world, false);
+		renderer = new Renderer(world, true);
+		// renderer3D = new Basic3DRenderer(world, false);
 		controller = new MikeController(world);
 		Gdx.input.setInputProcessor(this);
 	}
@@ -131,21 +136,20 @@ public class GameScreen implements Screen, InputProcessor {
 	public boolean touchDown(int x, int y, int pointer, int button) {
 		if (!Gdx.app.getType().equals(ApplicationType.Android))
 			return false;
-		System.out.println("TOUCH");
-		return controller.onTouch(x, y, renderer);
+		return false;
 	}
 
 	@Override
 	public boolean touchUp(int x, int y, int pointer, int button) {
 		if (!Gdx.app.getType().equals(ApplicationType.Android))
 			return false;
+		controller.releaseAll();
 		return true;
 	}
 
 	@Override
-	public boolean touchDragged(int screenX, int screenY, int pointer) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean touchDragged(int x, int y, int pointer) {
+		return controller.onTouch(x, y, renderer);
 	}
 
 	@Override

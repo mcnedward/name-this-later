@@ -5,7 +5,8 @@ import com.badlogic.gdx.math.Vector2;
 public class Level {
 
 	private int width, height;
-	private Block[][] blocks;
+	private Block[][] grassBlocks;
+	private Block[][] waterBlocks;
 
 	public Level() {
 		loadDemoLevel();
@@ -14,35 +15,40 @@ public class Level {
 	private void loadDemoLevel() {
 		width = 10;
 		height = 7;
-		blocks = new Block[width][height];
+		grassBlocks = new Block[width][height];
+		waterBlocks = new Block[width][height];
 		for (int col = 0; col < width; col++) {
 			for (int row = 0; row < height; row++) {
-				blocks[col][row] = null;
+				grassBlocks[col][row] = new Block(new Vector2(col, row));
 			}
 		}
 
 		for (int col = 0; col < 10; col++) {
-			blocks[col][0] = new Block(new Vector2(col, 0));
-			blocks[col][6] = new Block(new Vector2(col, 6));
+			waterBlocks[col][0] = new Block(new Vector2(col, 0));
+			waterBlocks[col][6] = new Block(new Vector2(col, 6));
 			if (col > 2) {
-				blocks[col][1] = new Block(new Vector2(col, 1));
+				waterBlocks[col][1] = new Block(new Vector2(col, 1));
 			}
 		}
-		blocks[9][2] = new Block(new Vector2(9, 2));
-		blocks[9][3] = new Block(new Vector2(9, 3));
-		blocks[9][4] = new Block(new Vector2(9, 4));
-		blocks[9][5] = new Block(new Vector2(9, 5));
+		waterBlocks[9][2] = new Block(new Vector2(9, 2));
+		waterBlocks[9][3] = new Block(new Vector2(9, 3));
+		waterBlocks[9][4] = new Block(new Vector2(9, 4));
+		waterBlocks[9][5] = new Block(new Vector2(9, 5));
 
-		blocks[6][3] = new Block(new Vector2(6, 3));
-		blocks[6][4] = new Block(new Vector2(6, 4));
-		blocks[6][5] = new Block(new Vector2(6, 5));
+		waterBlocks[6][3] = new Block(new Vector2(6, 3));
+		waterBlocks[6][4] = new Block(new Vector2(6, 4));
+		waterBlocks[6][5] = new Block(new Vector2(6, 5));
 
-		blocks[7][3] = new Block(new Vector2(7, 3));
-		blocks[8][3] = new Block(new Vector2(8, 3));
+		waterBlocks[7][3] = new Block(new Vector2(7, 3));
+		waterBlocks[8][3] = new Block(new Vector2(8, 3));
 	}
 
 	public Block getBlockAt(int x, int y) {
-		return blocks[x][y];
+		return waterBlocks[x][y];
+	}
+
+	public Block getGrassBlocks(int x, int y) {
+		return grassBlocks[x][y];
 	}
 
 	/**
@@ -79,7 +85,11 @@ public class Level {
 	 * @return the blocks
 	 */
 	public Block[][] getBlocks() {
-		return blocks;
+		return waterBlocks;
+	}
+
+	public Block[][] getGrassBlocks() {
+		return grassBlocks;
 	}
 
 	/**
@@ -87,7 +97,7 @@ public class Level {
 	 *            the blocks to set
 	 */
 	public void setBlocks(Block[][] blocks) {
-		this.blocks = blocks;
+		this.waterBlocks = blocks;
 	}
 
 }

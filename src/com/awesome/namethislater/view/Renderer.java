@@ -25,7 +25,7 @@ public class Renderer {
 	private static final float CAMERA_WIDTH = 10f;
 	private static final float CAMERA_HEIGHT = 7f;
 	// The duration of each frame
-	private static final float RUNNING_FRAME_DURATION = 0.06f;	// 6 FPS
+	private static final float RUNNING_FRAME_DURATION = 0.1f;	// 10 FPS
 
 	private World world;
 	private OrthographicCamera cam;	// The camera for the screen
@@ -54,7 +54,7 @@ public class Renderer {
 	public Renderer(World world, boolean debug) {
 		this.world = world;
 		this.cam = new OrthographicCamera(CAMERA_WIDTH, CAMERA_HEIGHT);
-		this.cam.position.set(CAMERA_WIDTH / 2f, CAMERA_HEIGHT / 2f, 0);
+		this.cam.position.set(CAMERA_WIDTH / 2f, CAMERA_HEIGHT / 2f, 10);
 		this.cam.update();
 		this.debug = debug;
 		spriteBatch = new SpriteBatch();
@@ -89,7 +89,7 @@ public class Renderer {
 		idleMap.put(Direction.DOWN, new TextureRegion(animationFrames[0][0]));
 		idleMap.put(Direction.LEFT, new TextureRegion(animationFrames[1][0]));
 		idleMap.put(Direction.UP, new TextureRegion(animationFrames[2][0]));
-		idleMap.put(Direction.RIGHT, new TextureRegion(animationFrames[3][0]));
+		idleMap.put(Direction.RIGHT, new TextureRegion(animationFrames[3][2]));
 		idleMap.put(Direction.DOWN_LEFT, new TextureRegion(animationFrames[4][0]));
 		idleMap.put(Direction.UP_LEFT, new TextureRegion(animationFrames[5][0]));
 		idleMap.put(Direction.UP_RIGHT, new TextureRegion(animationFrames[6][0]));
@@ -120,16 +120,18 @@ public class Renderer {
 
 	public void render() {
 		spriteBatch.begin();
-		spriteBatch.draw(grass, 0, 0, width, height);
 		drawBlocks();
 		drawMike();
-		spriteBatch.draw(touchPad, width / 12, height / 10, width / 5, width / 5);	// TODO this is the x and y of the
-																					// corners, not the center
+		drawButtons();
 		spriteBatch.end();
 		drawCollisionBlocks();
 		// drawTouchPad();
-		// if (debug)
-		// drawDebug();
+		if (debug)
+			drawDebug();
+	}
+
+	public Texture getTouchPad() {
+		return touchPad;
 	}
 
 	private void drawMike() {
@@ -143,14 +145,24 @@ public class Renderer {
 			mikeFrame = jumpMap.get(direction);
 		}
 		spriteBatch.draw(mikeFrame, mike.getPosition().x * ppuX, mike.getPosition().y * ppuY, Mike.SIZE * ppuX,
-				Mike.SIZE * ppuY);
+				Mike.SIZE * (ppuY * 1.5f));
+	}
+
+	private void drawButtons() {
+		spriteBatch.draw(touchPad, (width / 12), (height / 10), (width / 5), (width / 5));
+		spriteBatch.draw(touchPad, (width - (width / 5)), (height / 6), (width / 7), (width / 7));
 	}
 
 	private void drawBlocks() {
+		for (Block block : world.getOtherBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
+			spriteBatch.draw(grass, block.getPosition().x * ppuX, block.getPosition().y * ppuY, Block.SIZE * ppuX,
+					Block.SIZE * ppuY);
+		}
 		for (Block block : world.getDrawableBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
 			spriteBatch.draw(water, block.getPosition().x * ppuX, block.getPosition().y * ppuY, Block.SIZE * ppuX,
 					Block.SIZE * ppuY);
 		}
+
 	}
 
 	private void drawCollisionBlocks() {
@@ -175,8 +187,13 @@ public class Renderer {
 	public void drawDebug() {
 		// Render blocks
 		debugRenderer.setProjectionMatrix(cam.combined);
-		debugRenderer.begin(ShapeType.Filled);
+		debugRenderer.begin(ShapeType.Line);
 		for (Block block : world.getDrawableBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
+			Rectangle rect = block.getBounds();
+			debugRenderer.setColor(new Color(1, 0, 0, 1));
+			debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
+		}
+		for (Block block : world.getOtherBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
 			Rectangle rect = block.getBounds();
 			debugRenderer.setColor(new Color(1, 0, 0, 1));
 			debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
