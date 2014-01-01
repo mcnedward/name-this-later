@@ -27,8 +27,12 @@ public class MikeController {
 	private static final float DAMP = 0.90f;		// Used to smooth out the walking animation
 	private static final float MAX_VEL = 4f;
 	private static final long JUMP_DURATION = 600;	// The maximum time allowed for Mike to be in the air
+	private static final long FPS = 10;
 
-	private long jumpTime;							// The starting time of Mike's jump
+	private float time;
+	private float jumpTime;							// The starting time of Mike's jump
+	private float jumpDegree;
+	private float jump;
 	private float jumpStartY;						// The Y coordinate that Mike is at when he starts a jump
 	private float jumpStartX;						// The X coordinate that Mike is at when he starts a jump
 	private float jumpHeight;						// The height of Mike's jump
@@ -76,24 +80,21 @@ public class MikeController {
 		// Check if Mike is currently jumping. If he is, check the time he has been in
 		// the air and drop him after the maximum time allowed for his jump.
 		if (mike.getState().equals(State.JUMPING)) {
-			// Check the height of Mike's jump
-			if ((mike.getBounds().y) >= jumpHeight) {
-				mike.getVelocity().y *= DAMP;
-			}
-			if (System.currentTimeMillis() - jumpTime > JUMP_DURATION) {
-				System.out.println("Jump peaked at: " + mike.getPosition().y);
-				falling = true;
-				mike.getAcceleration().y = -(ACCELERATION * 10);
-				mike.getVelocity().y = -MAX_JUMP_SPEED;
-				if (mike.getPosition().y <= jumpStartY) {
-					mike.getVelocity().y = 0;
-					mike.getAcceleration().y = 0;
-					mike.getPosition().y = jumpStartY;
+			time += delta;
+			jumpTime = (float) 60 / FPS;
+			if (jumpTime >= time) {
+				double radian = jumpDegree * (Math.PI / 180);
+				float velocity = (float) Math.sin(radian);
+				jump = jumpStartY + velocity;
+				float d = jump;
+				if (velocity < 0)
+					velocity = 0;
+				mike.getPosition().y = jump;
+				jumpDegree += 5;
+				if (jumpDegree > 180) {
 					mike.setState(State.IDLE);
-					System.out.println("Jump stopped at: " + mike.getPosition().y);
 				}
 			}
-
 		}
 
 		checkCollisions(delta);
@@ -131,13 +132,15 @@ public class MikeController {
 					jumpPressed = true;
 					jumping = true;
 					falling = false;
+					jumpDegree = 0;
 					jumpTime = System.currentTimeMillis();
 					jumpStartY = mike.getPosition().y;
-					jumpStartX = mike.getPosition().x;		// TODO JUMP DISTANCE!!!!!!!!!
-					jumpHeight = (mike.getBounds().y * 1.2f);	// TODO Should this be bounds.y + bounds.height?
-					mike.getVelocity().y = MAX_JUMP_SPEED;
-					System.out.println("Jump starting at: " + jumpTime + "\nStarting Y: " + jumpStartY
-							+ "\nMax height of jump: " + jumpHeight);
+					// jumpStartX = mike.getPosition().x; // TODO JUMP DISTANCE!!!!!!!!!
+					// jumpHeight = (mike.getBounds().y * 1.2f); // TODO Should this be bounds.y + bounds.height?
+					// mike.getVelocity().y = MAX_JUMP_SPEED;
+					// System.out.println("Jump starting at: " + jumpTime + "\nStarting Y: " + jumpStartY
+					// + "\nMax height of jump: " + jumpHeight);
+
 				}
 			}
 		}
@@ -179,7 +182,7 @@ public class MikeController {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
 					if (!falling) {
 						mike.getAcceleration().y = -ACCELERATION * 2;
-						jumpStartY = jumpStartY - (jumpStartY - mike.getPosition().y);
+						jumpStartY -= (mike.getPosition().y - jumpStartY);
 					}
 				}
 			}

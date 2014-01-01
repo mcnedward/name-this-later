@@ -27,18 +27,12 @@ public class Mike {
 	float stateTime = 0;
 	boolean longJump = false;
 
-	Vector2 shadow = new Vector2();
-
 	public Mike(Vector2 position) {
 		this.position = position;
 		this.bounds.x = position.x;
 		this.bounds.y = position.y;
 		this.bounds.height = SIZE;
 		this.bounds.width = SIZE;
-	}
-
-	public Vector2 getShadow() {
-		return shadow;
 	}
 
 	public void update(float delta) {
