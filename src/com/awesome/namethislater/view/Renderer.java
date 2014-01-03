@@ -36,6 +36,7 @@ public class Renderer {
 	/** Textures **/
 	private Texture spriteSheet;
 	private TextureRegion mikeFrame;
+	private Texture shadow;
 	private Texture touchPad;
 	private Texture grass;
 	private Texture water;
@@ -51,8 +52,12 @@ public class Renderer {
 	private float ppuX;					// Pixels per unit on the X axis
 	private float ppuY;					// Pixels per unit on the Y axis
 
+	private Mike mike;
+
 	public Renderer(World world, boolean debug) {
 		this.world = world;
+		mike = world.getMike();
+
 		this.cam = new OrthographicCamera(CAMERA_WIDTH, CAMERA_HEIGHT);
 		this.cam.position.set(CAMERA_WIDTH / 2f, CAMERA_HEIGHT / 2f, 10);
 		this.cam.update();
@@ -113,6 +118,7 @@ public class Renderer {
 		jumpMap.put(Direction.UP_RIGHT, new TextureRegion(jumpFrames[6][0]));
 		jumpMap.put(Direction.DOWN_RIGHT, new TextureRegion(jumpFrames[7][0]));
 
+		shadow = new Texture(Gdx.files.internal("images/shadow.png"));
 		touchPad = new Texture(Gdx.files.internal("images/touchpad.png"));
 		grass = new Texture(Gdx.files.internal("images/grass.png"));
 		water = new Texture(Gdx.files.internal("images/water.png"));
@@ -122,8 +128,10 @@ public class Renderer {
 		spriteBatch.begin();
 		drawBlocks();
 		drawMike();
-		drawButtons();
+		// drawButtons();
 		spriteBatch.end();
+
+		// drawShadow();
 		drawCollisionBlocks();
 		// drawTouchPad();
 		if (debug)
@@ -135,7 +143,6 @@ public class Renderer {
 	}
 
 	private void drawMike() {
-		Mike mike = world.getMike();
 		Direction direction = mike.getDirection();
 		if (mike.getState().equals(State.IDLE)) {
 			mikeFrame = idleMap.get(direction);
@@ -144,8 +151,20 @@ public class Renderer {
 		} else if (mike.getState().equals(State.JUMPING)) {
 			mikeFrame = jumpMap.get(direction);
 		}
+		if (mike.getState().equals(State.JUMPING)) {
+			spriteBatch.draw(shadow, mike.getShadow().x * ppuX, mike.getShadow().y * ppuY, mike.getBounds().width
+					* ppuX, mike.getBounds().height * ppuY);
+		}
 		spriteBatch.draw(mikeFrame, mike.getPosition().x * ppuX, mike.getPosition().y * ppuY, Mike.SIZE * ppuX,
 				Mike.SIZE * (ppuY * 1.5f));
+	}
+
+	private void drawShadow() {
+		debugRenderer.setProjectionMatrix(cam.combined);
+		debugRenderer.begin(ShapeType.Filled);
+		debugRenderer.setColor(new Color(1, 1, 1, 1));
+		debugRenderer.circle(mike.getShadow().x, mike.getShadow().y, mike.getBounds().width / 2);
+		debugRenderer.end();
 	}
 
 	private void drawButtons() {
@@ -162,7 +181,6 @@ public class Renderer {
 			spriteBatch.draw(water, block.getPosition().x * ppuX, block.getPosition().y * ppuY, Block.SIZE * ppuX,
 					Block.SIZE * ppuY);
 		}
-
 	}
 
 	private void drawCollisionBlocks() {
@@ -199,7 +217,6 @@ public class Renderer {
 			debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
 		}
 		// Render Mike
-		Mike mike = world.getMike();
 		Rectangle rect = mike.getBounds();
 		debugRenderer.setColor(new Color(0, 1, 0, 1));
 		debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);

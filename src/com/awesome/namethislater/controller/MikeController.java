@@ -22,7 +22,7 @@ public class MikeController {
 
 	private static final float ACCELERATION = 20f;	// The speed of walking
 	private static final float JUMP_ACCELERATION = ACCELERATION / 1.5f;
-	private static final float GRAVITY = -20f;		// The gravity of the room
+	private static final float JUMP_ACCELERATION2 = 0.07f;		// The gravity of the room
 	private static final float MAX_JUMP_SPEED = 8f;	// The speed of a jump
 	private static final float DAMP = 0.90f;		// Used to smooth out the walking animation
 	private static final float MAX_VEL = 4f;
@@ -32,14 +32,11 @@ public class MikeController {
 	private float time;
 	private float jumpTime;							// The starting time of Mike's jump
 	private float jumpDegree;
-	private float jump;
+	private float lift;								// The amount to increase or decrease the y-coord for a jump
 	private float jumpStartY;						// The Y coordinate that Mike is at when he starts a jump
-	private float jumpStartX;						// The X coordinate that Mike is at when he starts a jump
-	private float jumpHeight;						// The height of Mike's jump
 
-	private boolean jumping = false;
-	private boolean falling = false;				// Used to determine whether Mike is falling from his jump
 	private boolean jumpPressed = false;			// Used to prevent auto-jump by holding down jump button
+	private boolean isJumping = false;				// Used to determine if you are currently jumping
 
 	// This is the rectangle pool used in collision detection
 	// Good to avoid instantiation each frame
@@ -80,21 +77,26 @@ public class MikeController {
 		// Check if Mike is currently jumping. If he is, check the time he has been in
 		// the air and drop him after the maximum time allowed for his jump.
 		if (mike.getState().equals(State.JUMPING)) {
-			time += delta;
-			jumpTime = (float) 60 / FPS;
-			if (jumpTime >= time) {
-				double radian = jumpDegree * (Math.PI / 180);
-				float velocity = (float) Math.sin(radian);
-				jump = jumpStartY + velocity;
-				float d = jump;
-				if (velocity < 0)
-					velocity = 0;
-				mike.getPosition().y = jump;
-				jumpDegree += 5;
-				if (jumpDegree > 180) {
-					mike.setState(State.IDLE);
-				}
+			// time += delta;
+			// jumpTime = (float) 60 / FPS;
+			// if (jumpTime >= time) {
+			// The radian is the current angle of the jump, in radian measurements. Use this to determine the velocity
+			// that is needed to increase the y-coord for the jump by finding the sin of that radian. The lift variable
+			// uses the starting y-coord of the jump, and adds to that the current y velocity of the jump. Mike's
+			// position is updated to be at the current lift.
+			double radian = jumpDegree * (Math.PI / 180);
+			float velocityY = (float) Math.sin(radian);
+			lift = jumpStartY + velocityY;
+			// If the y velocity is less than 0, then the jump is over.
+			if (velocityY < 0)
+				velocityY = 0;
+			mike.getPosition().y = lift;
+			// Increase the angle of the jump. The jump reaches its peak at 90 degrees, and lands on the ground at 180.
+			jumpDegree += 5;
+			if (jumpDegree > 180) {
+				mike.setState(State.IDLE);
 			}
+			// }
 		}
 
 		checkCollisions(delta);
@@ -103,6 +105,10 @@ public class MikeController {
 		if (!mike.getState().equals(State.JUMPING)) {
 			mike.getVelocity().x *= DAMP;
 			mike.getVelocity().y *= DAMP;
+		}
+		if (mike.getState().equals(State.JUMPING)) {
+			mike.getShadow().x = mike.getPosition().x;
+			mike.getShadow().y = jumpStartY;
 		}
 
 		// Ensure terminal velocity is not exceeded
@@ -129,88 +135,73 @@ public class MikeController {
 				// set his maximum jump height. Then set his velocity to increase based on the max jump speed.
 				if (!mike.getState().equals(State.JUMPING)) {
 					mike.setState(State.JUMPING);
-					jumpPressed = true;
-					jumping = true;
-					falling = false;
-					jumpDegree = 0;
-					jumpTime = System.currentTimeMillis();
-					jumpStartY = mike.getPosition().y;
-					// jumpStartX = mike.getPosition().x; // TODO JUMP DISTANCE!!!!!!!!!
-					// jumpHeight = (mike.getBounds().y * 1.2f); // TODO Should this be bounds.y + bounds.height?
-					// mike.getVelocity().y = MAX_JUMP_SPEED;
-					// System.out.println("Jump starting at: " + jumpTime + "\nStarting Y: " + jumpStartY
-					// + "\nMax height of jump: " + jumpHeight);
-
+					jumpPressed = true;						// The button for jumping is pressed
+					isJumping = true;						// A jump has started
+					jumpDegree = 0;							// Reset the degree for the jump angle
+					jumpTime = System.currentTimeMillis();	// The starting time of the jump
+					jumpStartY = mike.getPosition().y;		// The starting y-coord of the jump
 				}
 			}
 		}
 		if (keys.get(Keys.DOWN)) {
 			if (keys.get(Keys.LEFT)) {
 				mike.setDirection(Direction.DOWN_LEFT);
+				mike.getAcceleration().x = -ACCELERATION;
+				mike.getAcceleration().y = -ACCELERATION;
 				if (!mike.getState().equals(State.JUMPING)) {
 					mike.setState(State.RUNNING);
-					mike.getAcceleration().x = -ACCELERATION;
-					mike.getAcceleration().y = -ACCELERATION;
 				} else if (mike.getState().equals(State.JUMPING)) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
-					if (!falling) {
-						mike.getAcceleration().y = -ACCELERATION * 2;
-						mike.getAcceleration().x = -ACCELERATION * 2;
-						jumpStartY = jumpStartY - (jumpStartY - mike.getPosition().y);
-					}
+					jumpStartY -= JUMP_ACCELERATION2;
 				}
 			} else if (keys.get(Keys.RIGHT)) {
 				mike.setDirection(Direction.DOWN_RIGHT);
+				mike.getAcceleration().x = ACCELERATION;
+				mike.getAcceleration().y = -ACCELERATION;
 				if (!mike.getState().equals(State.JUMPING)) {
 					mike.setState(State.RUNNING);
-					mike.getAcceleration().x = ACCELERATION;
-					mike.getAcceleration().y = -ACCELERATION;
 				} else if (mike.getState().equals(State.JUMPING)) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
-					if (!falling) {
-						mike.getAcceleration().y = -ACCELERATION * 2;
-						mike.getAcceleration().x = ACCELERATION * 2;
-						jumpStartY = jumpStartY - (jumpStartY - mike.getPosition().y);
-					}
+					jumpStartY -= JUMP_ACCELERATION2;
 				}
 			} else {
 				mike.setDirection(Direction.DOWN);
+				mike.getAcceleration().y = -ACCELERATION;
 				if (!mike.getState().equals(State.JUMPING)) {
 					mike.setState(State.RUNNING);
-					mike.getAcceleration().y = -ACCELERATION;
 				} else if (mike.getState().equals(State.JUMPING)) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
-					if (!falling) {
-						mike.getAcceleration().y = -ACCELERATION * 2;
-						jumpStartY -= (mike.getPosition().y - jumpStartY);
-					}
+					jumpStartY -= JUMP_ACCELERATION2;
 				}
 			}
 		} else if (keys.get(Keys.UP)) {
 			if (keys.get(Keys.LEFT)) {
 				mike.setDirection(Direction.UP_LEFT);
+				mike.getAcceleration().x = -ACCELERATION;
+				mike.getAcceleration().y = ACCELERATION;
 				if (!mike.getState().equals(State.JUMPING)) {
 					mike.setState(State.RUNNING);
-					mike.getAcceleration().x = -ACCELERATION;
-					mike.getAcceleration().y = ACCELERATION;
+				} else if (mike.getState().equals(State.JUMPING)) {
+					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
+					jumpStartY += JUMP_ACCELERATION2;
 				}
 			} else if (keys.get(Keys.RIGHT)) {
 				mike.setDirection(Direction.UP_RIGHT);
+				mike.getAcceleration().x = ACCELERATION;
+				mike.getAcceleration().y = ACCELERATION;
 				if (!mike.getState().equals(State.JUMPING)) {
 					mike.setState(State.RUNNING);
-					mike.getAcceleration().x = ACCELERATION;
-					mike.getAcceleration().y = ACCELERATION;
+				} else if (mike.getState().equals(State.JUMPING)) {
+					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
+					jumpStartY += JUMP_ACCELERATION2;
 				}
 			} else {
 				mike.setDirection(Direction.UP);
+				mike.getAcceleration().y = ACCELERATION;
 				if (!mike.getState().equals(State.JUMPING)) {
 					mike.setState(State.RUNNING);
-					mike.getAcceleration().y = ACCELERATION;
 				} else if (mike.getState().equals(State.JUMPING)) {
-					mike.getAcceleration().y = ACCELERATION;
-					if (jumping) {
-						jumpStartY = jumpStartY - (jumpStartY - mike.getPosition().y);
-					}
+					jumpStartY += JUMP_ACCELERATION2;
 				}
 			}
 		} else if (keys.get(Keys.LEFT)) {
@@ -229,13 +220,6 @@ public class MikeController {
 			} else if (mike.getState().equals(State.JUMPING)) {
 				mike.getAcceleration().x = JUMP_ACCELERATION;
 			}
-		} else if (keys.get(Keys.DOWN) && keys.get(Keys.LEFT)) {
-			mike.setDirection(Direction.DOWN_LEFT);
-			if (!mike.getState().equals(State.JUMPING)) {
-				mike.setState(State.RUNNING);
-			}
-			mike.getAcceleration().x = -ACCELERATION;
-			mike.getAcceleration().y = -ACCELERATION;
 		} else {
 			if (!mike.getState().equals(State.JUMPING)) {
 				mike.setState(State.IDLE);
@@ -460,12 +444,12 @@ public class MikeController {
 		keys.get(keys.put(Keys.DOWN, true));
 	}
 
-	public void leftPressed() {
-		keys.get(keys.put(Keys.LEFT, true));
-	}
-
 	public void upPressed() {
 		keys.get(keys.put(Keys.UP, true));
+	}
+
+	public void leftPressed() {
+		keys.get(keys.put(Keys.LEFT, true));
 	}
 
 	public void rightPressed() {
@@ -480,12 +464,12 @@ public class MikeController {
 		keys.get(keys.put(Keys.DOWN, false));
 	}
 
-	public void leftReleased() {
-		keys.get(keys.put(Keys.LEFT, false));
-	}
-
 	public void upReleased() {
 		keys.get(keys.put(Keys.UP, false));
+	}
+
+	public void leftReleased() {
+		keys.get(keys.put(Keys.LEFT, false));
 	}
 
 	public void rightReleased() {
@@ -499,9 +483,9 @@ public class MikeController {
 
 	public void releaseAll() {
 		downReleased();
+		upReleased();
 		leftReleased();
 		rightReleased();
-		upReleased();
 		jumpReleased();
 	}
 

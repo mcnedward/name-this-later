@@ -88,11 +88,11 @@ public class GameScreen implements Screen, InputProcessor {
 		case Keys.DOWN:
 			controller.downPressed();
 			break;
-		case Keys.LEFT:
-			controller.leftPressed();
-			break;
 		case Keys.UP:
 			controller.upPressed();
+			break;
+		case Keys.LEFT:
+			controller.leftPressed();
 			break;
 		case Keys.RIGHT:
 			controller.rightPressed();

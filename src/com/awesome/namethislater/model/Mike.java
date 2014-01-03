@@ -20,7 +20,10 @@ public class Mike {
 	Vector2 position = new Vector2();
 	Vector2 acceleration = new Vector2();
 	Vector2 velocity = new Vector2();
+	Vector2 shadow = new Vector2();
+
 	Rectangle bounds = new Rectangle();
+
 	State state = State.IDLE;
 	Direction direction = Direction.DOWN;
 	boolean facingLeft = true;
@@ -33,6 +36,17 @@ public class Mike {
 		this.bounds.y = position.y;
 		this.bounds.height = SIZE;
 		this.bounds.width = SIZE;
+
+		shadow.x = position.x + (bounds.width / 2);
+		shadow.y = position.y + (bounds.height / 2);
+	}
+
+	public void setShadow(Vector2 position) {
+		shadow = position;
+	}
+
+	public Vector2 getShadow() {
+		return shadow;
 	}
 
 	public void update(float delta) {
