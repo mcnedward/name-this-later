@@ -20,23 +20,17 @@ public class MikeController {
 		DOWN, LEFT, UP, RIGHT, JUMP
 	}
 
-	private static final float ACCELERATION = 20f;	// The speed of walking
-	private static final float JUMP_ACCELERATION = ACCELERATION / 1.5f;
-	private static final float JUMP_ACCELERATION2 = 0.07f;		// The gravity of the room
-	private static final float MAX_JUMP_SPEED = 8f;	// The speed of a jump
-	private static final float DAMP = 0.90f;		// Used to smooth out the walking animation
+	private static final float ACCELERATION = 20f;			// The speed of walking
+	private static final float JUMP_ACCELERATION = ACCELERATION / 1.5f;	// The acceleration of a jump
+	private static final float SHADOW_ACCELERATION = 0.07f;	// The acceleration of the base of the jump
+	private static final float DAMP = 0.90f;				// Used to smooth out the walking animation
 	private static final float MAX_VEL = 4f;
-	private static final long JUMP_DURATION = 600;	// The maximum time allowed for Mike to be in the air
-	private static final long FPS = 10;
 
-	private float time;
-	private float jumpTime;							// The starting time of Mike's jump
 	private float jumpDegree;
 	private float lift;								// The amount to increase or decrease the y-coord for a jump
 	private float jumpStartY;						// The Y coordinate that Mike is at when he starts a jump
 
 	private boolean jumpPressed = false;			// Used to prevent auto-jump by holding down jump button
-	private boolean isJumping = false;				// Used to determine if you are currently jumping
 
 	// This is the rectangle pool used in collision detection
 	// Good to avoid instantiation each frame
@@ -55,7 +49,7 @@ public class MikeController {
 		keys.put(Keys.RIGHT, false);
 		keys.put(Keys.JUMP, false);
 	}
-	private float delta;
+
 	private World world;
 	private Mike mike;
 	// Blocks that can be collided with in any frame
@@ -77,13 +71,10 @@ public class MikeController {
 		// Check if Mike is currently jumping. If he is, check the time he has been in
 		// the air and drop him after the maximum time allowed for his jump.
 		if (mike.getState().equals(State.JUMPING)) {
-			// time += delta;
-			// jumpTime = (float) 60 / FPS;
-			// if (jumpTime >= time) {
-			// The radian is the current angle of the jump, in radian measurements. Use this to determine the velocity
-			// that is needed to increase the y-coord for the jump by finding the sin of that radian. The lift variable
-			// uses the starting y-coord of the jump, and adds to that the current y velocity of the jump. Mike's
-			// position is updated to be at the current lift.
+			// The radian is the current angle of the jump, in radian measurements. Use this to determine the
+			// velocity that is needed to increase the y-coord for the jump by finding the sin of that radian. The lift
+			// variable uses the starting y-coord of the jump, and adds to that the current y velocity of the jump.
+			// Mike's position is updated to be at the current lift.
 			double radian = jumpDegree * (Math.PI / 180);
 			float velocityY = (float) Math.sin(radian);
 			lift = jumpStartY + velocityY;
@@ -91,12 +82,12 @@ public class MikeController {
 			if (velocityY < 0)
 				velocityY = 0;
 			mike.getPosition().y = lift;
-			// Increase the angle of the jump. The jump reaches its peak at 90 degrees, and lands on the ground at 180.
+			// Increase the angle of the jump. The jump reaches its peak at 90 degrees, and lands on the ground at
+			// 180.
 			jumpDegree += 5;
 			if (jumpDegree > 180) {
 				mike.setState(State.IDLE);
 			}
-			// }
 		}
 
 		checkCollisions(delta);
@@ -136,9 +127,7 @@ public class MikeController {
 				if (!mike.getState().equals(State.JUMPING)) {
 					mike.setState(State.JUMPING);
 					jumpPressed = true;						// The button for jumping is pressed
-					isJumping = true;						// A jump has started
 					jumpDegree = 0;							// Reset the degree for the jump angle
-					jumpTime = System.currentTimeMillis();	// The starting time of the jump
 					jumpStartY = mike.getPosition().y;		// The starting y-coord of the jump
 				}
 			}
@@ -146,62 +135,72 @@ public class MikeController {
 		if (keys.get(Keys.DOWN)) {
 			if (keys.get(Keys.LEFT)) {
 				mike.setDirection(Direction.DOWN_LEFT);
-				mike.getAcceleration().x = -ACCELERATION;
-				mike.getAcceleration().y = -ACCELERATION;
 				if (!mike.getState().equals(State.JUMPING)) {
 					mike.setState(State.RUNNING);
+					mike.getAcceleration().x = -ACCELERATION;
+					mike.getAcceleration().y = -ACCELERATION;
 				} else if (mike.getState().equals(State.JUMPING)) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
-					jumpStartY -= JUMP_ACCELERATION2;
+					mike.getAcceleration().x = -JUMP_ACCELERATION;
+					mike.getAcceleration().y = -JUMP_ACCELERATION;
+					jumpStartY -= SHADOW_ACCELERATION;
 				}
 			} else if (keys.get(Keys.RIGHT)) {
 				mike.setDirection(Direction.DOWN_RIGHT);
-				mike.getAcceleration().x = ACCELERATION;
-				mike.getAcceleration().y = -ACCELERATION;
 				if (!mike.getState().equals(State.JUMPING)) {
 					mike.setState(State.RUNNING);
+					mike.getAcceleration().x = ACCELERATION;
+					mike.getAcceleration().y = -ACCELERATION;
 				} else if (mike.getState().equals(State.JUMPING)) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
-					jumpStartY -= JUMP_ACCELERATION2;
+					mike.getAcceleration().x = JUMP_ACCELERATION;
+					mike.getAcceleration().y = -JUMP_ACCELERATION;
+					jumpStartY -= SHADOW_ACCELERATION;
 				}
 			} else {
 				mike.setDirection(Direction.DOWN);
-				mike.getAcceleration().y = -ACCELERATION;
 				if (!mike.getState().equals(State.JUMPING)) {
 					mike.setState(State.RUNNING);
+					mike.getAcceleration().y = -ACCELERATION;
 				} else if (mike.getState().equals(State.JUMPING)) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
-					jumpStartY -= JUMP_ACCELERATION2;
+					mike.getAcceleration().y = -JUMP_ACCELERATION;
+					jumpStartY -= SHADOW_ACCELERATION;
 				}
 			}
 		} else if (keys.get(Keys.UP)) {
 			if (keys.get(Keys.LEFT)) {
 				mike.setDirection(Direction.UP_LEFT);
-				mike.getAcceleration().x = -ACCELERATION;
-				mike.getAcceleration().y = ACCELERATION;
 				if (!mike.getState().equals(State.JUMPING)) {
 					mike.setState(State.RUNNING);
+					mike.getAcceleration().x = -ACCELERATION;
+					mike.getAcceleration().y = ACCELERATION;
 				} else if (mike.getState().equals(State.JUMPING)) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
-					jumpStartY += JUMP_ACCELERATION2;
+					mike.getAcceleration().x = -JUMP_ACCELERATION;
+					mike.getAcceleration().y = JUMP_ACCELERATION;
+					jumpStartY += SHADOW_ACCELERATION;
 				}
 			} else if (keys.get(Keys.RIGHT)) {
 				mike.setDirection(Direction.UP_RIGHT);
-				mike.getAcceleration().x = ACCELERATION;
-				mike.getAcceleration().y = ACCELERATION;
 				if (!mike.getState().equals(State.JUMPING)) {
 					mike.setState(State.RUNNING);
+					mike.getAcceleration().x = ACCELERATION;
+					mike.getAcceleration().y = ACCELERATION;
 				} else if (mike.getState().equals(State.JUMPING)) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
-					jumpStartY += JUMP_ACCELERATION2;
+					mike.getAcceleration().x = JUMP_ACCELERATION;
+					mike.getAcceleration().y = JUMP_ACCELERATION;
+					jumpStartY += SHADOW_ACCELERATION;
 				}
 			} else {
 				mike.setDirection(Direction.UP);
-				mike.getAcceleration().y = ACCELERATION;
 				if (!mike.getState().equals(State.JUMPING)) {
 					mike.setState(State.RUNNING);
+					mike.getAcceleration().y = ACCELERATION;
 				} else if (mike.getState().equals(State.JUMPING)) {
-					jumpStartY += JUMP_ACCELERATION2;
+					mike.getAcceleration().y = JUMP_ACCELERATION;
+					jumpStartY += SHADOW_ACCELERATION;
 				}
 			}
 		} else if (keys.get(Keys.LEFT)) {
@@ -479,6 +478,8 @@ public class MikeController {
 	public void jumpReleased() {
 		keys.get(keys.put(Keys.JUMP, false));
 		jumpPressed = false;
+		float diff = Math.abs(90 - jumpDegree);
+		jumpDegree = 90 + diff;
 	}
 
 	public void releaseAll() {
