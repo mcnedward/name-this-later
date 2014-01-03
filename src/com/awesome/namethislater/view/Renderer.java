@@ -128,10 +128,9 @@ public class Renderer {
 		spriteBatch.begin();
 		drawBlocks();
 		drawMike();
-		// drawButtons();
+		drawButtons();
 		spriteBatch.end();
 
-		// drawShadow();
 		drawCollisionBlocks();
 		// drawTouchPad();
 		if (debug)

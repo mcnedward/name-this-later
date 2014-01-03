@@ -342,13 +342,13 @@ public class MikeController {
 
 	/** Touch Events and Key Presses **/
 
-	public boolean onTouch(int x, int y, Renderer renderer) {
+	public boolean onTouch(float x, float y, Renderer renderer) {
 		float width = renderer.width;
 		float height = renderer.height;
 
-		float radius = (width / 5) / 2;						// The radius of the touch pad
-		float cx = (width / 12) + radius;					// Get the center X of the touch pad
-		float cy = height - (height / 10) - radius;			// Get the center Y of the touch pad
+		float radius = (width / 5) / 2;				// The radius of the touch pad
+		float cx = (width / 12) + radius;			// Get the center X of the touch pad
+		float cy = height - (height / 10) - radius;	// Get the center Y of the touch pad
 		// Get the maximum and minimum x and y coordinates allowed for the touch pad
 		float maxX = cx + radius;
 		float minX = Math.abs(cx - radius);
@@ -384,45 +384,45 @@ public class MikeController {
 		if (x <= maxX && x >= minX && y <= maxY && y >= minY) {
 			// Move right
 			if (degree <= 23 && degree >= 0 || degree >= 338 && degree <= 360) {
-				releaseAll();
+				releaseAllMovement();
 				rightPressed();
 			}
 			// Move up-right
 			if (degree > 23 && degree < 68) {
-				releaseAll();
+				releaseAllMovement();
 				upPressed();
 				rightPressed();
 			}
 			// Move up
 			if (degree >= 68 && degree <= 113) {
-				releaseAll();
+				releaseAllMovement();
 				upPressed();
 			}
 			// Move up-left
 			if (degree > 113 && degree < 158) {
-				releaseAll();
+				releaseAllMovement();
 				upPressed();
 				leftPressed();
 			}
 			// Move left
 			if (degree >= 158 && degree <= 203) {
-				releaseAll();
+				releaseAllMovement();
 				leftPressed();
 			}
 			// Move down-left
 			if (degree > 203 && degree < 258) {
-				releaseAll();
+				releaseAllMovement();
 				downPressed();
 				leftPressed();
 			}
 			// Move down
 			if (degree >= 258 && degree <= 293) {
-				releaseAll();
+				releaseAllMovement();
 				downPressed();
 			}
 			// Move down-right
 			if (degree > 293 && degree < 338) {
-				releaseAll();
+				releaseAllMovement();
 				downPressed();
 				rightPressed();
 			} else {
@@ -480,6 +480,13 @@ public class MikeController {
 		jumpPressed = false;
 		float diff = Math.abs(90 - jumpDegree);
 		jumpDegree = 90 + diff;
+	}
+
+	public void releaseAllMovement() {
+		downReleased();
+		upReleased();
+		leftReleased();
+		rightReleased();
 	}
 
 	public void releaseAll() {

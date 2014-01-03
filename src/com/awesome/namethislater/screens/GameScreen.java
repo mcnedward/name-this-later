@@ -1,5 +1,8 @@
 package com.awesome.namethislater.screens;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.awesome.namethislater.controller.MikeController;
 import com.awesome.namethislater.model.World;
 import com.awesome.namethislater.view.Basic3DRenderer;
@@ -149,7 +152,22 @@ public class GameScreen implements Screen, InputProcessor {
 
 	@Override
 	public boolean touchDragged(int x, int y, int pointer) {
-		return controller.onTouch(x, y, renderer);
+		controller.onTouch(Gdx.input.getX(pointer), Gdx.input.getY(pointer), renderer);
+		return false;
+	}
+
+	private Map<Integer, TouchInfo> touches = new HashMap<Integer, TouchInfo>();
+
+	class TouchInfo {
+		public float x = 0;
+		public float y = 0;
+		public boolean touched = false;
+
+		public TouchInfo(float x, float y) {
+			this.x = x;
+			this.y = y;
+			touched = true;
+		}
 	}
 
 	@Override
