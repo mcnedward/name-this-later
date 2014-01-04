@@ -36,6 +36,7 @@ public class Renderer {
 	/** Textures **/
 	private Texture spriteSheet;
 	private TextureRegion mikeFrame;
+	private Texture dead;
 	private Texture shadow;
 	private Texture touchPad;
 	private Texture grass;
@@ -69,7 +70,7 @@ public class Renderer {
 	private void loadTextures() {
 		// Create the sprite sheet as a new Texture. The width is the number of columns in the sheet. The height is the
 		// number of rows in the sheet.
-		spriteSheet = new Texture(Gdx.files.internal("images/mikespritesheet.png"));
+		spriteSheet = new Texture(Gdx.files.internal("images/mikespritesheetdetailed.png"));
 		int width = spriteSheet.getWidth() / 4;
 		int height = spriteSheet.getHeight() / 8;
 
@@ -118,6 +119,7 @@ public class Renderer {
 		jumpMap.put(Direction.UP_RIGHT, new TextureRegion(jumpFrames[6][0]));
 		jumpMap.put(Direction.DOWN_RIGHT, new TextureRegion(jumpFrames[7][0]));
 
+		dead = new Texture(Gdx.files.internal("images/dead.png"));
 		shadow = new Texture(Gdx.files.internal("images/shadow.png"));
 		touchPad = new Texture(Gdx.files.internal("images/touchpad.png"));
 		grass = new Texture(Gdx.files.internal("images/grass.png"));
@@ -128,7 +130,7 @@ public class Renderer {
 		spriteBatch.begin();
 		drawBlocks();
 		drawMike();
-		drawButtons();
+		// drawButtons();
 		spriteBatch.end();
 
 		drawCollisionBlocks();
@@ -149,6 +151,8 @@ public class Renderer {
 			mikeFrame = animationMap.get(direction).getKeyFrame(mike.getStateTime(), true);
 		} else if (mike.getState().equals(State.JUMPING)) {
 			mikeFrame = jumpMap.get(direction);
+		} else if (mike.getState().equals(State.DYING)) {
+			mikeFrame.setTexture(dead);
 		}
 		if (mike.getState().equals(State.JUMPING)) {
 			spriteBatch.draw(shadow, mike.getShadow().x * ppuX, mike.getShadow().y * ppuY, mike.getBounds().width
@@ -216,7 +220,7 @@ public class Renderer {
 			debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
 		}
 		// Render Mike
-		Rectangle rect = mike.getBounds();
+		Rectangle rect = mike.getFeetBounds();
 		debugRenderer.setColor(new Color(0, 1, 0, 1));
 		debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
 		debugRenderer.end();

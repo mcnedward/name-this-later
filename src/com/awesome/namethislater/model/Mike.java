@@ -23,6 +23,7 @@ public class Mike {
 	Vector2 shadow = new Vector2();
 
 	Rectangle bounds = new Rectangle();
+	Rectangle feetBounds = new Rectangle();
 
 	State state = State.IDLE;
 	Direction direction = Direction.DOWN;
@@ -32,13 +33,45 @@ public class Mike {
 
 	public Mike(Vector2 position) {
 		this.position = position;
-		this.bounds.x = position.x;
-		this.bounds.y = position.y;
-		this.bounds.height = SIZE;
-		this.bounds.width = SIZE;
 
-		shadow.x = position.x + (bounds.width / 2);
-		shadow.y = position.y + (bounds.height / 2);
+		bounds.x = position.x;
+		bounds.y = position.y;
+		bounds.height = SIZE;
+		bounds.width = SIZE;
+
+		updateFeetBounds(position);
+		updateShadow(position);
+	}
+
+	public void update(float delta) {
+		stateTime += delta;
+		updateFeetBounds(getPosition());
+	}
+
+	/**
+	 * This is used to update the Rectangle boundaries surrounding Mike's feet. Use this for collision detection with
+	 * floor tiles (pits, water).
+	 * 
+	 * @param position
+	 *            The current position of Mike.
+	 */
+	public void updateFeetBounds(Vector2 position) {
+		float width = (float) (SIZE * (2.0 / 3));
+		feetBounds.x = position.x + (SIZE / 7);
+		feetBounds.y = position.y;
+		feetBounds.width = width;
+		feetBounds.height = SIZE / 3;
+	}
+
+	/**
+	 * This is used to update the shadow for Mike.
+	 * 
+	 * @param position
+	 *            The current position of Mike.
+	 */
+	public void updateShadow(Vector2 position) {
+		shadow.x = position.x + (SIZE / 2);
+		shadow.y = position.y + (SIZE / 2);
 	}
 
 	public void setShadow(Vector2 position) {
@@ -47,10 +80,6 @@ public class Mike {
 
 	public Vector2 getShadow() {
 		return shadow;
-	}
-
-	public void update(float delta) {
-		stateTime += delta;
 	}
 
 	/**
@@ -130,6 +159,21 @@ public class Mike {
 	 */
 	public void setBounds(Rectangle bounds) {
 		this.bounds = bounds;
+	}
+
+	/**
+	 * @return the feetBounds
+	 */
+	public Rectangle getFeetBounds() {
+		return feetBounds;
+	}
+
+	/**
+	 * @param feetBounds
+	 *            the feetBounds to set
+	 */
+	public void setFeetBounds(Rectangle feetBounds) {
+		this.feetBounds = feetBounds;
 	}
 
 	/**

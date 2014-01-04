@@ -240,7 +240,9 @@ public class MikeController {
 		// Obtain Mike's rectangle from the pool of rectangles instead of instantiating every frame. Then set the
 		// bounds of the rectangle.
 		Rectangle mikeRect = rectPool.obtain();
-		mikeRect.set(mike.getBounds());
+		mikeRect.set((mike.getFeetBounds().x + (mike.getFeetBounds().width / 2)),
+				(mike.getFeetBounds().y + (mike.getFeetBounds().height / 2)), mike.getFeetBounds().width,
+				mike.getFeetBounds().height);
 
 		// Set Mike's collision rect to include his X and Y velocity
 		mikeRect.x += mike.getVelocity().x;
@@ -248,13 +250,14 @@ public class MikeController {
 
 		// Check for collisions on the horizontal X axis
 		int startX, endX;
-		int startY = (int) mike.getBounds().y;
-		int endY = (int) (mike.getBounds().y + (mike.getBounds().height / 2));
+		int startY = (int) mike.getFeetBounds().y;
+		int endY = (int) (mike.getFeetBounds().y + (mike.getFeetBounds().height / 2));
 		// Check for collisions with blocks on the left and right
 		if (mike.getVelocity().x < 0) {
-			startX = endX = (int) Math.floor(mike.getBounds().x + mike.getVelocity().x);
+			startX = endX = (int) Math.floor(mike.getFeetBounds().x + mike.getVelocity().x);
 		} else {
-			startX = endX = (int) Math.floor(mike.getBounds().x + mike.getBounds().width + mike.getVelocity().x);
+			startX = endX = (int) Math
+					.floor(mike.getFeetBounds().x + mike.getFeetBounds().width + mike.getVelocity().x);
 		}
 
 		populateCollidableBlocks(startX, startY, endX, endY);
@@ -275,12 +278,13 @@ public class MikeController {
 		}
 
 		// Check for collisions on the vertical Y axis
-		startX = (int) mike.getBounds().x;
-		endX = (int) (mike.getBounds().x + mike.getBounds().width);
+		startX = (int) mike.getFeetBounds().x;
+		endX = (int) (mike.getFeetBounds().x + mike.getFeetBounds().width);
 		if (mike.getVelocity().y < 0) {
-			startY = endY = (int) Math.floor(mike.getBounds().y + mike.getVelocity().y);
+			startY = endY = (int) Math.floor(mike.getFeetBounds().y + mike.getVelocity().y);
 		} else {
-			startY = endY = (int) Math.floor(mike.getBounds().y + (mike.getBounds().height / 2) + mike.getVelocity().y);
+			startY = endY = (int) Math.floor(mike.getFeetBounds().y + (mike.getFeetBounds().height)
+					+ mike.getVelocity().y);
 		}
 
 		populateCollidableBlocks(startX, startY, endX, endY);
@@ -311,8 +315,8 @@ public class MikeController {
 
 		// Update the position
 		mike.getPosition().add(mike.getVelocity());
-		mike.getBounds().x = mike.getPosition().x;
-		mike.getBounds().y = mike.getPosition().y;
+		mike.getFeetBounds().x = mike.getPosition().x;
+		mike.getFeetBounds().y = mike.getPosition().y;
 		// Un-scale the velocity so that it is no longer in frame time
 		mike.getVelocity().mul(1 / delta);
 	}
@@ -480,6 +484,35 @@ public class MikeController {
 		jumpPressed = false;
 		float diff = Math.abs(90 - jumpDegree);
 		jumpDegree = 90 + diff;
+	}
+
+	public void onTouchUp(int x, int y, Renderer renderer) {
+		float width = renderer.width;
+		float height = renderer.height;
+
+		float radius = (width / 5) / 2;				// The radius of the touch pad
+		float cx = (width / 12) + radius;			// Get the center X of the touch pad
+		float cy = height - (height / 10) - radius;	// Get the center Y of the touch pad
+		// Get the maximum and minimum x and y coordinates allowed for the touch pad
+		float maxX = cx + radius;
+		float minX = Math.abs(cx - radius);
+		float maxY = cy + radius;
+		float minY = Math.abs(cy - radius);
+		// Get the maximum and minimum x and y coordinates allowed for the jump button
+		float jRadius = (width / 7) / 2;
+		float jx = width - (width / 5) + jRadius;
+		float jy = height - (height / 6) - jRadius;
+		float jMaxX = jx + jRadius;
+		float jMinX = Math.abs(jx - jRadius);
+		float jMaxY = jy + jRadius;
+		float jMinY = Math.abs(jy - jRadius);
+
+		if (x <= maxX && x >= minX && y <= maxY && y >= minY) {
+			releaseAllMovement();
+		}
+		if (x <= jMaxX && x >= jMinX && y <= jMaxY && y >= jMinY) {
+			jumpReleased();
+		}
 	}
 
 	public void releaseAllMovement() {

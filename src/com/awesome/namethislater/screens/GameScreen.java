@@ -125,6 +125,8 @@ public class GameScreen implements Screen, InputProcessor {
 		case Keys.SPACE:
 			controller.jumpReleased();
 			break;
+		case Keys.D:
+			renderer.setDebug(!renderer.isDebug());
 		}
 		return false;
 	}
@@ -146,7 +148,7 @@ public class GameScreen implements Screen, InputProcessor {
 	public boolean touchUp(int x, int y, int pointer, int button) {
 		if (!Gdx.app.getType().equals(ApplicationType.Android))
 			return false;
-		controller.releaseAll();
+		controller.onTouchUp(Gdx.input.getX(pointer), Gdx.input.getY(pointer), renderer);
 		return true;
 	}
 
