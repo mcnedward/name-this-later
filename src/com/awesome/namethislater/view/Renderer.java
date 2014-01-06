@@ -35,6 +35,7 @@ public class Renderer {
 
 	/** Textures **/
 	private Texture spriteSheet;
+	private Texture attackSheet;
 	private TextureRegion mikeFrame;
 	private Texture dead;
 	private Texture shadow;
@@ -46,12 +47,15 @@ public class Renderer {
 	private Map<Direction, Animation> animationMap = new HashMap<Direction, Animation>();
 	private Map<Direction, TextureRegion> idleMap = new HashMap<Direction, TextureRegion>();
 	private Map<Direction, TextureRegion> jumpMap = new HashMap<Direction, TextureRegion>();
+	private Map<Direction, Animation> attackMap = new HashMap<Direction, Animation>();
 
 	private SpriteBatch spriteBatch;
 	private boolean debug = false;
 	public int width, height;
 	private float ppuX;					// Pixels per unit on the X axis
 	private float ppuY;					// Pixels per unit on the Y axis
+
+	int stateTime = 0;
 
 	private Mike mike;
 
@@ -100,7 +104,7 @@ public class Renderer {
 		idleMap.put(Direction.UP_LEFT, new TextureRegion(animationFrames[5][0]));
 		idleMap.put(Direction.UP_RIGHT, new TextureRegion(animationFrames[6][0]));
 		idleMap.put(Direction.DOWN_RIGHT, new TextureRegion(animationFrames[7][0]));
-		// Set the animation for each direction
+		// Set the running animation for each direction
 		animationMap.put(Direction.DOWN, new Animation(RUNNING_FRAME_DURATION, animationFrames[0]));
 		animationMap.put(Direction.LEFT, new Animation(RUNNING_FRAME_DURATION, animationFrames[1]));
 		animationMap.put(Direction.UP, new Animation(RUNNING_FRAME_DURATION, animationFrames[2]));
@@ -119,6 +123,31 @@ public class Renderer {
 		jumpMap.put(Direction.UP_RIGHT, new TextureRegion(jumpFrames[6][0]));
 		jumpMap.put(Direction.DOWN_RIGHT, new TextureRegion(jumpFrames[7][0]));
 
+		// Cut out the sprites from the attack sheet
+		attackSheet = new Texture(Gdx.files.internal("images/attacking.png"));
+		int w = attackSheet.getWidth() / 2;
+		int h = attackSheet.getHeight() / 8;
+
+		TextureRegion[][] attackFrames = new TextureRegion[8][2];
+
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 2; j++) {
+				int x = j * w;
+				int y = i * h;
+				attackFrames[i][j] = new TextureRegion(attackSheet, x, y, w, h);
+			}
+		}
+
+		// Set the attacking animation for each direction
+		attackMap.put(Direction.DOWN, new Animation(RUNNING_FRAME_DURATION, attackFrames[0]));
+		attackMap.put(Direction.LEFT, new Animation(RUNNING_FRAME_DURATION * 5, attackFrames[1]));
+		attackMap.put(Direction.UP, new Animation(RUNNING_FRAME_DURATION * 5, attackFrames[2]));
+		attackMap.put(Direction.RIGHT, new Animation(RUNNING_FRAME_DURATION * 5, attackFrames[3]));
+		attackMap.put(Direction.DOWN_LEFT, new Animation(RUNNING_FRAME_DURATION * 5, attackFrames[4]));
+		attackMap.put(Direction.UP_LEFT, new Animation(RUNNING_FRAME_DURATION * 5, attackFrames[5]));
+		attackMap.put(Direction.UP_RIGHT, new Animation(RUNNING_FRAME_DURATION * 5, attackFrames[6]));
+		attackMap.put(Direction.DOWN_RIGHT, new Animation(RUNNING_FRAME_DURATION * 5, attackFrames[7]));
+
 		dead = new Texture(Gdx.files.internal("images/dead.png"));
 		shadow = new Texture(Gdx.files.internal("images/shadow.png"));
 		touchPad = new Texture(Gdx.files.internal("images/touchpad.png"));
@@ -126,10 +155,10 @@ public class Renderer {
 		water = new Texture(Gdx.files.internal("images/water.png"));
 	}
 
-	public void render() {
+	public void render(float delta) {
 		spriteBatch.begin();
 		drawBlocks();
-		drawMike();
+		drawMike(delta);
 		drawButtons();
 		spriteBatch.end();
 
@@ -143,7 +172,7 @@ public class Renderer {
 		return touchPad;
 	}
 
-	private void drawMike() {
+	private void drawMike(float delta) {
 		Direction direction = mike.getDirection();
 		if (mike.getState().equals(State.IDLE)) {
 			mikeFrame = idleMap.get(direction);
@@ -151,6 +180,13 @@ public class Renderer {
 			mikeFrame = animationMap.get(direction).getKeyFrame(mike.getStateTime(), true);
 		} else if (mike.getState().equals(State.JUMPING)) {
 			mikeFrame = jumpMap.get(direction);
+		} else if (mike.getState().equals(State.ATTACKING)) {
+			stateTime += mike.getStateTime();
+			mikeFrame = attackMap.get(direction).getKeyFrame(stateTime, false);
+			if (attackMap.get(direction).isAnimationFinished(stateTime)) {
+				stateTime = 0;
+				mike.setState(State.IDLE);
+			}
 		}
 		if (mike.getState().equals(State.JUMPING)) {
 			spriteBatch.draw(shadow, mike.getShadow().x * ppuX, mike.getShadow().y * ppuY, mike.getBounds().width

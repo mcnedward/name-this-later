@@ -33,7 +33,7 @@ public class GameScreen implements Screen, InputProcessor {
 		Gdx.gl.glHint(GL10.GL_POINT_SMOOTH_HINT, GL10.GL_NICEST);
 
 		controller.update(delta);
-		renderer.render();
+		renderer.render(delta);
 		// renderer3D.render();
 	}
 
@@ -103,6 +103,9 @@ public class GameScreen implements Screen, InputProcessor {
 		case Keys.SPACE:
 			controller.jumpPressed();
 			break;
+		case Keys.S:
+			controller.attackPressed();
+			break;
 		}
 		return false;
 	}
@@ -124,6 +127,9 @@ public class GameScreen implements Screen, InputProcessor {
 			break;
 		case Keys.SPACE:
 			controller.jumpReleased();
+			break;
+		case Keys.S:
+			controller.attackReleased();
 			break;
 		case Keys.D:
 			renderer.setDebug(!renderer.isDebug());

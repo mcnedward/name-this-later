@@ -17,7 +17,7 @@ public class MikeController {
 	private static final String TAG = "MikeController";
 
 	public enum Keys {
-		DOWN, LEFT, UP, RIGHT, JUMP
+		DOWN, LEFT, UP, RIGHT, JUMP, ATTACK
 	}
 
 	private static final float ACCELERATION = 20f;			// The speed of walking
@@ -55,6 +55,7 @@ public class MikeController {
 		keys.put(Keys.UP, false);
 		keys.put(Keys.RIGHT, false);
 		keys.put(Keys.JUMP, false);
+		keys.put(Keys.ATTACK, false);
 	}
 
 	private World world;
@@ -144,6 +145,9 @@ public class MikeController {
 				}
 			}
 		}
+		if (keys.get(Keys.ATTACK)) {
+			mike.setState(State.ATTACKING);
+		}
 		if (keys.get(Keys.DOWN)) {
 			if (keys.get(Keys.LEFT)) {
 				mike.setDirection(Direction.DOWN_LEFT);
@@ -232,7 +236,8 @@ public class MikeController {
 				mike.getAcceleration().x = JUMP_ACCELERATION;
 			}
 		} else {
-			if (!mike.getState().equals(State.JUMPING) && !mike.getState().equals(State.DYING)) {
+			if (!mike.getState().equals(State.JUMPING) && !mike.getState().equals(State.DYING)
+					&& !mike.getState().equals(State.ATTACKING)) {
 				mike.setState(State.IDLE);
 				mike.getVelocity().x = 0;
 				mike.getVelocity().y = 0;
@@ -516,6 +521,10 @@ public class MikeController {
 		keys.get(keys.put(Keys.JUMP, true));
 	}
 
+	public void attackPressed() {
+		keys.get(keys.put(Keys.ATTACK, true));
+	}
+
 	public void downReleased() {
 		keys.get(keys.put(Keys.DOWN, false));
 	}
@@ -537,6 +546,10 @@ public class MikeController {
 		jumpPressed = false;
 		float diff = Math.abs(90 - jumpDegree);
 		jumpDegree = 90 + diff;
+	}
+
+	public void attackReleased() {
+		keys.get(keys.put(Keys.ATTACK, false));
 	}
 
 	public void onTouchUp(int x, int y, Renderer renderer) {
