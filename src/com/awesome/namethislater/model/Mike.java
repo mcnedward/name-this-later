@@ -45,7 +45,6 @@ public class Mike {
 
 	public void update(float delta) {
 		stateTime += delta;
-		updateFeetBounds(getPosition());
 	}
 
 	/**

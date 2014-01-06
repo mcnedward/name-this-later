@@ -21,8 +21,8 @@ public class World {
 	}
 
 	private void createDemoWorld() {
-		mike = new Mike(new Vector2(7, 2));
 		level = new Level();
+		mike = new Mike(new Vector2(3, 3));
 	}
 
 	public List<Block> getDrawableBlocks(int width, int height) {

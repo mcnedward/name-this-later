@@ -8,11 +8,14 @@ public class Level {
 	private Block[][] grassBlocks;
 	private Block[][] waterBlocks;
 
+	private Vector2 startingPosition;
+
 	public Level() {
 		loadDemoLevel();
 	}
 
 	private void loadDemoLevel() {
+		startingPosition = new Vector2(3, 3);
 		width = 10;
 		height = 7;
 		grassBlocks = new Block[width][height];
@@ -98,6 +101,21 @@ public class Level {
 	 */
 	public void setBlocks(Block[][] blocks) {
 		this.waterBlocks = blocks;
+	}
+
+	/**
+	 * @return the startingPoint
+	 */
+	public Vector2 getStartingPosition() {
+		return startingPosition;
+	}
+
+	/**
+	 * @param startingPoint
+	 *            the startingPoint to set
+	 */
+	public void setStartingPosition(Vector2 startingPoint) {
+		this.startingPosition = startingPoint;
 	}
 
 }

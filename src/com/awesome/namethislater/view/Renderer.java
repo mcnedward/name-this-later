@@ -130,7 +130,7 @@ public class Renderer {
 		spriteBatch.begin();
 		drawBlocks();
 		drawMike();
-		// drawButtons();
+		drawButtons();
 		spriteBatch.end();
 
 		drawCollisionBlocks();
@@ -151,15 +151,18 @@ public class Renderer {
 			mikeFrame = animationMap.get(direction).getKeyFrame(mike.getStateTime(), true);
 		} else if (mike.getState().equals(State.JUMPING)) {
 			mikeFrame = jumpMap.get(direction);
-		} else if (mike.getState().equals(State.DYING)) {
-			mikeFrame.setTexture(dead);
 		}
 		if (mike.getState().equals(State.JUMPING)) {
 			spriteBatch.draw(shadow, mike.getShadow().x * ppuX, mike.getShadow().y * ppuY, mike.getBounds().width
 					* ppuX, mike.getBounds().height * ppuY);
 		}
-		spriteBatch.draw(mikeFrame, mike.getPosition().x * ppuX, mike.getPosition().y * ppuY, Mike.SIZE * ppuX,
-				Mike.SIZE * (ppuY * 1.5f));
+		if (mike.getState().equals(State.DYING)) {
+			spriteBatch.draw(dead, mike.getPosition().x * ppuX, mike.getPosition().y * ppuY, Mike.SIZE * ppuX,
+					Mike.SIZE * (ppuY * 1.5f));
+		} else {
+			spriteBatch.draw(mikeFrame, mike.getPosition().x * ppuX, mike.getPosition().y * ppuY, Mike.SIZE * ppuX,
+					Mike.SIZE * (ppuY * 1.5f));
+		}
 	}
 
 	private void drawShadow() {

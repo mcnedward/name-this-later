@@ -22,9 +22,16 @@ public class MikeController {
 
 	private static final float ACCELERATION = 20f;			// The speed of walking
 	private static final float JUMP_ACCELERATION = ACCELERATION / 1.5f;	// The acceleration of a jump
+	private static final float DEATH_ACCELERATION = ACCELERATION / 4;	// The acceleration of the death rise
 	private static final float SHADOW_ACCELERATION = 0.07f;	// The acceleration of the base of the jump
 	private static final float DAMP = 0.90f;				// Used to smooth out the walking animation
 	private static final float MAX_VEL = 4f;
+
+	private float deadDegree;
+	private float riseX;
+	private float riseY;
+	private float deadStartY;
+	private float deadStartX;
 
 	private float jumpDegree;
 	private float lift;								// The amount to increase or decrease the y-coord for a jump
@@ -60,8 +67,12 @@ public class MikeController {
 		this.mike = world.getMike();
 	}
 
+	private float t;
+	private float jumpTime;
+
 	public void update(float delta) {
-		processInput(delta);
+		if (!mike.getState().equals(State.DYING))
+			processInput(delta);	// Allow for movement unless dead
 
 		// Multiply by the delta to convert acceleration to frame units
 		mike.getAcceleration().mul(delta);
@@ -72,8 +83,9 @@ public class MikeController {
 		// the air and drop him after the maximum time allowed for his jump.
 		if (mike.getState().equals(State.JUMPING)) {
 			// The radian is the current angle of the jump, in radian measurements. Use this to determine the
-			// velocity that is needed to increase the y-coord for the jump by finding the sin of that radian. The lift
-			// variable uses the starting y-coord of the jump, and adds to that the current y velocity of the jump.
+			// velocity that is needed to increase the y-coord for the jump by finding the sin of that radian. The
+			// lift variable uses the starting y-coord of the jump, and adds to that the current y velocity of the
+			// jump.
 			// Mike's position is updated to be at the current lift.
 			double radian = jumpDegree * (Math.PI / 180);
 			float velocityY = (float) Math.sin(radian);
@@ -220,7 +232,7 @@ public class MikeController {
 				mike.getAcceleration().x = JUMP_ACCELERATION;
 			}
 		} else {
-			if (!mike.getState().equals(State.JUMPING)) {
+			if (!mike.getState().equals(State.JUMPING) && !mike.getState().equals(State.DYING)) {
 				mike.setState(State.IDLE);
 				mike.getVelocity().x = 0;
 				mike.getVelocity().y = 0;
@@ -240,9 +252,12 @@ public class MikeController {
 		// Obtain Mike's rectangle from the pool of rectangles instead of instantiating every frame. Then set the
 		// bounds of the rectangle.
 		Rectangle mikeRect = rectPool.obtain();
-		mikeRect.set((mike.getFeetBounds().x + (mike.getFeetBounds().width / 2)),
-				(mike.getFeetBounds().y + (mike.getFeetBounds().height / 2)), mike.getFeetBounds().width,
-				mike.getFeetBounds().height);
+		float left = (mike.getFeetBounds().x + (mike.getFeetBounds().width / 3));
+		float bottom = (mike.getFeetBounds().y + (mike.getFeetBounds().height / 3));
+		float right = mike.getFeetBounds().width / 3;
+		float top = mike.getFeetBounds().height / 3;
+
+		mikeRect.set(left, bottom, right, top);
 
 		// Set Mike's collision rect to include his X and Y velocity
 		mikeRect.x += mike.getVelocity().x;
@@ -251,7 +266,7 @@ public class MikeController {
 		// Check for collisions on the horizontal X axis
 		int startX, endX;
 		int startY = (int) mike.getFeetBounds().y;
-		int endY = (int) (mike.getFeetBounds().y + (mike.getFeetBounds().height / 2));
+		int endY = (int) (mike.getFeetBounds().y + mike.getFeetBounds().height);
 		// Check for collisions with blocks on the left and right
 		if (mike.getVelocity().x < 0) {
 			startX = endX = (int) Math.floor(mike.getFeetBounds().x + mike.getVelocity().x);
@@ -269,10 +284,18 @@ public class MikeController {
 		for (Block block : collidable) {
 			if (block == null)
 				continue;
-			if (!mike.getState().equals(State.JUMPING)) {
+			if (!mike.getState().equals(State.JUMPING) && !mike.getState().equals(State.DYING)) {
 				if (mikeRect.overlaps(block.getBounds())) {
+					// Stop all movement and set Mike's state to dying. Then reset the degree used to change the float
+					// angle and get the starting x and y coordinates for the death.
 					mike.getVelocity().x = 0;
+					mike.getVelocity().y = 0;
 					world.getCollisionRects().add(block.getBounds());
+					mike.setState(State.DYING);
+					deadDegree = 0;
+					deadStartY = mike.getPosition().y;
+					deadStartX = mike.getPosition().x;
+					break;
 				}
 			}
 		}
@@ -292,14 +315,22 @@ public class MikeController {
 		for (Block block : collidable) {
 			if (block == null)
 				continue;
-			if (!mike.getState().equals(State.JUMPING)) {
+			if (!mike.getState().equals(State.JUMPING) && !mike.getState().equals(State.DYING)) {
 				if (mikeRect.overlaps(block.getBounds())) {
+					// Stop all movement and set Mike's state to dying. Then reset the degree used to change the float
+					// angle and get the starting x and y coordinates for the death.
+					mike.getVelocity().x = 0;
 					mike.getVelocity().y = 0;
 					world.getCollisionRects().add(block.getBounds());
+					mike.setState(State.DYING);
+					deadDegree = 0;
+					deadStartY = mike.getPosition().y;
+					deadStartX = mike.getPosition().x;
 					break;
 				}
 			}
 		}
+
 		// Check for collisions with the left and right sides of the level
 		if (mikeRect.x <= 0 || mikeRect.x > width - mikeRect.width - mike.getVelocity().x) {
 			mike.getVelocity().x = 0;
@@ -309,13 +340,35 @@ public class MikeController {
 			mike.getVelocity().y = 0;
 		}
 
+		if (mike.getState().equals(State.DYING)) {
+
+			double radian = deadDegree * (Math.PI / 180);
+			float velocityX = (float) Math.sin(radian);
+			float velocityY = velocityX;
+			riseX = deadStartX + velocityX;
+			riseY = deadStartY + velocityY;
+
+			if (velocityX < 0)
+				velocityX = 0;
+
+			mike.getPosition().x = riseX;
+			mike.getAcceleration().y = DEATH_ACCELERATION;
+
+			deadDegree += 3;
+			if (deadDegree >= 360) {
+				mike.getPosition().x = world.getLevel().getStartingPosition().x;
+				mike.getPosition().y = world.getLevel().getStartingPosition().y;
+				mike.setState(State.IDLE);
+			}
+		}
+
 		// Reset Mike's collision rect with his position
 		mikeRect.x = mike.getPosition().x;
 		mikeRect.y = mike.getPosition().y;
 
 		// Update the position
 		mike.getPosition().add(mike.getVelocity());
-		mike.getFeetBounds().x = mike.getPosition().x;
+		mike.getFeetBounds().x = mike.getPosition().x + (Mike.SIZE / 7);
 		mike.getFeetBounds().y = mike.getPosition().y;
 		// Un-scale the velocity so that it is no longer in frame time
 		mike.getVelocity().mul(1 / delta);
