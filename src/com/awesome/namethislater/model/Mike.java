@@ -7,7 +7,7 @@ public class Mike {
 
 	/** The different states that Mike can be in **/
 	public enum State {
-		IDLE, RUNNING, JUMPING, FALLING, DYING, ATTACKING
+		IDLE, RUNNING, JUMPING, FALLING, DYING, ATTACKING, JUMP_ATTACK
 	}
 
 	/** The directions that Mike can be facing **/
@@ -29,7 +29,7 @@ public class Mike {
 	Direction direction = Direction.DOWN;
 	boolean facingLeft = true;
 	float stateTime = 0;
-	boolean longJump = false;
+	boolean grounded;
 
 	public Mike(Vector2 position) {
 		this.position = position;
@@ -39,6 +39,7 @@ public class Mike {
 		bounds.height = SIZE;
 		bounds.width = SIZE;
 
+		grounded = true;
 		updateFeetBounds(position);
 		updateShadow(position);
 	}
@@ -73,6 +74,13 @@ public class Mike {
 		shadow.y = position.y + (SIZE / 2);
 	}
 
+	public boolean isJumping() {
+		if (state == State.JUMPING || state == State.JUMP_ATTACK) {
+			return true;
+		} else
+			return false;
+	}
+
 	public void setShadow(Vector2 position) {
 		shadow = position;
 	}
@@ -100,18 +108,18 @@ public class Mike {
 	}
 
 	/**
-	 * @return True if it should be a long jump, false if not.
+	 * @return the grounded
 	 */
-	public boolean isLongJump() {
-		return longJump;
+	public boolean isGrounded() {
+		return grounded;
 	}
 
 	/**
-	 * @param longJump
-	 *            True if it should be a long jump, false if not.
+	 * @param grounded
+	 *            the grounded to set
 	 */
-	public void setLongJump(boolean longJump) {
-		this.longJump = longJump;
+	public void setGrounded(boolean grounded) {
+		this.grounded = grounded;
 	}
 
 	/**

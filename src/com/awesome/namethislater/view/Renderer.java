@@ -26,6 +26,7 @@ public class Renderer {
 	private static final float CAMERA_HEIGHT = 7f;
 	// The duration of each frame
 	private static final float RUNNING_FRAME_DURATION = 0.1f;	// 10 FPS
+	private static final float ATTACKING_FRAME_DURATION = 0.2f;
 
 	private World world;
 	private OrthographicCamera cam;	// The camera for the screen
@@ -36,6 +37,7 @@ public class Renderer {
 	/** Textures **/
 	private Texture spriteSheet;
 	private Texture attackSheet;
+	private Texture jumpAttackSheet;
 	private TextureRegion mikeFrame;
 	private Texture dead;
 	private Texture shadow;
@@ -48,14 +50,15 @@ public class Renderer {
 	private Map<Direction, TextureRegion> idleMap = new HashMap<Direction, TextureRegion>();
 	private Map<Direction, TextureRegion> jumpMap = new HashMap<Direction, TextureRegion>();
 	private Map<Direction, Animation> attackMap = new HashMap<Direction, Animation>();
+	private Map<Direction, Animation> jumpAttackMap = new HashMap<Direction, Animation>();
 
 	private SpriteBatch spriteBatch;
-	private boolean debug = false;
+	private boolean debug = true;
 	public int width, height;
 	private float ppuX;					// Pixels per unit on the X axis
 	private float ppuY;					// Pixels per unit on the Y axis
 
-	int stateTime = 0;
+	float stateTime;
 
 	private Mike mike;
 
@@ -68,6 +71,8 @@ public class Renderer {
 		this.cam.update();
 		this.debug = debug;
 		spriteBatch = new SpriteBatch();
+		stateTime = 0f;
+
 		loadTextures();
 	}
 
@@ -128,6 +133,11 @@ public class Renderer {
 		int w = attackSheet.getWidth() / 2;
 		int h = attackSheet.getHeight() / 8;
 
+		// Cut out the sprites from the attack sheet
+		jumpAttackSheet = new Texture(Gdx.files.internal("images/jumpattack.png"));
+		int w2 = jumpAttackSheet.getWidth() / 2;
+		int h2 = jumpAttackSheet.getHeight() / 8;
+
 		TextureRegion[][] attackFrames = new TextureRegion[8][2];
 
 		for (int i = 0; i < 8; i++) {
@@ -138,15 +148,34 @@ public class Renderer {
 			}
 		}
 
+		TextureRegion[][] jumpAttackFrames = new TextureRegion[8][2];
+
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 2; j++) {
+				int x = j * w2;
+				int y = i * h2;
+				jumpAttackFrames[i][j] = new TextureRegion(jumpAttackSheet, x, y, w, h);
+			}
+		}
+
 		// Set the attacking animation for each direction
-		attackMap.put(Direction.DOWN, new Animation(RUNNING_FRAME_DURATION, attackFrames[0]));
-		attackMap.put(Direction.LEFT, new Animation(RUNNING_FRAME_DURATION * 5, attackFrames[1]));
-		attackMap.put(Direction.UP, new Animation(RUNNING_FRAME_DURATION * 5, attackFrames[2]));
-		attackMap.put(Direction.RIGHT, new Animation(RUNNING_FRAME_DURATION * 5, attackFrames[3]));
-		attackMap.put(Direction.DOWN_LEFT, new Animation(RUNNING_FRAME_DURATION * 5, attackFrames[4]));
-		attackMap.put(Direction.UP_LEFT, new Animation(RUNNING_FRAME_DURATION * 5, attackFrames[5]));
-		attackMap.put(Direction.UP_RIGHT, new Animation(RUNNING_FRAME_DURATION * 5, attackFrames[6]));
-		attackMap.put(Direction.DOWN_RIGHT, new Animation(RUNNING_FRAME_DURATION * 5, attackFrames[7]));
+		attackMap.put(Direction.DOWN, new Animation(ATTACKING_FRAME_DURATION, attackFrames[0]));
+		attackMap.put(Direction.LEFT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[1]));
+		attackMap.put(Direction.UP, new Animation(ATTACKING_FRAME_DURATION, attackFrames[2]));
+		attackMap.put(Direction.RIGHT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[3]));
+		attackMap.put(Direction.DOWN_LEFT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[4]));
+		attackMap.put(Direction.UP_LEFT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[5]));
+		attackMap.put(Direction.UP_RIGHT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[6]));
+		attackMap.put(Direction.DOWN_RIGHT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[7]));
+		// Set the jump attacking animation for each direction
+		jumpAttackMap.put(Direction.DOWN, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[0]));
+		jumpAttackMap.put(Direction.LEFT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[1]));
+		jumpAttackMap.put(Direction.UP, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[2]));
+		jumpAttackMap.put(Direction.RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[3]));
+		jumpAttackMap.put(Direction.DOWN_LEFT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[4]));
+		jumpAttackMap.put(Direction.UP_LEFT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[5]));
+		jumpAttackMap.put(Direction.UP_RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[6]));
+		jumpAttackMap.put(Direction.DOWN_RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[7]));
 
 		dead = new Texture(Gdx.files.internal("images/dead.png"));
 		shadow = new Texture(Gdx.files.internal("images/shadow.png"));
@@ -176,19 +205,35 @@ public class Renderer {
 		Direction direction = mike.getDirection();
 		if (mike.getState().equals(State.IDLE)) {
 			mikeFrame = idleMap.get(direction);
-		} else if (mike.getState().equals(State.RUNNING)) {
+		}
+		if (mike.getState().equals(State.RUNNING)) {
 			mikeFrame = animationMap.get(direction).getKeyFrame(mike.getStateTime(), true);
-		} else if (mike.getState().equals(State.JUMPING)) {
-			mikeFrame = jumpMap.get(direction);
-		} else if (mike.getState().equals(State.ATTACKING)) {
-			stateTime += mike.getStateTime();
-			mikeFrame = attackMap.get(direction).getKeyFrame(stateTime, false);
-			if (attackMap.get(direction).isAnimationFinished(stateTime)) {
-				stateTime = 0;
-				mike.setState(State.IDLE);
-			}
 		}
 		if (mike.getState().equals(State.JUMPING)) {
+			mikeFrame = jumpMap.get(direction);
+		}
+		if (mike.getState().equals(State.ATTACKING)) {
+			stateTime += delta;
+			mikeFrame = attackMap.get(direction).getKeyFrame(stateTime, false);
+			if (attackMap.get(direction).isAnimationFinished(stateTime)) {
+				mike.setState(State.IDLE);
+				stateTime = 0;
+			}
+		}
+		if (mike.getState().equals(State.JUMP_ATTACK)) {
+			stateTime += delta;
+			mikeFrame = jumpAttackMap.get(direction).getKeyFrame(stateTime, false);
+			if (jumpAttackMap.get(direction).isAnimationFinished(stateTime)) {
+				if (mike.isGrounded()) {
+					mike.setState(State.IDLE);
+					stateTime = 0;
+				} else {
+					mike.setState(State.JUMPING);
+					stateTime = 0;
+				}
+			}
+		}
+		if (mike.getState().equals(State.JUMPING) || mike.getState().equals(State.JUMP_ATTACK)) {
 			spriteBatch.draw(shadow, mike.getShadow().x * ppuX, mike.getShadow().y * ppuY, mike.getBounds().width
 					* ppuX, mike.getBounds().height * ppuY);
 		}

@@ -72,7 +72,7 @@ public class MikeController {
 	private float jumpTime;
 
 	public void update(float delta) {
-		if (!mike.getState().equals(State.DYING))
+		if (!mike.getState().equals(State.DYING) && !mike.getState().equals(State.ATTACKING))
 			processInput(delta);	// Allow for movement unless dead
 
 		// Multiply by the delta to convert acceleration to frame units
@@ -82,7 +82,7 @@ public class MikeController {
 
 		// Check if Mike is currently jumping. If he is, check the time he has been in
 		// the air and drop him after the maximum time allowed for his jump.
-		if (mike.getState().equals(State.JUMPING)) {
+		if (mike.isJumping()) {
 			// The radian is the current angle of the jump, in radian measurements. Use this to determine the
 			// velocity that is needed to increase the y-coord for the jump by finding the sin of that radian. The
 			// lift variable uses the starting y-coord of the jump, and adds to that the current y velocity of the
@@ -99,18 +99,22 @@ public class MikeController {
 			// 180.
 			jumpDegree += 5;
 			if (jumpDegree > 180) {
-				mike.setState(State.IDLE);
+				mike.setGrounded(true);
+				if (mike.getState().equals(State.JUMP_ATTACK))
+					mike.setState(State.ATTACKING);
+				else
+					mike.setState(State.IDLE);
 			}
 		}
 
 		checkCollisions(delta);
 
 		// Dampen Mike's movement so it appears smoother
-		if (!mike.getState().equals(State.JUMPING)) {
+		if (!mike.isJumping()) {
 			mike.getVelocity().x *= DAMP;
 			mike.getVelocity().y *= DAMP;
 		}
-		if (mike.getState().equals(State.JUMPING)) {
+		if (mike.isJumping()) {
 			mike.getShadow().x = mike.getPosition().x;
 			mike.getShadow().y = jumpStartY;
 		}
@@ -137,8 +141,9 @@ public class MikeController {
 			if (!jumpPressed) {
 				// If Mike is not jumping, set his state to JUMPING, get the starting jump time and y coordinate, and
 				// set his maximum jump height. Then set his velocity to increase based on the max jump speed.
-				if (!mike.getState().equals(State.JUMPING)) {
+				if (!mike.isJumping()) {
 					mike.setState(State.JUMPING);
+					mike.setGrounded(false);
 					jumpPressed = true;						// The button for jumping is pressed
 					jumpDegree = 0;							// Reset the degree for the jump angle
 					jumpStartY = mike.getPosition().y;		// The starting y-coord of the jump
@@ -146,16 +151,18 @@ public class MikeController {
 			}
 		}
 		if (keys.get(Keys.ATTACK)) {
-			mike.setState(State.ATTACKING);
-		}
-		if (keys.get(Keys.DOWN)) {
+			if (mike.isJumping())
+				mike.setState(State.JUMP_ATTACK);
+			else
+				mike.setState(State.ATTACKING);
+		} else if (keys.get(Keys.DOWN)) {
 			if (keys.get(Keys.LEFT)) {
 				mike.setDirection(Direction.DOWN_LEFT);
-				if (!mike.getState().equals(State.JUMPING)) {
+				if (!mike.isJumping()) {
 					mike.setState(State.RUNNING);
 					mike.getAcceleration().x = -ACCELERATION;
 					mike.getAcceleration().y = -ACCELERATION;
-				} else if (mike.getState().equals(State.JUMPING)) {
+				} else if (mike.isJumping()) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
 					mike.getAcceleration().x = -JUMP_ACCELERATION;
 					mike.getAcceleration().y = -JUMP_ACCELERATION;
@@ -163,11 +170,11 @@ public class MikeController {
 				}
 			} else if (keys.get(Keys.RIGHT)) {
 				mike.setDirection(Direction.DOWN_RIGHT);
-				if (!mike.getState().equals(State.JUMPING)) {
+				if (!mike.isJumping()) {
 					mike.setState(State.RUNNING);
 					mike.getAcceleration().x = ACCELERATION;
 					mike.getAcceleration().y = -ACCELERATION;
-				} else if (mike.getState().equals(State.JUMPING)) {
+				} else if (mike.isJumping()) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
 					mike.getAcceleration().x = JUMP_ACCELERATION;
 					mike.getAcceleration().y = -JUMP_ACCELERATION;
@@ -175,10 +182,10 @@ public class MikeController {
 				}
 			} else {
 				mike.setDirection(Direction.DOWN);
-				if (!mike.getState().equals(State.JUMPING)) {
+				if (!mike.isJumping()) {
 					mike.setState(State.RUNNING);
 					mike.getAcceleration().y = -ACCELERATION;
-				} else if (mike.getState().equals(State.JUMPING)) {
+				} else if (mike.isJumping()) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
 					mike.getAcceleration().y = -JUMP_ACCELERATION;
 					jumpStartY -= SHADOW_ACCELERATION;
@@ -187,11 +194,11 @@ public class MikeController {
 		} else if (keys.get(Keys.UP)) {
 			if (keys.get(Keys.LEFT)) {
 				mike.setDirection(Direction.UP_LEFT);
-				if (!mike.getState().equals(State.JUMPING)) {
+				if (!mike.isJumping()) {
 					mike.setState(State.RUNNING);
 					mike.getAcceleration().x = -ACCELERATION;
 					mike.getAcceleration().y = ACCELERATION;
-				} else if (mike.getState().equals(State.JUMPING)) {
+				} else if (mike.isJumping()) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
 					mike.getAcceleration().x = -JUMP_ACCELERATION;
 					mike.getAcceleration().y = JUMP_ACCELERATION;
@@ -199,11 +206,11 @@ public class MikeController {
 				}
 			} else if (keys.get(Keys.RIGHT)) {
 				mike.setDirection(Direction.UP_RIGHT);
-				if (!mike.getState().equals(State.JUMPING)) {
+				if (!mike.isJumping()) {
 					mike.setState(State.RUNNING);
 					mike.getAcceleration().x = ACCELERATION;
 					mike.getAcceleration().y = ACCELERATION;
-				} else if (mike.getState().equals(State.JUMPING)) {
+				} else if (mike.isJumping()) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
 					mike.getAcceleration().x = JUMP_ACCELERATION;
 					mike.getAcceleration().y = JUMP_ACCELERATION;
@@ -211,33 +218,32 @@ public class MikeController {
 				}
 			} else {
 				mike.setDirection(Direction.UP);
-				if (!mike.getState().equals(State.JUMPING)) {
+				if (!mike.isJumping()) {
 					mike.setState(State.RUNNING);
 					mike.getAcceleration().y = ACCELERATION;
-				} else if (mike.getState().equals(State.JUMPING)) {
+				} else if (mike.isJumping()) {
 					mike.getAcceleration().y = JUMP_ACCELERATION;
 					jumpStartY += SHADOW_ACCELERATION;
 				}
 			}
 		} else if (keys.get(Keys.LEFT)) {
 			mike.setDirection(Direction.LEFT);
-			if (!mike.getState().equals(State.JUMPING)) {
+			if (!mike.isJumping()) {
 				mike.setState(State.RUNNING);
 				mike.getAcceleration().x = -ACCELERATION;
-			} else if (mike.getState().equals(State.JUMPING)) {
+			} else if (mike.isJumping()) {
 				mike.getAcceleration().x = -JUMP_ACCELERATION;
 			}
 		} else if (keys.get(Keys.RIGHT)) {
 			mike.setDirection(Direction.RIGHT);
-			if (!mike.getState().equals(State.JUMPING)) {
+			if (!mike.isJumping()) {
 				mike.setState(State.RUNNING);
 				mike.getAcceleration().x = ACCELERATION;
-			} else if (mike.getState().equals(State.JUMPING)) {
+			} else if (mike.isJumping()) {
 				mike.getAcceleration().x = JUMP_ACCELERATION;
 			}
 		} else {
-			if (!mike.getState().equals(State.JUMPING) && !mike.getState().equals(State.DYING)
-					&& !mike.getState().equals(State.ATTACKING)) {
+			if (!mike.isJumping() && !mike.getState().equals(State.DYING) && !mike.getState().equals(State.ATTACKING)) {
 				mike.setState(State.IDLE);
 				mike.getVelocity().x = 0;
 				mike.getVelocity().y = 0;
@@ -289,7 +295,7 @@ public class MikeController {
 		for (Block block : collidable) {
 			if (block == null)
 				continue;
-			if (!mike.getState().equals(State.JUMPING) && !mike.getState().equals(State.DYING)) {
+			if (!mike.isJumping() && !mike.getState().equals(State.DYING)) {
 				if (mikeRect.overlaps(block.getBounds())) {
 					// Stop all movement and set Mike's state to dying. Then reset the degree used to change the float
 					// angle and get the starting x and y coordinates for the death.
@@ -320,7 +326,7 @@ public class MikeController {
 		for (Block block : collidable) {
 			if (block == null)
 				continue;
-			if (!mike.getState().equals(State.JUMPING) && !mike.getState().equals(State.DYING)) {
+			if (!mike.isJumping() && !mike.getState().equals(State.DYING)) {
 				if (mikeRect.overlaps(block.getBounds())) {
 					// Stop all movement and set Mike's state to dying. Then reset the degree used to change the float
 					// angle and get the starting x and y coordinates for the death.
