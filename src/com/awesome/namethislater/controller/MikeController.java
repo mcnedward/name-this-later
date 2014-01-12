@@ -36,6 +36,7 @@ public class MikeController {
 	private float jumpDegree;
 	private float lift;								// The amount to increase or decrease the y-coord for a jump
 	private float jumpStartY;						// The Y coordinate that Mike is at when he starts a jump
+	private float shadowPercentage;
 
 	private boolean jumpPressed = false;			// Used to prevent auto-jump by holding down jump button
 
@@ -86,8 +87,7 @@ public class MikeController {
 			// The radian is the current angle of the jump, in radian measurements. Use this to determine the
 			// velocity that is needed to increase the y-coord for the jump by finding the sin of that radian. The
 			// lift variable uses the starting y-coord of the jump, and adds to that the current y velocity of the
-			// jump.
-			// Mike's position is updated to be at the current lift.
+			// jump. Mike's position is updated to be at the current lift.
 			double radian = jumpDegree * (Math.PI / 180);
 			float velocityY = (float) Math.sin(radian);
 			lift = jumpStartY + velocityY;
@@ -98,6 +98,10 @@ public class MikeController {
 			// Increase the angle of the jump. The jump reaches its peak at 90 degrees, and lands on the ground at
 			// 180.
 			jumpDegree += 5;
+			if (jumpDegree < 90)
+				shadowPercentage -= 2.5;
+			else
+				shadowPercentage += 2.5;
 			if (jumpDegree > 180) {
 				mike.setGrounded(true);
 				if (mike.getState().equals(State.JUMP_ATTACK))
@@ -114,9 +118,11 @@ public class MikeController {
 			mike.getVelocity().x *= DAMP;
 			mike.getVelocity().y *= DAMP;
 		}
+
+		// If Mike is jumping, update the position of his shadow
 		if (mike.isJumping()) {
-			mike.getShadow().x = mike.getPosition().x;
-			mike.getShadow().y = jumpStartY;
+			mike.updateShadow(mike.getPosition().x, jumpStartY, mike.getBounds().width, mike.getBounds().height,
+					shadowPercentage);
 		}
 
 		// Ensure terminal velocity is not exceeded
@@ -147,6 +153,7 @@ public class MikeController {
 					jumpPressed = true;						// The button for jumping is pressed
 					jumpDegree = 0;							// Reset the degree for the jump angle
 					jumpStartY = mike.getPosition().y;		// The starting y-coord of the jump
+					shadowPercentage = 100.0f;
 				}
 			}
 		}

@@ -201,6 +201,12 @@ public class Renderer {
 		return touchPad;
 	}
 
+	/**
+	 * Draw Mike's sprite.
+	 * 
+	 * @param delta
+	 *            The time in seconds since the last render.
+	 */
 	private void drawMike(float delta) {
 		Direction direction = mike.getDirection();
 		if (mike.getState().equals(State.IDLE)) {
@@ -213,6 +219,8 @@ public class Renderer {
 			mikeFrame = jumpMap.get(direction);
 		}
 		if (mike.getState().equals(State.ATTACKING)) {
+			// Get the time since last render. Then set Mike's frame to attack. When the attack animation is finished,
+			// set his state back to idle.
 			stateTime += delta;
 			mikeFrame = attackMap.get(direction).getKeyFrame(stateTime, false);
 			if (attackMap.get(direction).isAnimationFinished(stateTime)) {
@@ -221,6 +229,8 @@ public class Renderer {
 			}
 		}
 		if (mike.getState().equals(State.JUMP_ATTACK)) {
+			// Get the time since last render. Then set Mike's frame to attack. When the attack animation is finished,
+			// check whether he is in the air or not, and set his state accordingly.
 			stateTime += delta;
 			mikeFrame = jumpAttackMap.get(direction).getKeyFrame(stateTime, false);
 			if (jumpAttackMap.get(direction).isAnimationFinished(stateTime)) {
@@ -234,8 +244,7 @@ public class Renderer {
 			}
 		}
 		if (mike.getState().equals(State.JUMPING) || mike.getState().equals(State.JUMP_ATTACK)) {
-			spriteBatch.draw(shadow, mike.getShadow().x * ppuX, mike.getShadow().y * ppuY, mike.getBounds().width
-					* ppuX, mike.getBounds().height * ppuY);
+			mike.drawShadow(spriteBatch, shadow, ppuX, ppuY);
 		}
 		if (mike.getState().equals(State.DYING)) {
 			spriteBatch.draw(dead, mike.getPosition().x * ppuX, mike.getPosition().y * ppuY, Mike.SIZE * ppuX,

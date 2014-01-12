@@ -1,5 +1,9 @@
 package com.awesome.namethislater.model;
 
+import java.awt.geom.Ellipse2D;
+
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
@@ -17,20 +21,28 @@ public class Mike {
 
 	public static final float SIZE = 1f;	// The size of Mike
 
-	Vector2 position = new Vector2();
-	Vector2 acceleration = new Vector2();
-	Vector2 velocity = new Vector2();
-	Vector2 shadow = new Vector2();
+	Vector2 position = new Vector2();		// The current position of Mike.
+	Vector2 acceleration = new Vector2();	// The speed that Mike should move
+	Vector2 velocity = new Vector2();		// The acceleration and direction of Mike's movement
+	Vector2 shadowVector = new Vector2();	// The position of Mike's jumping shadow
+	Ellipse2D shadow;						// An ellipse used to determine the bounds of the shadow
 
-	Rectangle bounds = new Rectangle();
-	Rectangle feetBounds = new Rectangle();
+	Rectangle bounds = new Rectangle();		// The bounds of Mike's sprite rectangle
+	Rectangle feetBounds = new Rectangle();	// The bounds of Mike's feet
 
-	State state = State.IDLE;
-	Direction direction = Direction.DOWN;
-	boolean facingLeft = true;
-	float stateTime = 0;
-	boolean grounded;
+	State state = State.IDLE;				// The state that Mike is in
+	Direction direction = Direction.DOWN;	// The direction Mike is facing
+	boolean facingLeft = true;				// TODO Is this needed?
+	float stateTime = 0;					// The state time that Mike is currently in, determined by last render time
+	boolean grounded;						// Whether Mike is on the ground or not
+	float shadowPercentage;					// The amount to scale Mike's jumping shadow
 
+	/**
+	 * Create a new instance of the Mike sprite model.
+	 * 
+	 * @param position
+	 *            The position to place Mike.
+	 */
 	public Mike(Vector2 position) {
 		this.position = position;
 
@@ -41,9 +53,18 @@ public class Mike {
 
 		grounded = true;
 		updateFeetBounds(position);
-		updateShadow(position);
+		shadowPercentage = 100.0f;
+
+		shadow = new Ellipse2D.Float();
+		updateShadow(position.x, position.y, bounds.width, bounds.height, shadowPercentage);
 	}
 
+	/**
+	 * Update Mike's state time according to the delta.
+	 * 
+	 * @param delta
+	 *            The time in seconds since the last render.
+	 */
 	public void update(float delta) {
 		stateTime += delta;
 	}
@@ -69,11 +90,53 @@ public class Mike {
 	 * @param position
 	 *            The current position of Mike.
 	 */
-	public void updateShadow(Vector2 position) {
-		shadow.x = position.x + (SIZE / 2);
-		shadow.y = position.y + (SIZE / 2);
+	public void updateShadow(float x, float y, float w, float h, float percentage) {
+		shadowPercentage = (percentage / 100);
+		getShadow().x = x;
+		getShadow().y = y;
+
+		shadow.setFrame(x, y, w, h);
 	}
 
+	/**
+	 * Used to draw the shadow for Mike's jump. All scaling for the shadow is done here.
+	 * 
+	 * @param spriteBatch
+	 *            The sprite batch used to draw the sprite.
+	 * @param texture
+	 *            The texture for the shadow to draw.
+	 * @param ppuX
+	 *            The pixel point units for the x coordinates.
+	 * @param ppuY
+	 *            The pixel point units for the y coordinates.
+	 */
+	public void drawShadow(SpriteBatch spriteBatch, Texture texture, float ppuX, float ppuY) {
+		// Get the origin x and y. These are used to scale the shadow around the center of the ellipse.
+		float originX = (float) (shadow.getCenterX() * ppuX);
+		float originY = (float) (shadow.getCenterY() * ppuY);
+
+		// Get the x and y coordinates to draw. These are the lower left corners of the ellipse.
+		float x = (float) (shadow.getX() * ppuX);
+		float y = (float) (shadow.getY() * ppuY);
+
+		// Get the width and height of the shadow, and scale them according to the scale percentage.
+		float width = (float) (shadow.getWidth() * shadowPercentage * ppuX);
+		float height = (float) (shadow.getHeight() * shadowPercentage * ppuY);
+
+		// Determine the amount of pixels to move the shadow's x and y coordinates. These are used to keep the scaling
+		// of the shadow around the center of the ellipse.
+		float moveX = (originX - x) - ((originX - x) * shadowPercentage);
+		float moveY = (originY - y) - ((originY - y) * shadowPercentage);
+
+		// Draw the shadow.
+		spriteBatch.draw(texture, x + moveX, y + moveY, width, height - moveY);
+	}
+
+	/**
+	 * Determines whether Mike is jumping, either a normal jump or a jump attack.
+	 * 
+	 * @return True if Mike is jumping, false otherwise.
+	 */
 	public boolean isJumping() {
 		if (state == State.JUMPING || state == State.JUMP_ATTACK) {
 			return true;
@@ -81,12 +144,23 @@ public class Mike {
 			return false;
 	}
 
+	/**
+	 * Sets the position of Mike's jumping shadow.
+	 * 
+	 * @param position
+	 *            The position of Mike's jumping shadow.
+	 */
 	public void setShadow(Vector2 position) {
-		shadow = position;
+		shadowVector = position;
 	}
 
+	/**
+	 * Returns the position of Mike's jumping shadow.
+	 * 
+	 * @return The position of Mike's jumping shadow.
+	 */
 	public Vector2 getShadow() {
-		return shadow;
+		return shadowVector;
 	}
 
 	/**
