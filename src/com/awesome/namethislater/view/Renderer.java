@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.awesome.namethislater.model.Block;
+import com.awesome.namethislater.model.Chakram;
+import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.Mike;
 import com.awesome.namethislater.model.Mike.Direction;
 import com.awesome.namethislater.model.Mike.State;
@@ -13,6 +15,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -28,22 +31,22 @@ public class Renderer {
 	private static final float RUNNING_FRAME_DURATION = 0.1f;	// 10 FPS
 	private static final float ATTACKING_FRAME_DURATION = 0.2f;
 
-	private World world;
 	private OrthographicCamera cam;	// The camera for the screen
 
 	/** For debug rendering **/
 	ShapeRenderer debugRenderer = new ShapeRenderer();
 
 	/** Textures **/
-	private Texture spriteSheet;
-	private Texture attackSheet;
-	private Texture jumpAttackSheet;
-	private TextureRegion mikeFrame;
-	private Texture dead;
-	private Texture shadow;
-	private Texture touchPad;
-	private Texture grass;
-	private Texture water;
+	private Texture spriteSheet;		// The sprite sheet for movement
+	private Texture attackSheet;		// The sprite sheet for ground attacks
+	private Texture jumpAttackSheet;	// The sprite sheet for jump attacks
+	private TextureRegion mikeFrame;	// The region of the current frame for Mike
+	private Texture dead;				// The texture for the death state
+	private Texture chakram;			// The texture for chakras
+	private Texture shadow;				// The texture for the jump shadow
+	private Texture touchPad;			// The texture for the touch pad buttons
+	private Texture grass;				// The texture for grass blocks
+	private Texture water;				// The texture for water blocks
 
 	/** Animation and Texture Maps **/
 	private Map<Direction, Animation> animationMap = new HashMap<Direction, Animation>();
@@ -53,17 +56,20 @@ public class Renderer {
 	private Map<Direction, Animation> jumpAttackMap = new HashMap<Direction, Animation>();
 
 	private SpriteBatch spriteBatch;
-	private boolean debug = true;
+	private boolean debug = false;
 	public int width, height;
 	private float ppuX;					// Pixels per unit on the X axis
 	private float ppuY;					// Pixels per unit on the Y axis
 
 	float stateTime;
 
+	private World world;
+	private Level level;
 	private Mike mike;
 
 	public Renderer(World world, boolean debug) {
 		this.world = world;
+		this.level = world.getLevel();
 		mike = world.getMike();
 
 		this.cam = new OrthographicCamera(CAMERA_WIDTH, CAMERA_HEIGHT);
@@ -179,6 +185,7 @@ public class Renderer {
 
 		dead = new Texture(Gdx.files.internal("images/dead.png"));
 		shadow = new Texture(Gdx.files.internal("images/shadow.png"));
+		chakram = new Texture(Gdx.files.internal("images/chakra.png"));
 		touchPad = new Texture(Gdx.files.internal("images/touchpad.png"));
 		grass = new Texture(Gdx.files.internal("images/grass.png"));
 		water = new Texture(Gdx.files.internal("images/water.png"));
@@ -187,8 +194,9 @@ public class Renderer {
 	public void render(float delta) {
 		spriteBatch.begin();
 		drawBlocks();
+		drawChakrams();
 		drawMike(delta);
-		drawButtons();
+		// drawButtons();
 		spriteBatch.end();
 
 		drawCollisionBlocks();
@@ -252,6 +260,13 @@ public class Renderer {
 		} else {
 			spriteBatch.draw(mikeFrame, mike.getPosition().x * ppuX, mike.getPosition().y * ppuY, Mike.SIZE * ppuX,
 					Mike.SIZE * (ppuY * 1.5f));
+		}
+	}
+
+	private void drawChakrams() {
+		for (Chakram c : mike.getChakrams()) {
+			Sprite chakramSprite = new Sprite(chakram);
+			c.draw(spriteBatch, chakramSprite, shadow, ppuX, ppuY);
 		}
 	}
 

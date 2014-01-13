@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.awesome.namethislater.model.Block;
+import com.awesome.namethislater.model.Chakram;
+import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.Mike;
 import com.awesome.namethislater.model.Mike.Direction;
 import com.awesome.namethislater.model.Mike.State;
@@ -37,8 +39,10 @@ public class MikeController {
 	private float lift;								// The amount to increase or decrease the y-coord for a jump
 	private float jumpStartY;						// The Y coordinate that Mike is at when he starts a jump
 	private float shadowPercentage;
+	private float rotation = 0;						// The amount to rotate the chakram
 
 	private boolean jumpPressed = false;			// Used to prevent auto-jump by holding down jump button
+	private boolean attackPressed = false;
 
 	// This is the rectangle pool used in collision detection
 	// Good to avoid instantiation each frame
@@ -60,20 +64,20 @@ public class MikeController {
 	}
 
 	private World world;
+	private Level level;
 	private Mike mike;
 	// Blocks that can be collided with in any frame
 	private Array<Block> collidable = new Array<Block>();
 
 	public MikeController(World world) {
 		this.world = world;
+		this.level = world.getLevel();
 		this.mike = world.getMike();
 	}
 
-	private float t;
-	private float jumpTime;
-
 	public void update(float delta) {
-		if (!mike.getState().equals(State.DYING) && !mike.getState().equals(State.ATTACKING))
+		if (!mike.getState().equals(State.DYING) && !mike.getState().equals(State.ATTACKING)
+				&& !mike.getState().equals(State.JUMP_ATTACK))
 			processInput(delta);	// Allow for movement unless dead
 
 		// Multiply by the delta to convert acceleration to frame units
@@ -110,6 +114,16 @@ public class MikeController {
 					mike.setState(State.IDLE);
 			}
 		}
+
+		for (Chakram chakram : mike.getChakrams()) {
+			chakram.getAcceleration().mul(delta);
+			chakram.getVelocity().add(chakram.getAcceleration().x, chakram.getAcceleration().y);
+			chakram.getPosition().add(chakram.getVelocity());
+			chakram.update(chakram.position.x, chakram.position.y, chakram.getBounds().width,
+					chakram.getBounds().height, rotation);
+		}
+
+		rotation += 5;
 
 		checkCollisions(delta);
 
@@ -152,16 +166,20 @@ public class MikeController {
 					mike.setGrounded(false);
 					jumpPressed = true;						// The button for jumping is pressed
 					jumpDegree = 0;							// Reset the degree for the jump angle
-					jumpStartY = mike.getPosition().y;		// The starting y-coord of the jump
+					jumpStartY = mike.getPosition().y;		// The starting y-coordinate of the jump
 					shadowPercentage = 100.0f;
 				}
 			}
 		}
 		if (keys.get(Keys.ATTACK)) {
-			if (mike.isJumping())
+			if (mike.isJumping()) {
+				float airHeight = mike.getPosition().y - jumpStartY;
+				mike.jumpAttack(airHeight);
 				mike.setState(State.JUMP_ATTACK);
-			else
+			} else {
+				mike.attack();
 				mike.setState(State.ATTACKING);
+			}
 		} else if (keys.get(Keys.DOWN)) {
 			if (keys.get(Keys.LEFT)) {
 				mike.setDirection(Direction.DOWN_LEFT);
@@ -563,6 +581,7 @@ public class MikeController {
 
 	public void attackReleased() {
 		keys.get(keys.put(Keys.ATTACK, false));
+		attackPressed = false;
 	}
 
 	public void onTouchUp(int x, int y, Renderer renderer) {

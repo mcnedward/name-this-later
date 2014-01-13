@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.awesome.namethislater.controller.MikeController;
+import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.World;
 import com.awesome.namethislater.view.Basic3DRenderer;
 import com.awesome.namethislater.view.Renderer;
@@ -17,6 +18,7 @@ import com.badlogic.gdx.graphics.GL10;
 public class GameScreen implements Screen, InputProcessor {
 
 	private World world;
+	private Level level;
 	private Renderer renderer;
 	private Basic3DRenderer renderer3D;
 	private MikeController controller;
@@ -56,7 +58,8 @@ public class GameScreen implements Screen, InputProcessor {
 	@Override
 	public void show() {
 		world = new World();
-		renderer = new Renderer(world, true);
+		level = world.getLevel();
+		renderer = new Renderer(world, false);
 		// renderer3D = new Basic3DRenderer(world, false);
 		controller = new MikeController(world);
 		Gdx.input.setInputProcessor(this);

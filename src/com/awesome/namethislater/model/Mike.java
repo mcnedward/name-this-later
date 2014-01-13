@@ -1,6 +1,8 @@
 package com.awesome.namethislater.model;
 
 import java.awt.geom.Ellipse2D;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -32,6 +34,9 @@ public class Mike {
 
 	State state = State.IDLE;				// The state that Mike is in
 	Direction direction = Direction.DOWN;	// The direction Mike is facing
+
+	List<Chakram> chakrams;
+
 	boolean facingLeft = true;				// TODO Is this needed?
 	float stateTime = 0;					// The state time that Mike is currently in, determined by last render time
 	boolean grounded;						// Whether Mike is on the ground or not
@@ -51,6 +56,8 @@ public class Mike {
 		bounds.height = SIZE;
 		bounds.width = SIZE;
 
+		chakrams = new ArrayList<Chakram>();
+
 		grounded = true;
 		updateFeetBounds(position);
 		shadowPercentage = 100.0f;
@@ -67,6 +74,16 @@ public class Mike {
 	 */
 	public void update(float delta) {
 		stateTime += delta;
+	}
+
+	public void attack() {
+		Chakram chakram = new Chakram(position.x, position.y, this, 0);
+		chakrams.add(chakram);
+	}
+
+	public void jumpAttack(float airHeight) {
+		Chakram chakram = new Chakram(position.x, position.y, this, airHeight);
+		chakrams.add(chakram);
 	}
 
 	/**
@@ -142,6 +159,21 @@ public class Mike {
 			return true;
 		} else
 			return false;
+	}
+
+	/**
+	 * @return the chakras
+	 */
+	public List<Chakram> getChakrams() {
+		return chakrams;
+	}
+
+	/**
+	 * @param chakras
+	 *            the chakras to set
+	 */
+	public void setChakrams(List<Chakram> chakrams) {
+		this.chakrams = chakrams;
 	}
 
 	/**
