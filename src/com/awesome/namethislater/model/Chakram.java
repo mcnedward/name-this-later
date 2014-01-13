@@ -12,7 +12,7 @@ import com.badlogic.gdx.math.Vector2;
 public class Chakram {
 
 	public static float SIZE = 0.5f;				// The size of the chakram
-	private static final float ACCELERATION = 4f;	// The speed the chakram is thrown
+	private static final float ACCELERATION = 2f;	// The speed the chakram is thrown
 
 	public Vector2 position = new Vector2();
 	Vector2 acceleration = new Vector2();
@@ -60,9 +60,11 @@ public class Chakram {
 
 		this.airHeight = airHeight;			// The height in the air the chakram is
 
+		updateBounds(position);
+
 		// Set the ellipse for the shadow and update its bounds
 		shadow = new Ellipse2D.Float();
-		update(shadowPosition.x, shadowPosition.y, SIZE, SIZE, rotation);
+		update(shadowPosition.x, shadowPosition.y, rotation);
 
 		// Set the position and acceleration of the chakram based on Mike's direction
 		switch (direction) {
@@ -123,7 +125,7 @@ public class Chakram {
 	 * @param rotation
 	 *            The amount to rotate the chakram.
 	 */
-	public void update(float x, float y, float w, float h, float rotation) {
+	public void update(float x, float y, float rotation) {
 		this.rotation = rotation;
 
 		// Update the position of the shadow
@@ -168,7 +170,11 @@ public class Chakram {
 			this.rotation *= -1;					// Switch direction on rotation
 			break;
 		}
-		shadow.setFrame(shadowPosition.x, shadowPosition.y, w, h);
+
+		bounds.x = position.x;
+		bounds.y = position.y;
+
+		shadow.setFrame(shadowPosition.x, shadowPosition.y, SIZE, SIZE);
 	}
 
 	/**
@@ -185,7 +191,7 @@ public class Chakram {
 	 * @param ppuY
 	 *            The pixel point units for scaling the y coordinates.
 	 */
-	public void draw(SpriteBatch spriteBatch, Sprite sprite, Texture shadowSprite, float ppuX, float ppuY) {
+	public void render(SpriteBatch spriteBatch, Sprite sprite, Texture shadowSprite, float ppuX, float ppuY) {
 		float x = (float) (position.x * ppuX);
 		float y = (float) (position.y * ppuY);
 
@@ -223,6 +229,19 @@ public class Chakram {
 
 		// Draw the shadow.
 		spriteBatch.draw(texture, x, y, width, height);
+	}
+
+	/**
+	 * This is used to update the Rectangle boundaries surrounding the chakram. Use this for collision detection.
+	 * 
+	 * @param position
+	 *            The current position of the chakram.
+	 */
+	public void updateBounds(Vector2 position) {
+		bounds.x = position.x;
+		bounds.y = position.y;
+		bounds.height = SIZE;
+		bounds.width = SIZE;
 	}
 
 	/**

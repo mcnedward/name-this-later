@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -76,11 +77,36 @@ public class Mike {
 		stateTime += delta;
 	}
 
+	public void render(SpriteBatch spriteBatch, Sprite sprite, Texture shadowSprite, float ppuX, float ppuY) {
+		float x = (float) (position.x * ppuX);
+		float y = (float) (position.y * ppuY);
+
+		float width = (float) (SIZE * ppuX);
+		float height = (float) (SIZE * ppuX) * 1.5f;
+
+		if (isJumping())
+			drawShadow(spriteBatch, shadowSprite, ppuX, ppuY);
+
+		sprite.setOrigin(width / 2, height / 2);	// Set the origin in the middle
+		sprite.setBounds(x, y, width, height);		// Set the bounds
+		sprite.draw(spriteBatch);					// Draw!!!
+	}
+
+	/**
+	 * Throw a chakram. This creates a new Chakram and adds it to Mike's list of thrown chakrams.
+	 */
 	public void attack() {
 		Chakram chakram = new Chakram(position.x, position.y, this, 0);
 		chakrams.add(chakram);
 	}
 
+	/**
+	 * Throw a chakram. This creates a new Chakram and adds it to Mike's list of thrown chakrams. The air height is used
+	 * to determine shadow position of the chakram.
+	 * 
+	 * @param airHeight
+	 *            The height that Mike is in the air.
+	 */
 	public void jumpAttack(float airHeight) {
 		Chakram chakram = new Chakram(position.x, position.y, this, airHeight);
 		chakrams.add(chakram);

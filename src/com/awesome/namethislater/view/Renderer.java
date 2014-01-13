@@ -217,6 +217,7 @@ public class Renderer {
 	 */
 	private void drawMike(float delta) {
 		Direction direction = mike.getDirection();
+
 		if (mike.getState().equals(State.IDLE)) {
 			mikeFrame = idleMap.get(direction);
 		}
@@ -251,22 +252,28 @@ public class Renderer {
 				}
 			}
 		}
-		if (mike.getState().equals(State.JUMPING) || mike.getState().equals(State.JUMP_ATTACK)) {
-			mike.drawShadow(spriteBatch, shadow, ppuX, ppuY);
-		}
+
+		Sprite mikeSprite = new Sprite(mikeFrame);
+
 		if (mike.getState().equals(State.DYING)) {
-			spriteBatch.draw(dead, mike.getPosition().x * ppuX, mike.getPosition().y * ppuY, Mike.SIZE * ppuX,
-					Mike.SIZE * (ppuY * 1.5f));
+			Sprite deadSprite = new Sprite(dead);
+			mike.render(spriteBatch, deadSprite, shadow, ppuX, ppuY);
 		} else {
-			spriteBatch.draw(mikeFrame, mike.getPosition().x * ppuX, mike.getPosition().y * ppuY, Mike.SIZE * ppuX,
-					Mike.SIZE * (ppuY * 1.5f));
+			if (direction == Mike.Direction.DOWN || direction == Mike.Direction.DOWN_LEFT
+					|| direction == Mike.Direction.DOWN_RIGHT || direction == Mike.Direction.RIGHT) {
+				mike.render(spriteBatch, mikeSprite, shadow, ppuX, ppuY);
+				drawChakrams();
+			} else {
+				drawChakrams();
+				mike.render(spriteBatch, mikeSprite, shadow, ppuX, ppuY);
+			}
 		}
 	}
 
 	private void drawChakrams() {
 		for (Chakram c : mike.getChakrams()) {
 			Sprite chakramSprite = new Sprite(chakram);
-			c.draw(spriteBatch, chakramSprite, shadow, ppuX, ppuY);
+			c.render(spriteBatch, chakramSprite, shadow, ppuX, ppuY);
 		}
 	}
 
@@ -317,20 +324,26 @@ public class Renderer {
 		// Render blocks
 		debugRenderer.setProjectionMatrix(cam.combined);
 		debugRenderer.begin(ShapeType.Line);
-		for (Block block : world.getDrawableBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
-			Rectangle rect = block.getBounds();
-			debugRenderer.setColor(new Color(1, 0, 0, 1));
-			debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
-		}
-		for (Block block : world.getOtherBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
-			Rectangle rect = block.getBounds();
-			debugRenderer.setColor(new Color(1, 0, 0, 1));
-			debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
-		}
+		// for (Block block : world.getDrawableBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
+		// Rectangle rect = block.getBounds();
+		// debugRenderer.setColor(new Color(1, 0, 0, 1));
+		// debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
+		// }
+		// for (Block block : world.getOtherBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
+		// Rectangle rect = block.getBounds();
+		// debugRenderer.setColor(new Color(1, 0, 0, 1));
+		// debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
+		// }
 		// Render Mike
 		Rectangle rect = mike.getFeetBounds();
 		debugRenderer.setColor(new Color(0, 1, 0, 1));
 		debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
+		// Render chakram
+		for (Chakram chakram : mike.getChakrams()) {
+			Rectangle r = chakram.getBounds();
+			debugRenderer.setColor(new Color(0, 0, 1, 1));
+			debugRenderer.rect(r.x, r.y, r.width, r.height);
+		}
 		debugRenderer.end();
 	}
 

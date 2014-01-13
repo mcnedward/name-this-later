@@ -119,8 +119,8 @@ public class MikeController {
 			chakram.getAcceleration().mul(delta);
 			chakram.getVelocity().add(chakram.getAcceleration().x, chakram.getAcceleration().y);
 			chakram.getPosition().add(chakram.getVelocity());
-			chakram.update(chakram.position.x, chakram.position.y, chakram.getBounds().width,
-					chakram.getBounds().height, rotation);
+
+			chakram.update(chakram.position.x, chakram.position.y, rotation);
 		}
 
 		rotation += 5;
