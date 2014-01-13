@@ -14,7 +14,7 @@ public class Mike {
 
 	/** The different states that Mike can be in **/
 	public enum State {
-		IDLE, RUNNING, JUMPING, FALLING, DYING, ATTACKING, JUMP_ATTACK
+		IDLE, RUNNING, JUMPING, FALLING, DYING, DAMAGE, ATTACKING, JUMP_ATTACK
 	}
 
 	/** The directions that Mike can be facing **/

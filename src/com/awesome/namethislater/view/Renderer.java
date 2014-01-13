@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.awesome.namethislater.model.Block;
 import com.awesome.namethislater.model.Chakram;
+import com.awesome.namethislater.model.Enemy;
 import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.Mike;
 import com.awesome.namethislater.model.Mike.Direction;
@@ -42,9 +43,14 @@ public class Renderer {
 	private Texture jumpAttackSheet;	// The sprite sheet for jump attacks
 	private TextureRegion mikeFrame;	// The region of the current frame for Mike
 	private Texture dead;				// The texture for the death state
-	private Texture chakram;			// The texture for chakras
+	private Texture damage;				// The texture for the damge state
+	private Texture chakram;			// The texture for chakrams
 	private Texture shadow;				// The texture for the jump shadow
+
+	private Texture enemyTexture;		// The texture for the enemy
+
 	private Texture touchPad;			// The texture for the touch pad buttons
+
 	private Texture grass;				// The texture for grass blocks
 	private Texture water;				// The texture for water blocks
 
@@ -66,11 +72,13 @@ public class Renderer {
 	private World world;
 	private Level level;
 	private Mike mike;
+	private Enemy enemy;
 
 	public Renderer(World world, boolean debug) {
 		this.world = world;
 		this.level = world.getLevel();
 		mike = world.getMike();
+		enemy = level.getEnemy();
 
 		this.cam = new OrthographicCamera(CAMERA_WIDTH, CAMERA_HEIGHT);
 		this.cam.position.set(CAMERA_WIDTH / 2f, CAMERA_HEIGHT / 2f, 10);
@@ -184,8 +192,13 @@ public class Renderer {
 		jumpAttackMap.put(Direction.DOWN_RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[7]));
 
 		dead = new Texture(Gdx.files.internal("images/dead.png"));
+		damage = new Texture(Gdx.files.internal("images/damage.png"));
+
 		shadow = new Texture(Gdx.files.internal("images/shadow.png"));
 		chakram = new Texture(Gdx.files.internal("images/chakra.png"));
+
+		enemyTexture = new Texture(Gdx.files.internal("images/enemy.png"));
+
 		touchPad = new Texture(Gdx.files.internal("images/touchpad.png"));
 		grass = new Texture(Gdx.files.internal("images/grass.png"));
 		water = new Texture(Gdx.files.internal("images/water.png"));
@@ -194,8 +207,8 @@ public class Renderer {
 	public void render(float delta) {
 		spriteBatch.begin();
 		drawBlocks();
-		drawChakrams();
 		drawMike(delta);
+		drawEnemy();
 		// drawButtons();
 		spriteBatch.end();
 
@@ -258,7 +271,10 @@ public class Renderer {
 		if (mike.getState().equals(State.DYING)) {
 			Sprite deadSprite = new Sprite(dead);
 			mike.render(spriteBatch, deadSprite, shadow, ppuX, ppuY);
-		} else {
+		} else if (mike.getState().equals(State.DAMAGE)) {
+			Sprite damageSprite = new Sprite(damage);
+			mike.render(spriteBatch, damageSprite, shadow, ppuX, ppuY);
+		} else {	// TODO Check this...
 			if (direction == Mike.Direction.DOWN || direction == Mike.Direction.DOWN_LEFT
 					|| direction == Mike.Direction.DOWN_RIGHT || direction == Mike.Direction.RIGHT) {
 				mike.render(spriteBatch, mikeSprite, shadow, ppuX, ppuY);
@@ -275,6 +291,11 @@ public class Renderer {
 			Sprite chakramSprite = new Sprite(chakram);
 			c.render(spriteBatch, chakramSprite, shadow, ppuX, ppuY);
 		}
+	}
+
+	private void drawEnemy() {
+		Sprite enemySprite = new Sprite(enemyTexture);
+		enemy.render(spriteBatch, enemySprite, ppuX, ppuY);
 	}
 
 	private void drawShadow() {
@@ -344,6 +365,10 @@ public class Renderer {
 			debugRenderer.setColor(new Color(0, 0, 1, 1));
 			debugRenderer.rect(r.x, r.y, r.width, r.height);
 		}
+		// Render enemy
+		Rectangle r = enemy.getDamageBounds();
+		debugRenderer.setColor(new Color(1, 0, 0, 1));
+		debugRenderer.rect(r.x, r.y, r.width, r.height);
 		debugRenderer.end();
 	}
 

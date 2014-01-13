@@ -8,6 +8,8 @@ public class Level {
 	private Block[][] grassBlocks;
 	private Block[][] waterBlocks;
 
+	private Enemy enemy;
+
 	private Vector2 startingPosition;
 
 	public Level() {
@@ -44,6 +46,23 @@ public class Level {
 
 		waterBlocks[7][3] = new Block(new Vector2(7, 3));
 		waterBlocks[8][3] = new Block(new Vector2(8, 3));
+
+		enemy = new Enemy(new Vector2(7, 2));
+	}
+
+	/**
+	 * @return the enemy
+	 */
+	public Enemy getEnemy() {
+		return enemy;
+	}
+
+	/**
+	 * @param enemy
+	 *            the enemy to set
+	 */
+	public void setEnemy(Enemy enemy) {
+		this.enemy = enemy;
 	}
 
 	public Block getBlockAt(int x, int y) {

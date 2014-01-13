@@ -1,10 +1,12 @@
 package com.awesome.namethislater.controller;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import com.awesome.namethislater.model.Block;
 import com.awesome.namethislater.model.Chakram;
+import com.awesome.namethislater.model.Enemy;
 import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.Mike;
 import com.awesome.namethislater.model.Mike.Direction;
@@ -115,12 +117,15 @@ public class MikeController {
 			}
 		}
 
-		for (Chakram chakram : mike.getChakrams()) {
+		Iterator<Chakram> it = mike.getChakrams().iterator();
+		while (it.hasNext()) {
+			Chakram chakram = it.next();
 			chakram.getAcceleration().mul(delta);
 			chakram.getVelocity().add(chakram.getAcceleration().x, chakram.getAcceleration().y);
 			chakram.getPosition().add(chakram.getVelocity());
 
 			chakram.update(chakram.position.x, chakram.position.y, rotation);
+			checkChakramCollisions(delta, it, chakram);
 		}
 
 		rotation += 5;
@@ -367,6 +372,11 @@ public class MikeController {
 			}
 		}
 
+		Enemy enemy = level.getEnemy();
+		if (mikeRect.overlaps(enemy.getDamageBounds())) {
+			mike.setState(State.DAMAGE);
+		}
+
 		// Check for collisions with the left and right sides of the level
 		if (mikeRect.x <= 0 || mikeRect.x > width - mikeRect.width - mike.getVelocity().x) {
 			mike.getVelocity().x = 0;
@@ -408,6 +418,44 @@ public class MikeController {
 		mike.getFeetBounds().y = mike.getPosition().y;
 		// Un-scale the velocity so that it is no longer in frame time
 		mike.getVelocity().mul(1 / delta);
+	}
+
+	/**
+	 * Check if the chakram collides with an enemy. If it does, remove it from the iterator.
+	 * 
+	 * @param delta
+	 *            The time in seconds since the last update. Used to scale the velocity to frame units.
+	 * @param it
+	 *            The iterator that is looping through each of the chakrams.
+	 * @param chakram
+	 *            The current chakram that is being checked.
+	 */
+	private void checkChakramCollisions(float delta, Iterator<Chakram> it, Chakram chakram) {
+		Enemy enemy = level.getEnemy();
+		// Multiply by the delta to convert velocity to frame units
+		chakram.getVelocity().mul(delta);
+
+		// Create the bounds of the chakram
+		Rectangle chakramRect = new Rectangle();
+		float left = (chakram.getBounds().x);
+		float bottom = (chakram.getBounds().y);
+		float right = chakram.getBounds().width;
+		float top = chakram.getBounds().height;
+
+		chakramRect.set(left, bottom, right, top);
+
+		// Set the chakram bounds to include X and Y velocity
+		chakramRect.x += chakram.getVelocity().x;
+		chakramRect.y += chakram.getVelocity().y;
+
+		// Check for collisions
+		if (chakramRect.overlaps(enemy.getBounds())) {
+			chakram.getVelocity().x = 0;
+			chakram.getVelocity().y = 0;
+			it.remove();
+		} else {
+			chakram.getVelocity().mul(1 / delta);
+		}
 	}
 
 	/**
