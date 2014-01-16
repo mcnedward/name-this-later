@@ -7,6 +7,7 @@ import java.util.List;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
@@ -30,17 +31,21 @@ public class Mike {
 	Vector2 shadowVector = new Vector2();	// The position of Mike's jumping shadow
 	Ellipse2D shadow;						// An ellipse used to determine the bounds of the shadow
 
+	Sprite sprite = new Sprite();
+	Sprite shadowSprite = new Sprite();
+
 	Rectangle bounds = new Rectangle();		// The bounds of Mike's sprite rectangle
 	Rectangle feetBounds = new Rectangle();	// The bounds of Mike's feet
+	Rectangle jumpingBounds = new Rectangle();
 
 	State state = State.IDLE;				// The state that Mike is in
 	Direction direction = Direction.DOWN;	// The direction Mike is facing
 
 	List<Chakram> chakrams;
 
-	boolean facingLeft = true;				// TODO Is this needed?
+	boolean isGrounded;						// Whether Mike is on the ground or not
+	boolean attacking;					// Whether Mike is attacking or not
 	float stateTime = 0;					// The state time that Mike is currently in, determined by last render time
-	boolean grounded;						// Whether Mike is on the ground or not
 	float shadowPercentage;					// The amount to scale Mike's jumping shadow
 
 	/**
@@ -59,7 +64,7 @@ public class Mike {
 
 		chakrams = new ArrayList<Chakram>();
 
-		grounded = true;
+		isGrounded = true;
 		updateFeetBounds(position);
 		shadowPercentage = 100.0f;
 
@@ -77,7 +82,7 @@ public class Mike {
 		stateTime += delta;
 	}
 
-	public void render(SpriteBatch spriteBatch, Sprite sprite, Texture shadowSprite, float ppuX, float ppuY) {
+	public void loadSprite(SpriteBatch spriteBatch, float ppuX, float ppuY) {
 		float x = (float) (position.x * ppuX);
 		float y = (float) (position.y * ppuY);
 
@@ -85,11 +90,44 @@ public class Mike {
 		float height = (float) (SIZE * ppuX) * 1.5f;
 
 		if (isJumping())
-			drawShadow(spriteBatch, shadowSprite, ppuX, ppuY);
+			drawShadow(spriteBatch, ppuX, ppuY);
 
 		sprite.setOrigin(width / 2, height / 2);	// Set the origin in the middle
 		sprite.setBounds(x, y, width, height);		// Set the bounds
-		sprite.draw(spriteBatch);					// Draw!!!
+	}
+
+	/**
+	 * Used to draw the shadow for Mike's jump. All scaling for the shadow is done here.
+	 * 
+	 * @param spriteBatch
+	 *            The sprite batch used to draw the sprite.
+	 * @param texture
+	 *            The texture for the shadow to draw.
+	 * @param ppuX
+	 *            The pixel point units for the x coordinates.
+	 * @param ppuY
+	 *            The pixel point units for the y coordinates.
+	 */
+	public void drawShadow(SpriteBatch spriteBatch, float ppuX, float ppuY) {
+		// Get the origin x and y. These are used to scale the shadow around the center of the ellipse.
+		float originX = (float) (shadow.getCenterX() * ppuX);
+		float originY = (float) (shadow.getCenterY() * ppuY);
+
+		// Get the x and y coordinates to draw. These are the lower left corners of the ellipse.
+		float x = (float) (shadow.getX() * ppuX);
+		float y = (float) (shadow.getY() * ppuY);
+
+		// Get the width and height of the shadow, and scale them according to the scale percentage.
+		float width = (float) (shadow.getWidth() * shadowPercentage * ppuX);
+		float height = (float) (shadow.getHeight() * shadowPercentage * ppuY);
+
+		// Determine the amount of pixels to move the shadow's x and y coordinates. These are used to keep the scaling
+		// of the shadow around the center of the ellipse.
+		float moveX = (originX - x) - ((originX - x) * shadowPercentage);
+		float moveY = (originY - y) - ((originY - y) * shadowPercentage);
+
+		shadowSprite.setOrigin(width / 2, height / 2);	// Set the origin in the middle
+		shadowSprite.setBounds(x + moveX, y + moveY, width, height - moveY);		// Set the bounds
 	}
 
 	/**
@@ -139,40 +177,21 @@ public class Mike {
 		getShadow().y = y;
 
 		shadow.setFrame(x, y, w, h);
+		updateJumpingBounds(x, y, w, h);
 	}
-
+	
 	/**
-	 * Used to draw the shadow for Mike's jump. All scaling for the shadow is done here.
+	 * This is used to update the Rectangle boundaries surrounding Mike's shadow when jumping. Use this for collision detection with enemies.
 	 * 
-	 * @param spriteBatch
-	 *            The sprite batch used to draw the sprite.
-	 * @param texture
-	 *            The texture for the shadow to draw.
-	 * @param ppuX
-	 *            The pixel point units for the x coordinates.
-	 * @param ppuY
-	 *            The pixel point units for the y coordinates.
+	 * @param position
+	 *            The current position of Mike.
 	 */
-	public void drawShadow(SpriteBatch spriteBatch, Texture texture, float ppuX, float ppuY) {
-		// Get the origin x and y. These are used to scale the shadow around the center of the ellipse.
-		float originX = (float) (shadow.getCenterX() * ppuX);
-		float originY = (float) (shadow.getCenterY() * ppuY);
-
-		// Get the x and y coordinates to draw. These are the lower left corners of the ellipse.
-		float x = (float) (shadow.getX() * ppuX);
-		float y = (float) (shadow.getY() * ppuY);
-
-		// Get the width and height of the shadow, and scale them according to the scale percentage.
-		float width = (float) (shadow.getWidth() * shadowPercentage * ppuX);
-		float height = (float) (shadow.getHeight() * shadowPercentage * ppuY);
-
-		// Determine the amount of pixels to move the shadow's x and y coordinates. These are used to keep the scaling
-		// of the shadow around the center of the ellipse.
-		float moveX = (originX - x) - ((originX - x) * shadowPercentage);
-		float moveY = (originY - y) - ((originY - y) * shadowPercentage);
-
-		// Draw the shadow.
-		spriteBatch.draw(texture, x + moveX, y + moveY, width, height - moveY);
+	public void updateJumpingBounds(float x, float y, float w, float h) {
+		float air = feetBounds.y - y;
+		jumpingBounds.x = feetBounds.x;
+		jumpingBounds.y = y;
+		jumpingBounds.width = feetBounds.width;
+		jumpingBounds.height = feetBounds.height + air;
 	}
 
 	/**
@@ -181,7 +200,7 @@ public class Mike {
 	 * @return True if Mike is jumping, false otherwise.
 	 */
 	public boolean isJumping() {
-		if (state == State.JUMPING || state == State.JUMP_ATTACK) {
+		if (state == State.JUMPING || state == State.JUMP_ATTACK || !isGrounded) {
 			return true;
 		} else
 			return false;
@@ -200,6 +219,66 @@ public class Mike {
 	 */
 	public void setChakrams(List<Chakram> chakrams) {
 		this.chakrams = chakrams;
+	}
+
+	/**
+	 * @return the sprite
+	 */
+	public Sprite getSprite() {
+		return sprite;
+	}
+
+	/**
+	 * Sets the sprite for Mike to the specified texture region.
+	 * 
+	 * @param textureRegion
+	 *            The TextureRegion to use for this sprite.
+	 */
+	public void setSpriteRegion(TextureRegion textureRegion) {
+		sprite.setRegion(textureRegion);
+	}
+
+	/**
+	 * Sets the sprite for Mike to the specified texture.
+	 * 
+	 * @param texture
+	 *            The Texture to use for this sprite.
+	 */
+	public void setSpriteRegion(Texture texture) {
+		sprite.setRegion(texture);
+	}
+
+	/**
+	 * @param sprite
+	 *            the sprite to set
+	 */
+	public void setSprite(Sprite sprite) {
+		this.sprite = sprite;
+	}
+
+	/**
+	 * @return the shadowSprite
+	 */
+	public Sprite getShadowSprite() {
+		return shadowSprite;
+	}
+
+	/**
+	 * Sets the sprite for Mike's shadow to the specified texture.
+	 * 
+	 * @param texture
+	 *            The Texture to use for this sprite.
+	 */
+	public void setShadowSpriteRegion(Texture texture) {
+		shadowSprite.setRegion(texture);
+	}
+
+	/**
+	 * @param shadowSprite
+	 *            the shadowSprite to set
+	 */
+	public void setShadowSprite(Sprite shadowSprite) {
+		this.shadowSprite = shadowSprite;
 	}
 
 	/**
@@ -240,18 +319,26 @@ public class Mike {
 	}
 
 	/**
-	 * @return the grounded
+	 * @return the isGrounded
 	 */
 	public boolean isGrounded() {
-		return grounded;
+		return isGrounded;
 	}
 
 	/**
-	 * @param grounded
-	 *            the grounded to set
+	 * @param isGrounded
+	 *            the isGrounded to set
 	 */
-	public void setGrounded(boolean grounded) {
-		this.grounded = grounded;
+	public void setGrounded(boolean isGrounded) {
+		this.isGrounded = isGrounded;
+	}
+
+	public boolean isAttacking() {
+		return attacking;
+	}
+
+	public void setAttacking(boolean isAttacking) {
+		this.attacking = isAttacking;
 	}
 
 	/**
@@ -313,6 +400,14 @@ public class Mike {
 	 */
 	public void setFeetBounds(Rectangle feetBounds) {
 		this.feetBounds = feetBounds;
+	}
+
+	public Rectangle getJumpingBounds() {
+		return jumpingBounds;
+	}
+
+	public void setJumpingBounds(Rectangle jumpingBounds) {
+		this.jumpingBounds = jumpingBounds;
 	}
 
 	/**

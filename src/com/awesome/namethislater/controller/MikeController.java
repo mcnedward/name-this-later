@@ -81,12 +81,21 @@ public class MikeController {
 		if (!mike.getState().equals(State.DYING) && !mike.getState().equals(State.ATTACKING)
 				&& !mike.getState().equals(State.JUMP_ATTACK))
 			processInput(delta);	// Allow for movement unless dead
-
+		
 		// Multiply by the delta to convert acceleration to frame units
 		mike.getAcceleration().mul(delta);
 		// Add the acceleration to the velocity
 		mike.getVelocity().add(mike.getAcceleration().x, mike.getAcceleration().y);
 
+		// If Mike is ready to attack, throw an attack!
+		if (mike.isAttacking()) {
+			if (mike.isJumping()) {
+				float airHeight = mike.getPosition().y - jumpStartY;
+				mike.jumpAttack(airHeight);
+			} else
+				mike.attack();
+		}
+		
 		// Check if Mike is currently jumping. If he is, check the time he has been in
 		// the air and drop him after the maximum time allowed for his jump.
 		if (mike.isJumping()) {
@@ -108,6 +117,10 @@ public class MikeController {
 				shadowPercentage -= 2.5;
 			else
 				shadowPercentage += 2.5;
+			
+			mike.updateShadow(mike.getPosition().x, jumpStartY, mike.getBounds().width, mike.getBounds().height,
+					shadowPercentage);
+			
 			if (jumpDegree > 180) {
 				mike.setGrounded(true);
 				if (mike.getState().equals(State.JUMP_ATTACK))
@@ -136,12 +149,6 @@ public class MikeController {
 		if (!mike.isJumping()) {
 			mike.getVelocity().x *= DAMP;
 			mike.getVelocity().y *= DAMP;
-		}
-
-		// If Mike is jumping, update the position of his shadow
-		if (mike.isJumping()) {
-			mike.updateShadow(mike.getPosition().x, jumpStartY, mike.getBounds().width, mike.getBounds().height,
-					shadowPercentage);
 		}
 
 		// Ensure terminal velocity is not exceeded
@@ -177,12 +184,10 @@ public class MikeController {
 			}
 		}
 		if (keys.get(Keys.ATTACK)) {
+			// Start the jump animation
 			if (mike.isJumping()) {
-				float airHeight = mike.getPosition().y - jumpStartY;
-				mike.jumpAttack(airHeight);
 				mike.setState(State.JUMP_ATTACK);
 			} else {
-				mike.attack();
 				mike.setState(State.ATTACKING);
 			}
 		} else if (keys.get(Keys.DOWN)) {
@@ -293,16 +298,25 @@ public class MikeController {
 		// Obtain Mike's rectangle from the pool of rectangles instead of instantiating every frame. Then set the
 		// bounds of the rectangle.
 		Rectangle mikeRect = rectPool.obtain();
-		float left = (mike.getFeetBounds().x + (mike.getFeetBounds().width / 3));
-		float bottom = (mike.getFeetBounds().y + (mike.getFeetBounds().height / 3));
-		float right = mike.getFeetBounds().width / 3;
-		float top = mike.getFeetBounds().height / 3;
+		float left = mike.getFeetBounds().x;
+		float bottom = mike.getFeetBounds().y;
+		float right = mike.getFeetBounds().width;
+		float top = mike.getFeetBounds().height;
+		
+		Rectangle mikeShadow = new Rectangle();
+		float l = mike.getJumpingBounds().x;
+		float b = mike.getJumpingBounds().y;
+		float r = mike.getJumpingBounds().width;
+		float t = mike.getJumpingBounds().height;
 
 		mikeRect.set(left, bottom, right, top);
+		mikeShadow.set(l, b, r, t);
 
 		// Set Mike's collision rect to include his X and Y velocity
 		mikeRect.x += mike.getVelocity().x;
 		mikeRect.y += mike.getVelocity().y;
+		mikeShadow.x += mike.getVelocity().x;
+		mikeShadow.y += mike.getVelocity().y;
 
 		// Check for collisions on the horizontal X axis
 		int startX, endX;
@@ -373,8 +387,16 @@ public class MikeController {
 		}
 
 		Enemy enemy = level.getEnemy();
-		if (mikeRect.overlaps(enemy.getDamageBounds())) {
-			mike.setState(State.DAMAGE);
+ 		if (mike.getState().equals(State.JUMPING) || mike.getState().equals(State.JUMP_ATTACK)) {
+			if (mikeShadow.overlaps(enemy.getDamageBounds()) && (mike.getShadow().y > enemy.getPosition().y)) {
+				mike.setState(State.DAMAGE);
+				jumpPressed = false;
+				mike.getVelocity().x = 0;
+			}
+		} else {
+			if (mikeRect.overlaps(enemy.getDamageBounds())) {
+				mike.setState(State.DAMAGE);
+			}
 		}
 
 		// Check for collisions with the left and right sides of the level
@@ -437,10 +459,10 @@ public class MikeController {
 
 		// Create the bounds of the chakram
 		Rectangle chakramRect = new Rectangle();
-		float left = (chakram.getBounds().x);
-		float bottom = (chakram.getBounds().y);
-		float right = chakram.getBounds().width;
-		float top = chakram.getBounds().height;
+		float left = (float) (chakram.getShadow().getX());
+		float bottom = (float) (chakram.getShadow().getY());
+		float right = (float) chakram.getShadow().getWidth();
+		float top = (float) chakram.getShadow().getHeight();
 
 		chakramRect.set(left, bottom, right, top);
 
@@ -449,7 +471,7 @@ public class MikeController {
 		chakramRect.y += chakram.getVelocity().y;
 
 		// Check for collisions
-		if (chakramRect.overlaps(enemy.getBounds())) {
+		if (chakramRect.overlaps(enemy.getDamageBounds())) {
 			chakram.getVelocity().x = 0;
 			chakram.getVelocity().y = 0;
 			it.remove();

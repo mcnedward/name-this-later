@@ -47,7 +47,7 @@ public class Level {
 		waterBlocks[7][3] = new Block(new Vector2(7, 3));
 		waterBlocks[8][3] = new Block(new Vector2(8, 3));
 
-		enemy = new Enemy(new Vector2(7, 2));
+		enemy = new Enemy(new Vector2(4, 4));
 	}
 
 	/**

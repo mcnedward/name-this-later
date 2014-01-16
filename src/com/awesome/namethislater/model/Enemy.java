@@ -2,6 +2,7 @@ package com.awesome.namethislater.model;
 
 import java.awt.geom.Ellipse2D;
 
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
@@ -16,6 +17,8 @@ public class Enemy {
 	Vector2 velocity = new Vector2();		// The acceleration and direction of the enemy's movement
 	Vector2 shadowVector = new Vector2();	// The position of the enemy's jumping shadow
 	Ellipse2D shadow;						// An ellipse used to determine the bounds of the shadow
+
+	Sprite sprite = new Sprite();
 
 	Rectangle bounds = new Rectangle();		// The bounds of the enemy's sprite rectangle
 	Rectangle damageBounds = new Rectangle();	// The bounds of the enemy's feet
@@ -39,7 +42,7 @@ public class Enemy {
 		stateTime += delta;
 	}
 
-	public void render(SpriteBatch spriteBatch, Sprite sprite, float ppuX, float ppuY) {
+	public void loadSprite(SpriteBatch spriteBatch, float ppuX, float ppuY) {
 		float x = (float) (position.x * ppuX);
 		float y = (float) (position.y * ppuY);
 
@@ -48,7 +51,6 @@ public class Enemy {
 
 		sprite.setOrigin(width / 2, height / 2);	// Set the origin in the middle
 		sprite.setBounds(x, y, width, height);		// Set the bounds
-		sprite.draw(spriteBatch);					// Draw!!!
 	}
 
 	/**
@@ -62,7 +64,32 @@ public class Enemy {
 		damageBounds.x = position.x;
 		damageBounds.y = position.y;
 		damageBounds.width = SIZE;
-		damageBounds.height = SIZE / 2;
+		damageBounds.height = SIZE / 3;
+	}
+
+	/**
+	 * @return the sprite
+	 */
+	public Sprite getSprite() {
+		return sprite;
+	}
+
+	/**
+	 * Set the sprite texture for the enemy.
+	 * 
+	 * @param texture
+	 *            The texture for this enemy.
+	 */
+	public void setSpriteRegion(Texture texture) {
+		sprite.setRegion(texture);
+	}
+
+	/**
+	 * @param sprite
+	 *            the sprite to set
+	 */
+	public void setSprite(Sprite sprite) {
+		this.sprite = sprite;
 	}
 
 	/**

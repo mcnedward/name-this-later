@@ -12,7 +12,7 @@ import com.badlogic.gdx.math.Vector2;
 public class Chakram {
 
 	public static float SIZE = 0.5f;				// The size of the chakram
-	private static final float ACCELERATION = 2f;	// The speed the chakram is thrown
+	private static final float ACCELERATION = 0.5f;	// The speed the chakram is thrown
 
 	public Vector2 position = new Vector2();
 	Vector2 acceleration = new Vector2();
@@ -20,14 +20,18 @@ public class Chakram {
 	public Vector2 shadowPosition = new Vector2();
 	Ellipse2D shadow;
 
+	Sprite sprite = new Sprite();
+	Sprite shadowSprite = new Sprite();
+
+	// Set the bounds of the chakram. Attack bounds use the shadow position to better determine how to collide with an
+	// objects.
 	public Rectangle bounds = new Rectangle();
+	public Rectangle attackBounds = new Rectangle();
 
 	Direction direction;	// The direction that the chakram is thrown
 
 	float stateTime = 0;
-
 	float airHeight = 0;	// If thrown in jump attack, adjust the height of the shadow
-	float shadowMove = 0;	// Extra distance to move shadow based on the direction of the throw
 	float rotation = 0;		// How much to rotate the chakram
 
 	/**
@@ -56,6 +60,12 @@ public class Chakram {
 		bounds.height = SIZE;
 		bounds.width = SIZE;
 
+		// Set the attack bounds of the chakram
+		attackBounds.x = x;
+		attackBounds.y = y;
+		attackBounds.height = SIZE;
+		attackBounds.width = SIZE;
+
 		direction = mike.getDirection();	// The direction the chakram was thrown
 
 		this.airHeight = airHeight;			// The height in the air the chakram is
@@ -69,42 +79,45 @@ public class Chakram {
 		// Set the position and acceleration of the chakram based on Mike's direction
 		switch (direction) {
 		case DOWN:
-			position.x += mike.bounds.width / 4;	// Set the chakram in the middle of Mike
+			position.x += SIZE / 4;				// Set the chakram in the middle of Mike
 			acceleration.y = -ACCELERATION;
 			break;
 		case UP:
-			position.x += mike.bounds.width / 4;	// Set the chakram in the middle of Mike
-			position.y += mike.bounds.height / 2;	// Set the chakram in the middle of Mike
+			position.x += SIZE / 4;				// Set the chakram in the middle of Mike
+			position.y += SIZE / 2;				// Set the chakram in the middle of Mike
 			acceleration.y = ACCELERATION;
 			break;
 		case LEFT:
-			position.y += mike.bounds.height / 2;	// Set the chakram in the middle of Mike
+			position.x -= (SIZE / 2);			// Set the chakram right in front of Mike's hand
+			position.y += SIZE / 2;				// Set the chakram in the middle of Mike
 			acceleration.x = -ACCELERATION;
 			break;
 		case RIGHT:
-			position.y += mike.bounds.height / 2;	// Set the chakram in the middle of Mike
+			position.x += SIZE + (SIZE / 3);	// Set the chakram right in front of Mike's hand
+			position.y += SIZE / 2;				// Set the chakram in the middle of Mike
 			acceleration.x = ACCELERATION;
 			break;
 		case DOWN_LEFT:
-			position.y += mike.bounds.height / 2;	// Set the chakram in the middle of Mike
+			position.x -= (SIZE / 2);			// Set the chakram right in front of Mike's hand
+			position.y += SIZE / 3;				// Set the chakram in the middle of Mike
 			acceleration.y = -ACCELERATION;
 			acceleration.x = -ACCELERATION;
 			break;
 		case DOWN_RIGHT:
-			position.y += mike.bounds.height / 2;	// Set the chakram in the middle of Mike
-			position.x += mike.bounds.width / 4;	// Set the chakram in the middle of Mike
+			position.x += SIZE + (SIZE / 3);	// Set the chakram right in front of Mike's hand
+			position.y += SIZE / 3;				// Set the chakram in the middle of Mike
 			acceleration.y = -ACCELERATION;
 			acceleration.x = ACCELERATION;
 			break;
 		case UP_LEFT:
-			position.x += mike.bounds.width / 4;	// Set the chakram in the middle of Mike
-			position.y += mike.bounds.height / 2;	// Set the chakram in the middle of Mike
+			position.x -= (SIZE / 2);			// Set the chakram right in front of Mike's hand
+			position.y += SIZE;					//Set the chakram in the middle of Mike
 			acceleration.y = ACCELERATION;
 			acceleration.x = -ACCELERATION;
 			break;
 		case UP_RIGHT:
-			position.x += mike.bounds.width / 4;	// Set the chakram in the middle of Mike
-			position.y += mike.bounds.height / 2; 	// Set the chakram in the middle of Mike
+			position.x += SIZE + (SIZE / 3);	// Set the chakram right in front of Mike's hand
+			position.y += SIZE;		 			// Set the chakram in the middle of Mike
 			acceleration.y = ACCELERATION;
 			acceleration.x = ACCELERATION;
 			break;
@@ -128,17 +141,18 @@ public class Chakram {
 	public void update(float x, float y, float rotation) {
 		this.rotation = rotation;
 
+		// Extra distance to move shadow based on the direction of the throw
+		float shadowMove = 0.4f;
+
 		// Update the position of the shadow
 		switch (direction) {
 		case DOWN:
 			shadowPosition.x = position.x;
-			shadowPosition.y = y;
-			shadowMove = 20;
+			shadowPosition.y = y - shadowMove;
 			break;
 		case UP:
 			shadowPosition.x = position.x;
-			shadowPosition.y = y;
-			shadowMove = 20;
+			shadowPosition.y = y - shadowMove;
 			break;
 		case LEFT:
 			shadowPosition.x = x;
@@ -149,32 +163,30 @@ public class Chakram {
 			break;
 		case DOWN_LEFT:
 			shadowPosition.x = x;
-			shadowPosition.y = y;
-			shadowMove = 20;
+			shadowPosition.y = y - shadowMove;
 			break;
 		case DOWN_RIGHT:
 			shadowPosition.x = x;
-			shadowPosition.y = y;
-			shadowMove = 20;
+			shadowPosition.y = y - shadowMove;
 			this.rotation *= -1;					// Switch direction on rotation
 			break;
 		case UP_LEFT:
 			shadowPosition.x = x;
-			shadowPosition.y = y;
-			shadowMove = 20;
+			shadowPosition.y = y - shadowMove;
 			break;
 		case UP_RIGHT:
 			shadowPosition.x = x;
-			shadowPosition.y = y;
-			shadowMove = 20;
+			shadowPosition.y = y - shadowMove;
 			this.rotation *= -1;					// Switch direction on rotation
 			break;
 		}
 
-		bounds.x = position.x;
-		bounds.y = position.y;
-
 		shadow.setFrame(shadowPosition.x, shadowPosition.y, SIZE, SIZE);
+
+		attackBounds.x = (float) (shadow.getX() + (shadow.getWidth() / 4));
+		attackBounds.y = (float) shadow.getY();
+		attackBounds.width = (float) (shadow.getWidth() / 2);
+		attackBounds.height = (float) (shadow.getHeight() / 2);
 	}
 
 	/**
@@ -191,19 +203,18 @@ public class Chakram {
 	 * @param ppuY
 	 *            The pixel point units for scaling the y coordinates.
 	 */
-	public void render(SpriteBatch spriteBatch, Sprite sprite, Texture shadowSprite, float ppuX, float ppuY) {
+	public void loadSprite(SpriteBatch spriteBatch, float ppuX, float ppuY) {
 		float x = (float) (position.x * ppuX);
 		float y = (float) (position.y * ppuY);
 
 		float width = (float) (SIZE * ppuX);
 		float height = (float) (SIZE * ppuX);
 
-		drawShadow(spriteBatch, shadowSprite, ppuX, ppuY);
+		drawShadow(spriteBatch, ppuX, ppuY);
 
 		sprite.setOrigin(width / 2, height / 2);	// Set the origin in the middle
 		sprite.setRotation(rotation);				// Rotate the sprite
 		sprite.setBounds(x, y, width, height);		// Set the bounds
-		sprite.draw(spriteBatch);					// Draw!!!
 	}
 
 	/**
@@ -218,17 +229,17 @@ public class Chakram {
 	 * @param ppuY
 	 *            The pixel point units for scaling the y coordinates.
 	 */
-	public void drawShadow(SpriteBatch spriteBatch, Texture texture, float ppuX, float ppuY) {
+	public void drawShadow(SpriteBatch spriteBatch, float ppuX, float ppuY) {
 		// Get the x and y coordinates to draw. These are the lower left corners of the ellipse.
 		float x = (float) (shadow.getX() * ppuX);
-		float y = (float) (shadow.getY() * ppuY) - shadowMove - (airHeight * ppuY);
+		float y = (float) (shadow.getY() * ppuY) - (airHeight * ppuY);
 
 		// Get the width and height of the shadow, and scale them according to the scale percentage.
 		float width = (float) (shadow.getWidth() * ppuX);
 		float height = (float) (shadow.getHeight() * ppuY);
 
-		// Draw the shadow.
-		spriteBatch.draw(texture, x, y, width, height);
+		shadowSprite.setOrigin(width / 2, height / 2);	// Set the origin in the middle
+		shadowSprite.setBounds(x, y, width, height);	// Set the bounds
 	}
 
 	/**
@@ -242,6 +253,71 @@ public class Chakram {
 		bounds.y = position.y;
 		bounds.height = SIZE;
 		bounds.width = SIZE;
+	}
+
+	/**
+	 * @return the attackBounds
+	 */
+	public Rectangle getAttackBounds() {
+		return attackBounds;
+	}
+
+	/**
+	 * @param attackBounds
+	 *            the attackBounds to set
+	 */
+	public void setAttackBounds(Rectangle attackBounds) {
+		this.attackBounds = attackBounds;
+	}
+
+	/**
+	 * @return the sprite
+	 */
+	public Sprite getSprite() {
+		return sprite;
+	}
+
+	/**
+	 * Sets the texture for this sprite.
+	 * 
+	 * @param texture
+	 *            The texture for this sprite.
+	 */
+	public void setSpriteRegion(Texture texture) {
+		sprite.setRegion(texture);
+	}
+
+	/**
+	 * @param sprite
+	 *            the sprite to set
+	 */
+	public void setSprite(Sprite sprite) {
+		this.sprite = sprite;
+	}
+
+	/**
+	 * @return the shadowSprite
+	 */
+	public Sprite getShadowSprite() {
+		return shadowSprite;
+	}
+
+	/**
+	 * Sets the texture for this sprite's shadow.
+	 * 
+	 * @param texture
+	 *            The texture for this sprite's shadow.
+	 */
+	public void setShadowSpriteRegion(Texture texture) {
+		shadowSprite.setRegion(texture);
+	}
+
+	/**
+	 * @param shadowSprite
+	 *            the shadowSprite to set
+	 */
+	public void setShadowSprite(Sprite shadowSprite) {
+		this.shadowSprite = shadowSprite;
 	}
 
 	/**

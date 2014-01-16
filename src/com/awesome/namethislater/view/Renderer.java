@@ -1,5 +1,6 @@
 package com.awesome.namethislater.view;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +23,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.Array;
 
 public class Renderer {
 
@@ -67,7 +69,8 @@ public class Renderer {
 	private float ppuX;					// Pixels per unit on the X axis
 	private float ppuY;					// Pixels per unit on the Y axis
 
-	float stateTime;
+	float stateTime;					// The time since last render
+	float currentFrame;					// The current frame, based on the state time
 
 	private World world;
 	private Level level;
@@ -75,9 +78,12 @@ public class Renderer {
 	private Enemy enemy;
 
 	public Renderer(World world, boolean debug) {
+		loadTextures();
+
 		this.world = world;
 		this.level = world.getLevel();
 		mike = world.getMike();
+		mike.setShadowSpriteRegion(shadow);
 		enemy = level.getEnemy();
 
 		this.cam = new OrthographicCamera(CAMERA_WIDTH, CAMERA_HEIGHT);
@@ -86,8 +92,6 @@ public class Renderer {
 		this.debug = debug;
 		spriteBatch = new SpriteBatch();
 		stateTime = 0f;
-
-		loadTextures();
 	}
 
 	private void loadTextures() {
@@ -206,9 +210,13 @@ public class Renderer {
 
 	public void render(float delta) {
 		spriteBatch.begin();
+
 		drawBlocks();
-		drawMike(delta);
 		drawEnemy();
+		drawMike(delta);
+		drawChakrams();
+		drawSprites();
+
 		// drawButtons();
 		spriteBatch.end();
 
@@ -241,19 +249,32 @@ public class Renderer {
 			mikeFrame = jumpMap.get(direction);
 		}
 		if (mike.getState().equals(State.ATTACKING)) {
-			// Get the time since last render. Then set Mike's frame to attack. When the attack animation is finished,
+			// Get the time since last render and the current frame, based on the attack frame rate. Then set Mike's frame to attack. If the current attack frame is the second one in the animation, set his attacking boolean to true so that he will attack on the next update. When the attack animation is finished,
 			// set his state back to idle.
 			stateTime += delta;
+			currentFrame += (int) (stateTime / ATTACKING_FRAME_DURATION);
 			mikeFrame = attackMap.get(direction).getKeyFrame(stateTime, false);
+			if (currentFrame == 1) {
+				mike.setAttacking(true);	// Attack!
+				currentFrame += 1;			// Increase the frame count so this will be skipped on the next render
+			} else {
+				mike.setAttacking(false);
+			}
 			if (attackMap.get(direction).isAnimationFinished(stateTime)) {
 				mike.setState(State.IDLE);
 				stateTime = 0;
+				currentFrame = 0;
 			}
 		}
 		if (mike.getState().equals(State.JUMP_ATTACK)) {
 			// Get the time since last render. Then set Mike's frame to attack. When the attack animation is finished,
 			// check whether he is in the air or not, and set his state accordingly.
 			stateTime += delta;
+			int currentFrame = (int)(stateTime / ATTACKING_FRAME_DURATION);
+			mikeFrame = attackMap.get(direction).getKeyFrame(stateTime, false);
+			if (currentFrame == 1) {
+				mike.setAttacking(true);	// Attack!
+			}
 			mikeFrame = jumpAttackMap.get(direction).getKeyFrame(stateTime, false);
 			if (jumpAttackMap.get(direction).isAnimationFinished(stateTime)) {
 				if (mike.isGrounded()) {
@@ -266,36 +287,78 @@ public class Renderer {
 			}
 		}
 
-		Sprite mikeSprite = new Sprite(mikeFrame);
-
 		if (mike.getState().equals(State.DYING)) {
-			Sprite deadSprite = new Sprite(dead);
-			mike.render(spriteBatch, deadSprite, shadow, ppuX, ppuY);
+			mike.setSpriteRegion(dead);
+			mike.loadSprite(spriteBatch, ppuX, ppuY);
 		} else if (mike.getState().equals(State.DAMAGE)) {
-			Sprite damageSprite = new Sprite(damage);
-			mike.render(spriteBatch, damageSprite, shadow, ppuX, ppuY);
+			mike.setSpriteRegion(damage);
+			mike.loadSprite(spriteBatch, ppuX, ppuY);
 		} else {	// TODO Check this...
+			mike.setSpriteRegion(mikeFrame);
 			if (direction == Mike.Direction.DOWN || direction == Mike.Direction.DOWN_LEFT
 					|| direction == Mike.Direction.DOWN_RIGHT || direction == Mike.Direction.RIGHT) {
-				mike.render(spriteBatch, mikeSprite, shadow, ppuX, ppuY);
-				drawChakrams();
+				mike.loadSprite(spriteBatch, ppuX, ppuY);
 			} else {
-				drawChakrams();
-				mike.render(spriteBatch, mikeSprite, shadow, ppuX, ppuY);
+				mike.loadSprite(spriteBatch, ppuX, ppuY);
 			}
 		}
 	}
 
 	private void drawChakrams() {
 		for (Chakram c : mike.getChakrams()) {
-			Sprite chakramSprite = new Sprite(chakram);
-			c.render(spriteBatch, chakramSprite, shadow, ppuX, ppuY);
+			c.setShadowSpriteRegion(shadow);
+			c.setSpriteRegion(chakram);
+			c.loadSprite(spriteBatch, ppuX, ppuY);
 		}
 	}
 
 	private void drawEnemy() {
-		Sprite enemySprite = new Sprite(enemyTexture);
-		enemy.render(spriteBatch, enemySprite, ppuX, ppuY);
+		enemy.setSpriteRegion(enemyTexture);
+		enemy.loadSprite(spriteBatch, ppuX, ppuY);
+	}
+
+	/**
+	 * Used to draw all of the sprites.
+	 */
+	private void drawSprites() {
+		// Create a comparator 
+		SpriteComparator comparator = new SpriteComparator();
+		Array<Sprite> sprites = new Array<Sprite>();
+		Array<Sprite> shadows = new Array<Sprite>();
+
+		// Check if the jump is in front of or behind an enemy
+		float jumpY = mike.getShadow().y;
+		float enemyY = enemy.getPosition().y;
+		boolean inFront = jumpY < enemyY;
+		
+		// If jumping, add the shadow to the array, but not the sprite for Mike. Otherwise add the sprite to the array.
+		if (mike.isJumping()) {
+			shadows.add(mike.getShadowSprite());
+		} else {
+			sprites.add(mike.getSprite());
+		}
+		sprites.add(enemy.getSprite());
+		for (Chakram c : mike.getChakrams()) {
+			sprites.add(c.getSprite());
+			shadows.add(c.getShadowSprite());
+		}
+		// Sort the sprites
+		sprites.sort(comparator);
+		shadows.sort(comparator);
+		// Render shadows first
+		for (Sprite shadow : shadows) {
+			shadow.draw(spriteBatch);
+		}
+		// Check if Mike is jumping and if he is in front of an enemy, then draw accordingly
+		if (mike.isJumping() && !inFront) {
+			mike.getSprite().draw(spriteBatch);
+		}
+		for (Sprite sprite : sprites) {
+			sprite.draw(spriteBatch);
+		}
+		if (mike.isJumping() && inFront) {
+			mike.getSprite().draw(spriteBatch);
+		}
 	}
 
 	private void drawShadow() {
@@ -359,9 +422,14 @@ public class Renderer {
 		Rectangle rect = mike.getFeetBounds();
 		debugRenderer.setColor(new Color(0, 1, 0, 1));
 		debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
+		
+		Rectangle fr = mike.getJumpingBounds();
+		debugRenderer.setColor(new Color(1, 1, 1, 1));
+		debugRenderer.rect(fr.x, fr.y, fr.width, fr.height);
+		
 		// Render chakram
 		for (Chakram chakram : mike.getChakrams()) {
-			Rectangle r = chakram.getBounds();
+			Rectangle r = chakram.getAttackBounds();
 			debugRenderer.setColor(new Color(0, 0, 1, 1));
 			debugRenderer.rect(r.x, r.y, r.width, r.height);
 		}
@@ -385,6 +453,15 @@ public class Renderer {
 
 	public void setDebug(boolean debug) {
 		this.debug = debug;
+	}
+
+	public class SpriteComparator implements Comparator<Sprite> {
+
+		@Override
+		public int compare(Sprite sprite1, Sprite sprite2) {
+			return (sprite2.getY() - sprite1.getY()) > 0 ? 1 : -1;
+		}
+
 	}
 
 }
