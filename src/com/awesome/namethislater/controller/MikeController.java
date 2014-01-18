@@ -39,7 +39,6 @@ public class MikeController {
 
 	private float jumpDegree;
 	private float lift;								// The amount to increase or decrease the y-coord for a jump
-	private float jumpStartY;						// The Y coordinate that Mike is at when he starts a jump
 	private float shadowPercentage;
 	private float rotation = 0;						// The amount to rotate the chakram
 
@@ -81,21 +80,22 @@ public class MikeController {
 		if (!mike.getState().equals(State.DYING) && !mike.getState().equals(State.ATTACKING)
 				&& !mike.getState().equals(State.JUMP_ATTACK))
 			processInput(delta);	// Allow for movement unless dead
-		
+
 		// Multiply by the delta to convert acceleration to frame units
 		mike.getAcceleration().mul(delta);
 		// Add the acceleration to the velocity
 		mike.getVelocity().add(mike.getAcceleration().x, mike.getAcceleration().y);
 
+		// TODO Fix jump attack
 		// If Mike is ready to attack, throw an attack!
 		if (mike.isAttacking()) {
 			if (mike.isJumping()) {
-				float airHeight = mike.getPosition().y - jumpStartY;
+				float airHeight = mike.getPosition().y - mike.getShadowVelocity().y;
 				mike.jumpAttack(airHeight);
 			} else
 				mike.attack();
 		}
-		
+
 		// Check if Mike is currently jumping. If he is, check the time he has been in
 		// the air and drop him after the maximum time allowed for his jump.
 		if (mike.isJumping()) {
@@ -105,22 +105,20 @@ public class MikeController {
 			// jump. Mike's position is updated to be at the current lift.
 			double radian = jumpDegree * (Math.PI / 180);
 			float velocityY = (float) Math.sin(radian);
-			lift = jumpStartY + velocityY;
+			lift = mike.getShadowVelocity().y + velocityY;
 			// If the y velocity is less than 0, then the jump is over.
 			if (velocityY < 0)
 				velocityY = 0;
 			mike.getPosition().y = lift;
-			// Increase the angle of the jump. The jump reaches its peak at 90 degrees, and lands on the ground at
-			// 180.
+			// Increase the angle of the jump. The jump peaks at 90 degrees, and lands on the ground at 180.
 			jumpDegree += 5;
 			if (jumpDegree < 90)
 				shadowPercentage -= 2.5;
 			else
 				shadowPercentage += 2.5;
-			
-			mike.updateShadow(mike.getPosition().x, jumpStartY, mike.getBounds().width, mike.getBounds().height,
-					shadowPercentage);
-			
+
+			mike.updateShadow(mike.getPosition().x, mike.getShadowVelocity().y, shadowPercentage);
+
 			if (jumpDegree > 180) {
 				mike.setGrounded(true);
 				if (mike.getState().equals(State.JUMP_ATTACK))
@@ -178,7 +176,7 @@ public class MikeController {
 					mike.setGrounded(false);
 					jumpPressed = true;						// The button for jumping is pressed
 					jumpDegree = 0;							// Reset the degree for the jump angle
-					jumpStartY = mike.getPosition().y;		// The starting y-coordinate of the jump
+					mike.getShadowVelocity().y = mike.getPosition().y;		// The starting y-coordinate of the jump
 					shadowPercentage = 100.0f;
 				}
 			}
@@ -197,11 +195,11 @@ public class MikeController {
 					mike.setState(State.RUNNING);
 					mike.getAcceleration().x = -ACCELERATION;
 					mike.getAcceleration().y = -ACCELERATION;
-				} else if (mike.isJumping()) {
+				} else if (mike.isJumping() && !mike.getState().equals(State.DAMAGE)) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
 					mike.getAcceleration().x = -JUMP_ACCELERATION;
 					mike.getAcceleration().y = -JUMP_ACCELERATION;
-					jumpStartY -= SHADOW_ACCELERATION;
+					mike.getShadowVelocity().y -= SHADOW_ACCELERATION;
 				}
 			} else if (keys.get(Keys.RIGHT)) {
 				mike.setDirection(Direction.DOWN_RIGHT);
@@ -209,21 +207,21 @@ public class MikeController {
 					mike.setState(State.RUNNING);
 					mike.getAcceleration().x = ACCELERATION;
 					mike.getAcceleration().y = -ACCELERATION;
-				} else if (mike.isJumping()) {
+				} else if (mike.isJumping() && !mike.getState().equals(State.DAMAGE)) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
 					mike.getAcceleration().x = JUMP_ACCELERATION;
 					mike.getAcceleration().y = -JUMP_ACCELERATION;
-					jumpStartY -= SHADOW_ACCELERATION;
+					mike.getShadowVelocity().y -= SHADOW_ACCELERATION;
 				}
 			} else {
 				mike.setDirection(Direction.DOWN);
 				if (!mike.isJumping()) {
 					mike.setState(State.RUNNING);
 					mike.getAcceleration().y = -ACCELERATION;
-				} else if (mike.isJumping()) {
+				} else if (mike.isJumping() && !mike.getState().equals(State.DAMAGE)) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
 					mike.getAcceleration().y = -JUMP_ACCELERATION;
-					jumpStartY -= SHADOW_ACCELERATION;
+					mike.getShadowVelocity().y -= SHADOW_ACCELERATION;
 				}
 			}
 		} else if (keys.get(Keys.UP)) {
@@ -233,11 +231,11 @@ public class MikeController {
 					mike.setState(State.RUNNING);
 					mike.getAcceleration().x = -ACCELERATION;
 					mike.getAcceleration().y = ACCELERATION;
-				} else if (mike.isJumping()) {
+				} else if (mike.isJumping() && !mike.getState().equals(State.DAMAGE)) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
 					mike.getAcceleration().x = -JUMP_ACCELERATION;
 					mike.getAcceleration().y = JUMP_ACCELERATION;
-					jumpStartY += SHADOW_ACCELERATION;
+					mike.getShadowVelocity().y += SHADOW_ACCELERATION;
 				}
 			} else if (keys.get(Keys.RIGHT)) {
 				mike.setDirection(Direction.UP_RIGHT);
@@ -245,20 +243,20 @@ public class MikeController {
 					mike.setState(State.RUNNING);
 					mike.getAcceleration().x = ACCELERATION;
 					mike.getAcceleration().y = ACCELERATION;
-				} else if (mike.isJumping()) {
+				} else if (mike.isJumping() && !mike.getState().equals(State.DAMAGE)) {
 					// If Mike is in the JUMPING state and not yet falling, then move him downwards.
 					mike.getAcceleration().x = JUMP_ACCELERATION;
 					mike.getAcceleration().y = JUMP_ACCELERATION;
-					jumpStartY += SHADOW_ACCELERATION;
+					mike.getShadowVelocity().y += SHADOW_ACCELERATION;
 				}
 			} else {
 				mike.setDirection(Direction.UP);
 				if (!mike.isJumping()) {
 					mike.setState(State.RUNNING);
 					mike.getAcceleration().y = ACCELERATION;
-				} else if (mike.isJumping()) {
+				} else if (mike.isJumping() && !mike.getState().equals(State.DAMAGE)) {
 					mike.getAcceleration().y = JUMP_ACCELERATION;
-					jumpStartY += SHADOW_ACCELERATION;
+					mike.getShadowVelocity().y += SHADOW_ACCELERATION;
 				}
 			}
 		} else if (keys.get(Keys.LEFT)) {
@@ -302,12 +300,12 @@ public class MikeController {
 		float bottom = mike.getFeetBounds().y;
 		float right = mike.getFeetBounds().width;
 		float top = mike.getFeetBounds().height;
-		
+
 		Rectangle mikeShadow = new Rectangle();
-		float l = mike.getJumpingBounds().x;
-		float b = mike.getJumpingBounds().y;
-		float r = mike.getJumpingBounds().width;
-		float t = mike.getJumpingBounds().height;
+		float l = mike.getShadowBounds().x;
+		float b = mike.getShadowBounds().y;
+		float r = mike.getShadowBounds().width;
+		float t = mike.getShadowBounds().height;
 
 		mikeRect.set(left, bottom, right, top);
 		mikeShadow.set(l, b, r, t);
@@ -387,15 +385,20 @@ public class MikeController {
 		}
 
 		Enemy enemy = level.getEnemy();
- 		if (mike.getState().equals(State.JUMPING) || mike.getState().equals(State.JUMP_ATTACK)) {
-			if (mikeShadow.overlaps(enemy.getDamageBounds()) && (mike.getShadow().y > enemy.getPosition().y)) {
-				mike.setState(State.DAMAGE);
-				jumpPressed = false;
-				mike.getVelocity().x = 0;
+		if (mike.isJumping()) {
+			if ((mikeShadow.y + mikeShadow.height) >= enemy.getDamageBounds().y
+					|| mikeShadow.y <= (enemy.getDamageBounds().y + enemy.getDamageBounds().height)) {
+				if (mikeShadow.overlaps(enemy.getDamageBounds())) {
+					mike.setState(State.DAMAGE);
+					jumpPressed = false;
+					mike.getVelocity().x = 0;
+				}
 			}
 		} else {
 			if (mikeRect.overlaps(enemy.getDamageBounds())) {
 				mike.setState(State.DAMAGE);
+				mike.getVelocity().x = 0;
+				mike.getVelocity().y = 0;
 			}
 		}
 
@@ -433,6 +436,8 @@ public class MikeController {
 		// Reset Mike's collision rect with his position
 		mikeRect.x = mike.getPosition().x;
 		mikeRect.y = mike.getPosition().y;
+		mikeShadow.x = mike.getPosition().x;
+		mikeShadow.y = mike.getShadowVelocity().y;
 
 		// Update the position
 		mike.getPosition().add(mike.getVelocity());
@@ -459,10 +464,10 @@ public class MikeController {
 
 		// Create the bounds of the chakram
 		Rectangle chakramRect = new Rectangle();
-		float left = (float) (chakram.getShadow().getX());
-		float bottom = (float) (chakram.getShadow().getY());
-		float right = (float) chakram.getShadow().getWidth();
-		float top = (float) chakram.getShadow().getHeight();
+		float left = chakram.getAttackBounds().x;
+		float bottom = chakram.getAttackBounds().y;
+		float right = chakram.getAttackBounds().width;
+		float top = chakram.getAttackBounds().height;
 
 		chakramRect.set(left, bottom, right, top);
 

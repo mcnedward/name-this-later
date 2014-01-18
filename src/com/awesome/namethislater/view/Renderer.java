@@ -249,7 +249,9 @@ public class Renderer {
 			mikeFrame = jumpMap.get(direction);
 		}
 		if (mike.getState().equals(State.ATTACKING)) {
-			// Get the time since last render and the current frame, based on the attack frame rate. Then set Mike's frame to attack. If the current attack frame is the second one in the animation, set his attacking boolean to true so that he will attack on the next update. When the attack animation is finished,
+			// Get the time since last render and the current frame, based on the attack frame rate. Then set Mike's
+			// frame to attack. If the current attack frame is the second one in the animation, set his attacking
+			// boolean to true so that he will attack on the next update. When the attack animation is finished,
 			// set his state back to idle.
 			stateTime += delta;
 			currentFrame += (int) (stateTime / ATTACKING_FRAME_DURATION);
@@ -270,7 +272,7 @@ public class Renderer {
 			// Get the time since last render. Then set Mike's frame to attack. When the attack animation is finished,
 			// check whether he is in the air or not, and set his state accordingly.
 			stateTime += delta;
-			int currentFrame = (int)(stateTime / ATTACKING_FRAME_DURATION);
+			int currentFrame = (int) (stateTime / ATTACKING_FRAME_DURATION);
 			mikeFrame = attackMap.get(direction).getKeyFrame(stateTime, false);
 			if (currentFrame == 1) {
 				mike.setAttacking(true);	// Attack!
@@ -321,16 +323,16 @@ public class Renderer {
 	 * Used to draw all of the sprites.
 	 */
 	private void drawSprites() {
-		// Create a comparator 
+		// Create a comparator
 		SpriteComparator comparator = new SpriteComparator();
 		Array<Sprite> sprites = new Array<Sprite>();
 		Array<Sprite> shadows = new Array<Sprite>();
 
 		// Check if the jump is in front of or behind an enemy
-		float jumpY = mike.getShadow().y;
+		float jumpY = mike.getShadowVelocity().y;
 		float enemyY = enemy.getPosition().y;
 		boolean inFront = jumpY < enemyY;
-		
+
 		// If jumping, add the shadow to the array, but not the sprite for Mike. Otherwise add the sprite to the array.
 		if (mike.isJumping()) {
 			shadows.add(mike.getShadowSprite());
@@ -365,7 +367,7 @@ public class Renderer {
 		debugRenderer.setProjectionMatrix(cam.combined);
 		debugRenderer.begin(ShapeType.Filled);
 		debugRenderer.setColor(new Color(1, 1, 1, 1));
-		debugRenderer.circle(mike.getShadow().x, mike.getShadow().y, mike.getBounds().width / 2);
+		debugRenderer.circle(mike.getShadowVelocity().x, mike.getShadowVelocity().y, mike.getBounds().width / 2);
 		debugRenderer.end();
 	}
 
@@ -422,11 +424,15 @@ public class Renderer {
 		Rectangle rect = mike.getFeetBounds();
 		debugRenderer.setColor(new Color(0, 1, 0, 1));
 		debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
-		
-		Rectangle fr = mike.getJumpingBounds();
+
+		Rectangle jb = mike.getJumpingBounds();
 		debugRenderer.setColor(new Color(1, 1, 1, 1));
-		debugRenderer.rect(fr.x, fr.y, fr.width, fr.height);
-		
+		debugRenderer.rect(jb.x, jb.y, jb.width, jb.height);
+
+		Rectangle sb = mike.getShadowBounds();
+		debugRenderer.setColor(new Color(1, 1, 0, 1));
+		debugRenderer.rect(sb.x, sb.y, sb.width, sb.height);
+
 		// Render chakram
 		for (Chakram chakram : mike.getChakrams()) {
 			Rectangle r = chakram.getAttackBounds();

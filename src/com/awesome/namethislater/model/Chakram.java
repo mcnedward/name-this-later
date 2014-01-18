@@ -60,12 +60,6 @@ public class Chakram {
 		bounds.height = SIZE;
 		bounds.width = SIZE;
 
-		// Set the attack bounds of the chakram
-		attackBounds.x = x;
-		attackBounds.y = y;
-		attackBounds.height = SIZE;
-		attackBounds.width = SIZE;
-
 		direction = mike.getDirection();	// The direction the chakram was thrown
 
 		this.airHeight = airHeight;			// The height in the air the chakram is
@@ -84,34 +78,34 @@ public class Chakram {
 			break;
 		case UP:
 			position.x += SIZE / 4;				// Set the chakram in the middle of Mike
-			position.y += SIZE / 2;				// Set the chakram in the middle of Mike
+			position.y += SIZE;					// Set the chakram in the middle of Mike
 			acceleration.y = ACCELERATION;
 			break;
 		case LEFT:
 			position.x -= (SIZE / 2);			// Set the chakram right in front of Mike's hand
-			position.y += SIZE / 2;				// Set the chakram in the middle of Mike
+			position.y += SIZE;					// Set the chakram in the middle of Mike
 			acceleration.x = -ACCELERATION;
 			break;
 		case RIGHT:
 			position.x += SIZE + (SIZE / 3);	// Set the chakram right in front of Mike's hand
-			position.y += SIZE / 2;				// Set the chakram in the middle of Mike
+			position.y += SIZE;					// Set the chakram in the middle of Mike
 			acceleration.x = ACCELERATION;
 			break;
 		case DOWN_LEFT:
-			position.x -= (SIZE / 2);			// Set the chakram right in front of Mike's hand
-			position.y += SIZE / 3;				// Set the chakram in the middle of Mike
+			position.x -= (SIZE / 3);			// Set the chakram right in front of Mike's hand
+			position.y += SIZE / 2;				// Set the chakram in the middle of Mike
 			acceleration.y = -ACCELERATION;
 			acceleration.x = -ACCELERATION;
 			break;
 		case DOWN_RIGHT:
-			position.x += SIZE + (SIZE / 3);	// Set the chakram right in front of Mike's hand
-			position.y += SIZE / 3;				// Set the chakram in the middle of Mike
+			position.x += SIZE + (SIZE / 2);	// Set the chakram right in front of Mike's hand
+			position.y += SIZE / 2;				// Set the chakram in the middle of Mike
 			acceleration.y = -ACCELERATION;
 			acceleration.x = ACCELERATION;
 			break;
 		case UP_LEFT:
 			position.x -= (SIZE / 2);			// Set the chakram right in front of Mike's hand
-			position.y += SIZE;					//Set the chakram in the middle of Mike
+			position.y += SIZE;					// Set the chakram in the middle of Mike
 			acceleration.y = ACCELERATION;
 			acceleration.x = -ACCELERATION;
 			break;
@@ -183,10 +177,10 @@ public class Chakram {
 
 		shadow.setFrame(shadowPosition.x, shadowPosition.y, SIZE, SIZE);
 
-		attackBounds.x = (float) (shadow.getX() + (shadow.getWidth() / 4));
+		attackBounds.x = (float) shadow.getX();
 		attackBounds.y = (float) shadow.getY();
-		attackBounds.width = (float) (shadow.getWidth() / 2);
-		attackBounds.height = (float) (shadow.getHeight() / 2);
+		attackBounds.width = (float) shadow.getHeight();
+		attackBounds.height = (float) shadow.getHeight() / 2;
 	}
 
 	/**

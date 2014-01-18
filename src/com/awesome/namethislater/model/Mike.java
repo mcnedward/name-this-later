@@ -23,30 +23,31 @@ public class Mike {
 		DOWN, LEFT, UP, RIGHT, DOWN_LEFT, UP_LEFT, UP_RIGHT, DOWN_RIGHT
 	}
 
-	public static final float SIZE = 1f;	// The size of Mike
+	public static final float SIZE = 1f;		// The size of Mike
 
-	Vector2 position = new Vector2();		// The current position of Mike.
-	Vector2 acceleration = new Vector2();	// The speed that Mike should move
-	Vector2 velocity = new Vector2();		// The acceleration and direction of Mike's movement
-	Vector2 shadowVector = new Vector2();	// The position of Mike's jumping shadow
-	Ellipse2D shadow;						// An ellipse used to determine the bounds of the shadow
+	Vector2 position = new Vector2();			// The current position of Mike.
+	Vector2 acceleration = new Vector2();		// The speed that Mike should move
+	Vector2 velocity = new Vector2();			// The acceleration and direction of Mike's movement
+	Vector2 shadowVelocity = new Vector2();		// The position of Mike's jumping shadow (same as velocity for a jump)
 
 	Sprite sprite = new Sprite();
 	Sprite shadowSprite = new Sprite();
 
-	Rectangle bounds = new Rectangle();		// The bounds of Mike's sprite rectangle
-	Rectangle feetBounds = new Rectangle();	// The bounds of Mike's feet
+	Rectangle bounds = new Rectangle();			// The bounds of Mike's sprite rectangle
+	Rectangle feetBounds = new Rectangle();		// The bounds of Mike's feet
 	Rectangle jumpingBounds = new Rectangle();
+	Rectangle shadowBounds = new Rectangle();
+	Ellipse2D shadow = new Ellipse2D.Float();	// An ellipse used to determine the bounds of the shadow
 
-	State state = State.IDLE;				// The state that Mike is in
-	Direction direction = Direction.DOWN;	// The direction Mike is facing
+	State state = State.IDLE;					// The state that Mike is in
+	Direction direction = Direction.DOWN;		// The direction Mike is facing
 
 	List<Chakram> chakrams;
 
-	boolean isGrounded;						// Whether Mike is on the ground or not
-	boolean attacking;					// Whether Mike is attacking or not
-	float stateTime = 0;					// The state time that Mike is currently in, determined by last render time
-	float shadowPercentage;					// The amount to scale Mike's jumping shadow
+	boolean isGrounded;							// Whether Mike is on the ground or not
+	boolean attacking;							// Whether Mike is attacking or not
+	float stateTime = 0;						// The state time that Mike is currently in, determined by last render time
+	float shadowPercentage;						// The amount to scale Mike's jumping shadow
 
 	/**
 	 * Create a new instance of the Mike sprite model.
@@ -67,9 +68,6 @@ public class Mike {
 		isGrounded = true;
 		updateFeetBounds(position);
 		shadowPercentage = 100.0f;
-
-		shadow = new Ellipse2D.Float();
-		updateShadow(position.x, position.y, bounds.width, bounds.height, shadowPercentage);
 	}
 
 	/**
@@ -171,22 +169,24 @@ public class Mike {
 	 * @param position
 	 *            The current position of Mike.
 	 */
-	public void updateShadow(float x, float y, float w, float h, float percentage) {
+	public void updateShadow(float x, float y, float percentage) {
 		shadowPercentage = (percentage / 100);
-		getShadow().x = x;
-		getShadow().y = y;
-
-		shadow.setFrame(x, y, w, h);
-		updateJumpingBounds(x, y, w, h);
+		shadow.setFrame(x, y, SIZE, SIZE);
+		shadowBounds.x = x + (SIZE / 7);
+		shadowBounds.y = y;
+		shadowBounds.width = feetBounds.width;
+		shadowBounds.height = SIZE / 2;
+		updateJumpingBounds(x, y);
 	}
-	
+
 	/**
-	 * This is used to update the Rectangle boundaries surrounding Mike's shadow when jumping. Use this for collision detection with enemies.
+	 * This is used to update the Rectangle boundaries surrounding Mike's shadow when jumping. Use this for collision
+	 * detection with enemies.
 	 * 
 	 * @param position
 	 *            The current position of Mike.
 	 */
-	public void updateJumpingBounds(float x, float y, float w, float h) {
+	public void updateJumpingBounds(float x, float y) {
 		float air = feetBounds.y - y;
 		jumpingBounds.x = feetBounds.x;
 		jumpingBounds.y = y;
@@ -287,8 +287,8 @@ public class Mike {
 	 * @param position
 	 *            The position of Mike's jumping shadow.
 	 */
-	public void setShadow(Vector2 position) {
-		shadowVector = position;
+	public void setShadowVelocity(Vector2 position) {
+		shadowVelocity = position;
 	}
 
 	/**
@@ -296,8 +296,23 @@ public class Mike {
 	 * 
 	 * @return The position of Mike's jumping shadow.
 	 */
-	public Vector2 getShadow() {
-		return shadowVector;
+	public Vector2 getShadowVelocity() {
+		return shadowVelocity;
+	}
+
+	/**
+	 * @return the shadow
+	 */
+	public Ellipse2D getShadow() {
+		return shadow;
+	}
+
+	/**
+	 * @param shadow
+	 *            the shadow to set
+	 */
+	public void setShadow(Ellipse2D shadow) {
+		this.shadow = shadow;
 	}
 
 	/**
@@ -408,6 +423,21 @@ public class Mike {
 
 	public void setJumpingBounds(Rectangle jumpingBounds) {
 		this.jumpingBounds = jumpingBounds;
+	}
+
+	/**
+	 * @return the shadowBounds
+	 */
+	public Rectangle getShadowBounds() {
+		return shadowBounds;
+	}
+
+	/**
+	 * @param shadowBounds
+	 *            the shadowBounds to set
+	 */
+	public void setShadowBounds(Rectangle shadowBounds) {
+		this.shadowBounds = shadowBounds;
 	}
 
 	/**
