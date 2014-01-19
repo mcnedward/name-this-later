@@ -206,6 +206,13 @@ public class Mike {
 			return false;
 	}
 
+	public boolean isAttackingState() {
+		if (state == State.ATTACKING || state == State.JUMP_ATTACK || attacking) {
+			return true;
+		} else
+			return false;
+	}
+
 	/**
 	 * @return the chakras
 	 */

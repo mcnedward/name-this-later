@@ -276,7 +276,7 @@ public class MikeController {
 				mike.getAcceleration().x = JUMP_ACCELERATION;
 			}
 		} else {
-			if (!mike.isJumping() && !mike.getState().equals(State.DYING) && !mike.getState().equals(State.ATTACKING)) {
+			if (!mike.isJumping() && !mike.getState().equals(State.DYING) && !mike.isAttacking()) {
 				mike.setState(State.IDLE);
 				mike.getVelocity().x = 0;
 				mike.getVelocity().y = 0;
@@ -385,20 +385,22 @@ public class MikeController {
 		}
 
 		Enemy enemy = level.getEnemy();
-		if (mike.isJumping()) {
-			if ((mikeShadow.y + mikeShadow.height) >= enemy.getDamageBounds().y
-					|| mikeShadow.y <= (enemy.getDamageBounds().y + enemy.getDamageBounds().height)) {
-				if (mikeShadow.overlaps(enemy.getDamageBounds())) {
-					mike.setState(State.DAMAGE);
-					jumpPressed = false;
-					mike.getVelocity().x = 0;
+		if (!mike.getState().equals(State.DYING)) {
+			if (mike.isJumping()) {
+				if ((mikeShadow.y + mikeShadow.height) >= enemy.getDamageBounds().y
+						|| mikeShadow.y <= (enemy.getDamageBounds().y + enemy.getDamageBounds().height)) {
+					if (mikeShadow.overlaps(enemy.getDamageBounds())) {
+						mike.setState(State.DAMAGE);
+						jumpPressed = false;
+						mike.getVelocity().x = 0;
+					}
 				}
-			}
-		} else {
-			if (mikeRect.overlaps(enemy.getDamageBounds())) {
-				mike.setState(State.DAMAGE);
-				mike.getVelocity().x = 0;
-				mike.getVelocity().y = 0;
+			} else {
+				if (mikeRect.overlaps(enemy.getDamageBounds())) {
+					mike.setState(State.DAMAGE);
+					mike.getVelocity().x = 0;
+					mike.getVelocity().y = 0;
+				}
 			}
 		}
 

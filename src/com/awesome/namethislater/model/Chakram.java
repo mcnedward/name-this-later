@@ -175,7 +175,7 @@ public class Chakram {
 			break;
 		}
 
-		shadow.setFrame(shadowPosition.x, shadowPosition.y, SIZE, SIZE);
+		shadow.setFrame(shadowPosition.x, shadowPosition.y - airHeight, SIZE, SIZE);
 
 		attackBounds.x = (float) shadow.getX();
 		attackBounds.y = (float) shadow.getY();
@@ -226,7 +226,7 @@ public class Chakram {
 	public void drawShadow(SpriteBatch spriteBatch, float ppuX, float ppuY) {
 		// Get the x and y coordinates to draw. These are the lower left corners of the ellipse.
 		float x = (float) (shadow.getX() * ppuX);
-		float y = (float) (shadow.getY() * ppuY) - (airHeight * ppuY);
+		float y = (float) (shadow.getY() * ppuY);
 
 		// Get the width and height of the shadow, and scale them according to the scale percentage.
 		float width = (float) (shadow.getWidth() * ppuX);

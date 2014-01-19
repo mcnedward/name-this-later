@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.awesome.namethislater.model.Block;
 import com.awesome.namethislater.model.Chakram;
+import com.awesome.namethislater.model.Drawable;
 import com.awesome.namethislater.model.Enemy;
 import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.Mike;
@@ -272,19 +273,21 @@ public class Renderer {
 			// Get the time since last render. Then set Mike's frame to attack. When the attack animation is finished,
 			// check whether he is in the air or not, and set his state accordingly.
 			stateTime += delta;
-			int currentFrame = (int) (stateTime / ATTACKING_FRAME_DURATION);
-			mikeFrame = attackMap.get(direction).getKeyFrame(stateTime, false);
+			currentFrame += (int) (stateTime / ATTACKING_FRAME_DURATION);
+			mikeFrame = jumpAttackMap.get(direction).getKeyFrame(stateTime, false);
 			if (currentFrame == 1) {
 				mike.setAttacking(true);	// Attack!
+				currentFrame += 1; // Increase the frame count so this will be skipped on the next render
+			} else {
+				mike.setAttacking(false);
 			}
-			mikeFrame = jumpAttackMap.get(direction).getKeyFrame(stateTime, false);
 			if (jumpAttackMap.get(direction).isAnimationFinished(stateTime)) {
+				currentFrame = 0;
+				stateTime = 0;
 				if (mike.isGrounded()) {
 					mike.setState(State.IDLE);
-					stateTime = 0;
 				} else {
 					mike.setState(State.JUMPING);
-					stateTime = 0;
 				}
 			}
 		}
@@ -324,42 +327,31 @@ public class Renderer {
 	 */
 	private void drawSprites() {
 		// Create a comparator
-		SpriteComparator comparator = new SpriteComparator();
-		Array<Sprite> sprites = new Array<Sprite>();
+		DrawableComparator comparator = new DrawableComparator();
+		Array<Drawable> sprites = new Array<Drawable>();
 		Array<Sprite> shadows = new Array<Sprite>();
 
-		// Check if the jump is in front of or behind an enemy
-		float jumpY = mike.getShadowVelocity().y;
-		float enemyY = enemy.getPosition().y;
-		boolean inFront = jumpY < enemyY;
-
-		// If jumping, add the shadow to the array, but not the sprite for Mike. Otherwise add the sprite to the array.
+		// If jumping, add the shadow to the array.
 		if (mike.isJumping()) {
 			shadows.add(mike.getShadowSprite());
-		} else {
-			sprites.add(mike.getSprite());
-		}
-		sprites.add(enemy.getSprite());
+			sprites.add(new Drawable(mike.getShadowVelocity().y, mike.getSprite()));
+		} else
+			sprites.add(new Drawable(mike.getPosition().y, mike.getSprite()));
+
+		sprites.add(new Drawable(enemy.getPosition().y, enemy.getSprite()));
 		for (Chakram c : mike.getChakrams()) {
-			sprites.add(c.getSprite());
 			shadows.add(c.getShadowSprite());
+			sprites.add(new Drawable((float) c.getShadow().getY(), c.getSprite()));
 		}
 		// Sort the sprites
 		sprites.sort(comparator);
-		shadows.sort(comparator);
 		// Render shadows first
 		for (Sprite shadow : shadows) {
 			shadow.draw(spriteBatch);
 		}
-		// Check if Mike is jumping and if he is in front of an enemy, then draw accordingly
-		if (mike.isJumping() && !inFront) {
-			mike.getSprite().draw(spriteBatch);
-		}
-		for (Sprite sprite : sprites) {
-			sprite.draw(spriteBatch);
-		}
-		if (mike.isJumping() && inFront) {
-			mike.getSprite().draw(spriteBatch);
+
+		for (Drawable sprite : sprites) {
+			sprite.getSprite().draw(spriteBatch);
 		}
 	}
 
@@ -461,11 +453,11 @@ public class Renderer {
 		this.debug = debug;
 	}
 
-	public class SpriteComparator implements Comparator<Sprite> {
+	public class DrawableComparator implements Comparator<Drawable> {
 
 		@Override
-		public int compare(Sprite sprite1, Sprite sprite2) {
-			return (sprite2.getY() - sprite1.getY()) > 0 ? 1 : -1;
+		public int compare(Drawable d1, Drawable d2) {
+			return (d2.getY() - d1.getY()) > 0 ? 1 : -1;
 		}
 
 	}
