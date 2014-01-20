@@ -6,14 +6,15 @@ import java.util.Map;
 
 import com.awesome.namethislater.model.Block;
 import com.awesome.namethislater.model.Chakram;
+import com.awesome.namethislater.model.Drawable.Direction;
 import com.awesome.namethislater.model.Enemy;
 import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.Mike;
-import com.awesome.namethislater.model.Mike.Direction;
 import com.awesome.namethislater.model.Mike.State;
 import com.awesome.namethislater.model.World;
 import com.awesome.namethislater.view.Renderer;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
 
@@ -135,7 +136,7 @@ public class MikeController {
 			chakram.getVelocity().add(chakram.getAcceleration().x, chakram.getAcceleration().y);
 			chakram.getPosition().add(chakram.getVelocity());
 
-			chakram.update(chakram.position.x, chakram.position.y, rotation);
+			chakram.update(new Vector2(chakram.getPosition().x, chakram.getPosition().y), rotation);
 			checkChakramCollisions(delta, it, chakram);
 		}
 

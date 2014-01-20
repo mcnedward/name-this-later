@@ -4,7 +4,7 @@ import java.util.Random;
 
 import com.awesome.namethislater.model.Block;
 import com.awesome.namethislater.model.Enemy;
-import com.awesome.namethislater.model.Enemy.Direction;
+import com.awesome.namethislater.model.Drawable.Direction;
 import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.World;
 import com.badlogic.gdx.math.Rectangle;

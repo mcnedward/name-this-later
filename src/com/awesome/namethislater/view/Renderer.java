@@ -7,11 +7,12 @@ import java.util.Map;
 import com.awesome.namethislater.model.Block;
 import com.awesome.namethislater.model.Chakram;
 import com.awesome.namethislater.model.Drawable;
+import com.awesome.namethislater.model.Drawable.Direction;
 import com.awesome.namethislater.model.Enemy;
 import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.Mike;
-import com.awesome.namethislater.model.Mike.Direction;
 import com.awesome.namethislater.model.Mike.State;
+import com.awesome.namethislater.model.Room;
 import com.awesome.namethislater.model.World;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -75,6 +76,7 @@ public class Renderer {
 
 	private World world;
 	private Level level;
+	private Room room;
 	private Mike mike;
 	private Enemy enemy;
 
@@ -83,6 +85,7 @@ public class Renderer {
 
 		this.world = world;
 		this.level = world.getLevel();
+		this.room = world.getRoom();
 		mike = world.getMike();
 		mike.setShadowSpriteRegion(shadow);
 		enemy = level.getEnemy();
@@ -334,14 +337,16 @@ public class Renderer {
 		// If jumping, add the shadow to the array.
 		if (mike.isJumping()) {
 			shadows.add(mike.getShadowSprite());
-			sprites.add(new Drawable(mike.getShadowVelocity().y, mike.getSprite()));
+			mike.setBaseY(mike.getShadowPosition().y);
+			sprites.add(mike);
 		} else
-			sprites.add(new Drawable(mike.getPosition().y, mike.getSprite()));
+			sprites.add(mike);
 
-		sprites.add(new Drawable(enemy.getPosition().y, enemy.getSprite()));
+		sprites.add(enemy);
 		for (Chakram c : mike.getChakrams()) {
 			shadows.add(c.getShadowSprite());
-			sprites.add(new Drawable((float) c.getShadow().getY(), c.getSprite()));
+			c.setBaseY(c.getShadowPosition().y);
+			sprites.add(c);
 		}
 		// Sort the sprites
 		sprites.sort(comparator);
@@ -457,7 +462,7 @@ public class Renderer {
 
 		@Override
 		public int compare(Drawable d1, Drawable d2) {
-			return (d2.getY() - d1.getY()) > 0 ? 1 : -1;
+			return (d2.getBaseY() - d1.getBaseY()) > 0 ? 1 : -1;
 		}
 
 	}

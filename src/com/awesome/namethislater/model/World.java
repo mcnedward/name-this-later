@@ -13,6 +13,8 @@ public class World {
 	Mike mike;
 	/** The current level **/
 	Level level;
+	/** The room of the level **/
+	Room room;
 	/** The collision boxes **/
 	Array<Rectangle> collisionRects = new Array<Rectangle>();
 
@@ -22,6 +24,7 @@ public class World {
 
 	private void createDemoWorld() {
 		level = new Level();
+		room = new Room();
 		mike = new Mike(new Vector2(3, 3));
 	}
 
@@ -36,18 +39,18 @@ public class World {
 		}
 		int x2 = x + 2 * width;
 		int y2 = y + 2 * height;
-		if (x2 > level.getWidth()) {
-			x2 = level.getWidth() - 1;
+		if (x2 > room.getWidth()) {
+			x2 = room.getWidth() - 1;
 		}
-		if (y2 > level.getHeight()) {
-			y2 = level.getHeight() - 1;
+		if (y2 > room.getHeight()) {
+			y2 = room.getHeight() - 1;
 		}
 
 		List<Block> blocks = new ArrayList<Block>();
 		Block block;
 		for (int col = x; col <= x2; col++) {
 			for (int row = y; row <= y2; row++) {
-				block = level.getBlocks()[col][row];
+				block = room.getWaterBlocks()[col][row];
 				if (block != null) {
 					blocks.add(block);
 				}
@@ -67,18 +70,18 @@ public class World {
 		}
 		int x2 = x + 2 * width;
 		int y2 = y + 2 * height;
-		if (x2 > level.getWidth()) {
-			x2 = level.getWidth() - 1;
+		if (x2 > room.getWidth()) {
+			x2 = room.getWidth() - 1;
 		}
-		if (y2 > level.getHeight()) {
-			y2 = level.getHeight() - 1;
+		if (y2 > room.getHeight()) {
+			y2 = room.getHeight() - 1;
 		}
 
 		List<Block> blocks = new ArrayList<Block>();
 		Block block;
 		for (int col = x; col <= x2; col++) {
 			for (int row = y; row <= y2; row++) {
-				block = level.getGrassBlocks()[col][row];
+				block = room.getGrassBlocks()[col][row];
 				if (block != null) {
 					blocks.add(block);
 				}
@@ -97,6 +100,10 @@ public class World {
 
 	public Level getLevel() {
 		return level;
+	}
+	
+	public Room getRoom() {
+		return room;
 	}
 
 }
