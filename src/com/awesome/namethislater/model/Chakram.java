@@ -47,12 +47,11 @@ public class Chakram {
 	 * @param airHeight
 	 *            The height in the air that the chakram is. Used when the sprite is jumping.
 	 */
-	public Chakram(float x, float y, Mike mike, float airHeight) {
+	public Chakram(Vector2 position, Mike mike, float airHeight) {
 		// Set the position of the chakram and it's shadow
-		position.x = x;
-		position.y = y;
-		shadowPosition.x = x;
-		shadowPosition.y = y;
+		this.position = position;
+		shadowPosition.x = position.x;
+		shadowPosition.y = position.y;
 
 		// Set the bounds of the chakram
 		bounds.x = position.x;

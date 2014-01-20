@@ -132,7 +132,7 @@ public class Mike {
 	 * Throw a chakram. This creates a new Chakram and adds it to Mike's list of thrown chakrams.
 	 */
 	public void attack() {
-		Chakram chakram = new Chakram(position.x, position.y, this, 0);
+		Chakram chakram = new Chakram(new Vector2(position.x, position.y), this, 0);
 		chakrams.add(chakram);
 	}
 
@@ -144,7 +144,7 @@ public class Mike {
 	 *            The height that Mike is in the air.
 	 */
 	public void jumpAttack(float airHeight) {
-		Chakram chakram = new Chakram(position.x, position.y, this, airHeight);
+		Chakram chakram = new Chakram(new Vector2(position.x, position.y), this, airHeight);
 		chakrams.add(chakram);
 	}
 
