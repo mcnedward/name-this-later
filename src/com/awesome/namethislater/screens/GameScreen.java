@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.awesome.namethislater.controller.MikeController;
+import com.awesome.namethislater.controller.WorldController;
 import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.World;
 import com.awesome.namethislater.view.Renderer;
@@ -20,6 +21,7 @@ public class GameScreen implements Screen, InputProcessor {
 	private Level level;
 	private Renderer renderer;
 	private MikeController controller;
+	private WorldController worldController;
 
 	private int width, height;
 
@@ -33,8 +35,8 @@ public class GameScreen implements Screen, InputProcessor {
 		Gdx.gl.glHint(GL10.GL_POINT_SMOOTH_HINT, GL10.GL_NICEST);
 
 		controller.update(delta);
+		worldController.update(delta);
 		renderer.render(delta);
-		// renderer3D.render();
 	}
 
 	@Override
@@ -60,6 +62,7 @@ public class GameScreen implements Screen, InputProcessor {
 		renderer = new Renderer(world, true);
 		// renderer3D = new Basic3DRenderer(world, false);
 		controller = new MikeController(world);
+		worldController = new WorldController(world);
 		Gdx.input.setInputProcessor(this);
 	}
 
