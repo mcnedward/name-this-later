@@ -504,8 +504,8 @@ public class MikeController {
 		collidable.clear();
 		for (int x = startX; x <= endX; x++) {
 			for (int y = startY; y <= endY; y++) {
-				if (x >= 0 && x < world.getLevel().getWidth() && y >= 0 && y < world.getLevel().getHeight()) {
-					collidable.add(world.getLevel().getBlockAt(x, y));
+				if (x >= 0 && x < world.getRoom().getWidth() && y >= 0 && y < world.getRoom().getHeight()) {
+					collidable.add(world.getRoom().getWaterBlockAt(x, y));
 				}
 			}
 		}

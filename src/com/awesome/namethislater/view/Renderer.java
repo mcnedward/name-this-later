@@ -15,6 +15,8 @@ import com.awesome.namethislater.model.Mike.State;
 import com.awesome.namethislater.model.Room;
 import com.awesome.namethislater.model.World;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -24,6 +26,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 
@@ -80,6 +86,10 @@ public class Renderer {
 	private Mike mike;
 	private Enemy enemy;
 
+	private TiledMap map;
+	private TiledMapRenderer renderer;
+	private AssetManager assetManager;
+
 	public Renderer(World world, boolean debug) {
 		loadTextures();
 
@@ -96,6 +106,13 @@ public class Renderer {
 		this.debug = debug;
 		spriteBatch = new SpriteBatch();
 		stateTime = 0f;
+
+		assetManager = new AssetManager();
+		assetManager.setLoader(TiledMap.class, new TmxMapLoader(new InternalFileHandleResolver()));
+		assetManager.load("data/maps/area.tmx", TiledMap.class);
+		assetManager.finishLoading();
+		map = assetManager.get("data/maps/area.tmx");
+		renderer = new OrthogonalTiledMapRenderer(map, 1f / 32f);
 	}
 
 	private void loadTextures() {
@@ -213,9 +230,12 @@ public class Renderer {
 	}
 
 	public void render(float delta) {
+		cam.update();
+		renderer.setView(cam);
+		renderer.render();
 		spriteBatch.begin();
 
-		drawBlocks();
+		// drawBlocks();
 		drawEnemy();
 		drawMike(delta);
 		drawChakrams();
@@ -374,11 +394,11 @@ public class Renderer {
 	}
 
 	private void drawBlocks() {
-		for (Block block : world.getOtherBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
+		for (Block block : world.getGrassBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
 			spriteBatch.draw(grass, block.getPosition().x * ppuX, block.getPosition().y * ppuY, Block.SIZE * ppuX,
 					Block.SIZE * ppuY);
 		}
-		for (Block block : world.getDrawableBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
+		for (Block block : world.getWaterBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
 			spriteBatch.draw(water, block.getPosition().x * ppuX, block.getPosition().y * ppuY, Block.SIZE * ppuX,
 					Block.SIZE * ppuY);
 		}

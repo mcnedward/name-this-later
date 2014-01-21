@@ -28,7 +28,7 @@ public class World {
 		mike = new Mike(new Vector2(3, 3));
 	}
 
-	public List<Block> getDrawableBlocks(int width, int height) {
+	public List<Block> getWaterBlocks(int width, int height) {
 		int x = (int) mike.getPosition().x - width;
 		int y = (int) mike.getPosition().y - height;
 		if (x < 0) {
@@ -48,8 +48,8 @@ public class World {
 
 		List<Block> blocks = new ArrayList<Block>();
 		Block block;
-		for (int col = x; col <= x2; col++) {
-			for (int row = y; row <= y2; row++) {
+		for (int col = y; col <= y2; col++) {
+			for (int row = x; row <= x2; row++) {
 				block = room.getWaterBlocks()[col][row];
 				if (block != null) {
 					blocks.add(block);
@@ -59,7 +59,7 @@ public class World {
 		return blocks;
 	}
 
-	public List<Block> getOtherBlocks(int width, int height) {
+	public List<Block> getGrassBlocks(int width, int height) {
 		int x = (int) mike.getPosition().x - width;
 		int y = (int) mike.getPosition().y - height;
 		if (x < 0) {
@@ -79,9 +79,9 @@ public class World {
 
 		List<Block> blocks = new ArrayList<Block>();
 		Block block;
-		for (int col = x; col <= x2; col++) {
-			for (int row = y; row <= y2; row++) {
-				block = room.getGrassBlocks()[col][row];
+		for (int row = y; row <= y2; row++) {
+			for (int col = x; col <= x2; col++) {
+				block = room.getGrassBlocks()[row][col];
 				if (block != null) {
 					blocks.add(block);
 				}
@@ -101,7 +101,7 @@ public class World {
 	public Level getLevel() {
 		return level;
 	}
-	
+
 	public Room getRoom() {
 		return room;
 	}
