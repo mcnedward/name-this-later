@@ -15,15 +15,26 @@ import com.awesome.namethislater.model.Mike.State;
 import com.awesome.namethislater.model.Room;
 import com.awesome.namethislater.model.World;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.assets.loaders.TextureLoader.TextureParameter;
+import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.maps.tiled.TideMapLoader;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
+import com.badlogic.gdx.maps.tiled.TiledMapTile;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 
@@ -36,7 +47,7 @@ public class Renderer {
 	private static final float RUNNING_FRAME_DURATION = 0.1f;	// 10 FPS
 	private static final float ATTACKING_FRAME_DURATION = 0.2f;
 
-	private OrthographicCamera cam;	// The camera for the screen
+	private OrthographicCamera camera;	// The camera for the screen
 
 	/** For debug rendering **/
 	ShapeRenderer debugRenderer = new ShapeRenderer();
@@ -81,21 +92,22 @@ public class Renderer {
 	private Enemy enemy;
 
 	public Renderer(World world, boolean debug) {
-		loadTextures();
-
 		this.world = world;
 		this.level = world.getLevel();
 		this.room = world.getRoom();
 		mike = world.getMike();
-		mike.setShadowSpriteRegion(shadow);
 		enemy = level.getEnemy();
 
-		this.cam = new OrthographicCamera(CAMERA_WIDTH, CAMERA_HEIGHT);
-		this.cam.position.set(CAMERA_WIDTH / 2f, CAMERA_HEIGHT / 2f, 10);
-		this.cam.update();
+		camera = new OrthographicCamera();
+		//camera.position.set(mike.getPosition().x + Mike.SIZE / 2, mike.getPosition().y + Mike.SIZE / 2, 0);
+		//camera.setToOrtho(false, CAMERA_WIDTH, CAMERA_HEIGHT);
+		camera.update();
+		
 		this.debug = debug;
 		spriteBatch = new SpriteBatch();
 		stateTime = 0f;
+
+		loadTextures();
 	}
 
 	private void loadTextures() {
@@ -204,26 +216,32 @@ public class Renderer {
 
 		shadow = new Texture(Gdx.files.internal("images/shadow.png"));
 		chakram = new Texture(Gdx.files.internal("images/chakra.png"));
+		mike.setShadowSpriteRegion(shadow);
 
 		enemyTexture = new Texture(Gdx.files.internal("images/enemy.png"));
 
 		touchPad = new Texture(Gdx.files.internal("images/touchpad.png"));
 		grass = new Texture(Gdx.files.internal("images/grass.png"));
 		water = new Texture(Gdx.files.internal("images/water.png"));
+		
+		loadMap();
 	}
 
 	public void render(float delta) {
+		move();
+		renderer.render();
+		
 		spriteBatch.begin();
 
-		drawBlocks();
+		//drawBlocks();
 		drawEnemy();
 		drawMike(delta);
 		drawChakrams();
 		drawSprites();
-
 		// drawButtons();
+		
 		spriteBatch.end();
-
+		
 		drawCollisionBlocks();
 		// drawTouchPad();
 		if (debug)
@@ -361,7 +379,7 @@ public class Renderer {
 	}
 
 	private void drawShadow() {
-		debugRenderer.setProjectionMatrix(cam.combined);
+		debugRenderer.setProjectionMatrix(camera.combined);
 		debugRenderer.begin(ShapeType.Filled);
 		debugRenderer.setColor(new Color(1, 1, 1, 1));
 		debugRenderer.circle(mike.getShadowVelocity().x, mike.getShadowVelocity().y, mike.getBounds().width / 2);
@@ -385,7 +403,7 @@ public class Renderer {
 	}
 
 	private void drawCollisionBlocks() {
-		debugRenderer.setProjectionMatrix(cam.combined);
+		debugRenderer.setProjectionMatrix(camera.combined);
 		debugRenderer.begin(ShapeType.Filled);
 		debugRenderer.setColor(new Color(1, 1, 1, 1));
 		for (Rectangle rect : world.getCollisionRects()) {
@@ -395,7 +413,7 @@ public class Renderer {
 	}
 
 	private void drawTouchPad() {
-		debugRenderer.setProjectionMatrix(cam.combined);
+		debugRenderer.setProjectionMatrix(camera.combined);
 		debugRenderer.identity();
 		debugRenderer.begin(ShapeType.Filled);
 		debugRenderer.setColor(new Color(1, 0, 0, 1f));
@@ -405,7 +423,7 @@ public class Renderer {
 
 	public void drawDebug() {
 		// Render blocks
-		debugRenderer.setProjectionMatrix(cam.combined);
+		debugRenderer.setProjectionMatrix(camera.combined);
 		debugRenderer.begin(ShapeType.Line);
 		// for (Block block : world.getDrawableBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
 		// Rectangle rect = block.getBounds();
@@ -442,12 +460,80 @@ public class Renderer {
 		debugRenderer.rect(r.x, r.y, r.width, r.height);
 		debugRenderer.end();
 	}
+	
+	private TiledMap map;
+	private OrthogonalTiledMapRenderer renderer;
+	
+	private void loadMap() {
+		TmxMapLoader loader = new TmxMapLoader();
+		map = loader.load("data/world/level/level.tmx");
+		
+		renderer = new OrthogonalTiledMapRenderer(map, 1f / 32f);
+		renderer.setView(camera);
+	}
+	
+	public void dispose() {
+		map.dispose();
+		renderer.dispose();
+	}
 
 	public void setSize(int width, int height) {
 		this.width = width;
 		this.height = height;
 		ppuX = (float) width / CAMERA_WIDTH;
 		ppuY = (float) height / CAMERA_HEIGHT;
+		// Update the camera
+		//camera.viewportWidth = width;
+		//camera.viewportHeight = height;
+		camera.update();
+	}
+	
+	public void move() {
+		camera.position.set((mike.getPosition().x + Mike.SIZE / 2) * ppuX, (mike.getPosition().y + Mike.SIZE / 2) * ppuY, 0);
+		camera.viewportWidth = Gdx.graphics.getWidth() / mike.getVelocity().x;
+		camera.viewportHeight = Gdx.graphics.getHeight() / mike.getVelocity().y;
+		camera.update();
+	}
+	
+	public void moveCamera(float x, float y) {
+			camera.position.x += x * ppuX;
+
+			/**
+			 * Camera y is opposite of Gdx.input y, so the subtraction is
+			 * swapped.
+			 */
+			camera.position.y += y * ppuY;
+
+		/**
+		 * Ensure that the camera is only showing the map, nothing outside.
+		 */
+		if (camera.position.x < width / 2) {
+			camera.position.x = width / 2;
+		}
+		if (camera.position.x >= CAMERA_WIDTH
+				- width / 2) {
+			camera.position.x = CAMERA_WIDTH
+					- width / 2;
+		}
+
+		if (camera.position.y < height / 2) {
+			camera.position.y = height / 2;
+		}
+		if (camera.position.y >= CAMERA_HEIGHT
+				- height / 2) {
+			camera.position.y = CAMERA_HEIGHT
+					- height / 2;
+		}
+
+		camera.update();
+	}
+
+	public OrthographicCamera getCamera() {
+		return camera;
+	}
+
+	public void setCamera(OrthographicCamera camera) {
+		this.camera = camera;
 	}
 
 	public boolean isDebug() {

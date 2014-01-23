@@ -8,7 +8,6 @@ import com.awesome.namethislater.controller.WorldController;
 import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.World;
 import com.awesome.namethislater.view.Renderer;
-import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
@@ -85,8 +84,6 @@ public class GameScreen implements Screen, InputProcessor {
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -149,15 +146,15 @@ public class GameScreen implements Screen, InputProcessor {
 
 	@Override
 	public boolean touchDown(int x, int y, int pointer, int button) {
-		if (!Gdx.app.getType().equals(ApplicationType.Android))
-			return false;
+//		if (!Gdx.app.getType().equals(ApplicationType.Android))
+//			return false;
 		return false;
 	}
 
 	@Override
 	public boolean touchUp(int x, int y, int pointer, int button) {
-		if (!Gdx.app.getType().equals(ApplicationType.Android))
-			return false;
+//		if (!Gdx.app.getType().equals(ApplicationType.Android))
+//			return false;
 		controller.onTouchUp(Gdx.input.getX(pointer), Gdx.input.getY(pointer), renderer);
 		return true;
 	}
@@ -184,7 +181,6 @@ public class GameScreen implements Screen, InputProcessor {
 
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
