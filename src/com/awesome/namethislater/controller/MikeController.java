@@ -25,7 +25,7 @@ public class MikeController {
 		DOWN, LEFT, UP, RIGHT, JUMP, ATTACK
 	}
 
-	private static final float ACCELERATION = 20f;			// The speed of walking
+	private static final float ACCELERATION = 100f;			// The speed of walking
 	private static final float JUMP_ACCELERATION = ACCELERATION / 1.5f;	// The acceleration of a jump
 	private static final float DEATH_ACCELERATION = ACCELERATION / 4;	// The acceleration of the death rise
 	private static final float SHADOW_ACCELERATION = 0.07f;	// The acceleration of the base of the jump
@@ -142,7 +142,7 @@ public class MikeController {
 
 		rotation += 5;
 
-		//checkCollisions(delta);
+		checkCollisions(delta);
 
 		// Dampen Mike's movement so it appears smoother
 		if (!mike.isJumping()) {
@@ -329,7 +329,7 @@ public class MikeController {
 					.floor(mike.getFeetBounds().x + mike.getFeetBounds().width + mike.getVelocity().x);
 		}
 
-		populateCollidableBlocks(startX, startY, endX, endY);
+		// populateCollidableBlocks(startX, startY, endX, endY);
 
 		// Clear the collision rectangles in the world
 		world.getCollisionRects().clear();
@@ -364,7 +364,7 @@ public class MikeController {
 					+ mike.getVelocity().y);
 		}
 
-		populateCollidableBlocks(startX, startY, endX, endY);
+		// populateCollidableBlocks(startX, startY, endX, endY);
 
 		for (Block block : collidable) {
 			if (block == null)
@@ -407,11 +407,11 @@ public class MikeController {
 
 		// Check for collisions with the left and right sides of the level
 		if (mikeRect.x <= 0 || mikeRect.x > width - mikeRect.width - mike.getVelocity().x) {
-			mike.getVelocity().x = 0;
+			// mike.getVelocity().x = 0;
 		}
 		// Check for collisions with the bottom and top sides of the levels
 		if (mikeRect.y <= 0 || mikeRect.y > height - mikeRect.height - mike.getVelocity().y) {
-			mike.getVelocity().y = 0;
+			// mike.getVelocity().y = 0;
 		}
 
 		if (mike.getState().equals(State.DYING)) {
