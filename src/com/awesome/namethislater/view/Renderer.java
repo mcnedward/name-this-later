@@ -24,8 +24,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.maps.MapProperties;
 import com.badlogic.gdx.maps.tiled.TiledMap;
-import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
@@ -36,55 +36,52 @@ public class Renderer {
 	private static final float CAMERA_WIDTH = 10f;
 	private static final float CAMERA_HEIGHT = 7f;
 	// The duration of each frame
-	private static final float RUNNING_FRAME_DURATION = 0.1f;	// 10 FPS
+	private static final float RUNNING_FRAME_DURATION = 0.1f; // 10 FPS
 	private static final float ATTACKING_FRAME_DURATION = 0.2f;
 
-	private OrthographicCamera camera;	// The camera for the screen
+	private OrthographicCamera camera; // The camera for the screen
 
 	/** For debug rendering **/
 	ShapeRenderer debugRenderer = new ShapeRenderer();
 
 	/** Textures **/
-	private Texture spriteSheet;		// The sprite sheet for movement
-	private Texture attackSheet;		// The sprite sheet for ground attacks
-	private Texture jumpAttackSheet;	// The sprite sheet for jump attacks
-	private TextureRegion mikeFrame;	// The region of the current frame for Mike
-	private Texture dead;				// The texture for the death state
-	private Texture damage;				// The texture for the damge state
-	private Texture chakram;			// The texture for chakrams
-	private Texture shadow;				// The texture for the jump shadow
-
-	private Texture enemyTexture;		// The texture for the enemy
-
-	private Texture touchPad;			// The texture for the touch pad buttons
-
-	private Texture grass;				// The texture for grass blocks
-	private Texture water;				// The texture for water blocks
+	private Texture spriteSheet; // The sprite sheet for movement
+	private Texture attackSheet; // The sprite sheet for ground attacks
+	private Texture jumpAttackSheet; // The sprite sheet for jump attacks
+	private TextureRegion mikeFrame; // The region of the current frame for Mike
+	private Texture dead; // The texture for the death state
+	private Texture damage; // The texture for the damge state
+	private Texture chakram; // The texture for chakrams
+	private Texture shadow; // The texture for the jump shadow
+	private Texture enemyTexture; // The texture for the enemy
+	private Texture touchPad; // The texture for the touch pad buttons
+	private Texture grass; // The texture for grass blocks
+	private Texture water; // The texture for water blocks
 
 	/** Animation and Texture Maps **/
-	private Map<Direction, Animation> animationMap = new HashMap<Direction, Animation>();
-	private Map<Direction, TextureRegion> idleMap = new HashMap<Direction, TextureRegion>();
-	private Map<Direction, TextureRegion> jumpMap = new HashMap<Direction, TextureRegion>();
-	private Map<Direction, Animation> attackMap = new HashMap<Direction, Animation>();
-	private Map<Direction, Animation> jumpAttackMap = new HashMap<Direction, Animation>();
+	private final Map<Direction, Animation> animationMap = new HashMap<Direction, Animation>();
+	private final Map<Direction, TextureRegion> idleMap = new HashMap<Direction, TextureRegion>();
+	private final Map<Direction, TextureRegion> jumpMap = new HashMap<Direction, TextureRegion>();
+	private final Map<Direction, Animation> attackMap = new HashMap<Direction, Animation>();
+	private final Map<Direction, Animation> jumpAttackMap = new HashMap<Direction, Animation>();
 
-	private SpriteBatch spriteBatch;
+	private final SpriteBatch spriteBatch;
 	private boolean debug = false;
 	public int width, height;
-	private float ppuX;					// Pixels per unit on the X axis
-	private float ppuY;					// Pixels per unit on the Y axis
+	private float ppuX; // Pixels per unit on the X axis
+	private float ppuY; // Pixels per unit on the Y axis
 
-	float stateTime;					// The time since last render
-	float currentFrame;					// The current frame, based on the state time
+	float stateTime; // The time since last render
+	float currentFrame; // The current frame, based on the state time
 
-	private World world;
-	private Level level;
-	private Room room;
-	private Mike mike;
-	private Enemy enemy;
+	private final World world;
+	private final Level level;
+	private final Room room;
+	private final Mike mike;
+	private final Enemy enemy;
 
 	private TiledMap map;
-	private OrthogonalTiledMapRenderer renderer;
+	private final OrthogonalTiledMapRenderer renderer;
 
 	public Renderer(World world, boolean debug) {
 		this.world = world;
@@ -92,11 +89,12 @@ public class Renderer {
 		this.room = world.getRoom();
 		mike = world.getMike();
 		enemy = level.getEnemy();
+		map = level.getMap();
+		renderer = new OrthogonalTiledMapRenderer(map, 1f / 32f);
 
 		camera = new OrthographicCamera(CAMERA_WIDTH, CAMERA_HEIGHT);
 		camera.position.set(CAMERA_WIDTH, CAMERA_HEIGHT, 0);
 		camera.setToOrtho(false, CAMERA_WIDTH, CAMERA_HEIGHT);
-		camera.update();
 
 		this.debug = debug;
 		spriteBatch = new SpriteBatch();
@@ -106,13 +104,14 @@ public class Renderer {
 	}
 
 	private void loadTextures() {
-		// Create the sprite sheet as a new Texture. The width is the number of columns in the sheet. The height is the
-		// number of rows in the sheet.
+		// Create the sprite sheet as a new Texture. The width is the number of
+		// columns in the sheet. The height is the number of rows in the sheet.
 		spriteSheet = new Texture(Gdx.files.internal("images/mikespritesheetdetailed.png"));
 		int width = spriteSheet.getWidth() / 4;
 		int height = spriteSheet.getHeight() / 8;
 
-		// 2-Dimensional array that will hold all the frames for animating the sprite
+		// 2-Dimensional array that will hold all the frames for animating the
+		// sprite
 		TextureRegion[][] animationFrames = new TextureRegion[8][3];
 		TextureRegion[][] jumpFrames = new TextureRegion[8][1];
 
@@ -142,11 +141,16 @@ public class Renderer {
 		animationMap.put(Direction.DOWN, new Animation(RUNNING_FRAME_DURATION, animationFrames[0]));
 		animationMap.put(Direction.LEFT, new Animation(RUNNING_FRAME_DURATION, animationFrames[1]));
 		animationMap.put(Direction.UP, new Animation(RUNNING_FRAME_DURATION, animationFrames[2]));
-		animationMap.put(Direction.RIGHT, new Animation(RUNNING_FRAME_DURATION, animationFrames[3]));
-		animationMap.put(Direction.DOWN_LEFT, new Animation(RUNNING_FRAME_DURATION, animationFrames[4]));
-		animationMap.put(Direction.UP_LEFT, new Animation(RUNNING_FRAME_DURATION, animationFrames[5]));
-		animationMap.put(Direction.UP_RIGHT, new Animation(RUNNING_FRAME_DURATION, animationFrames[6]));
-		animationMap.put(Direction.DOWN_RIGHT, new Animation(RUNNING_FRAME_DURATION, animationFrames[7]));
+		animationMap
+				.put(Direction.RIGHT, new Animation(RUNNING_FRAME_DURATION, animationFrames[3]));
+		animationMap.put(Direction.DOWN_LEFT, new Animation(RUNNING_FRAME_DURATION,
+				animationFrames[4]));
+		animationMap.put(Direction.UP_LEFT, new Animation(RUNNING_FRAME_DURATION,
+				animationFrames[5]));
+		animationMap.put(Direction.UP_RIGHT, new Animation(RUNNING_FRAME_DURATION,
+				animationFrames[6]));
+		animationMap.put(Direction.DOWN_RIGHT, new Animation(RUNNING_FRAME_DURATION,
+				animationFrames[7]));
 		// Set the jump for each direction
 		jumpMap.put(Direction.DOWN, new TextureRegion(jumpFrames[0][0]));
 		jumpMap.put(Direction.LEFT, new TextureRegion(jumpFrames[1][0]));
@@ -192,19 +196,29 @@ public class Renderer {
 		attackMap.put(Direction.LEFT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[1]));
 		attackMap.put(Direction.UP, new Animation(ATTACKING_FRAME_DURATION, attackFrames[2]));
 		attackMap.put(Direction.RIGHT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[3]));
-		attackMap.put(Direction.DOWN_LEFT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[4]));
+		attackMap
+				.put(Direction.DOWN_LEFT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[4]));
 		attackMap.put(Direction.UP_LEFT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[5]));
 		attackMap.put(Direction.UP_RIGHT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[6]));
-		attackMap.put(Direction.DOWN_RIGHT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[7]));
+		attackMap.put(Direction.DOWN_RIGHT,
+				new Animation(ATTACKING_FRAME_DURATION, attackFrames[7]));
 		// Set the jump attacking animation for each direction
-		jumpAttackMap.put(Direction.DOWN, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[0]));
-		jumpAttackMap.put(Direction.LEFT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[1]));
-		jumpAttackMap.put(Direction.UP, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[2]));
-		jumpAttackMap.put(Direction.RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[3]));
-		jumpAttackMap.put(Direction.DOWN_LEFT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[4]));
-		jumpAttackMap.put(Direction.UP_LEFT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[5]));
-		jumpAttackMap.put(Direction.UP_RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[6]));
-		jumpAttackMap.put(Direction.DOWN_RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[7]));
+		jumpAttackMap.put(Direction.DOWN, new Animation(ATTACKING_FRAME_DURATION,
+				jumpAttackFrames[0]));
+		jumpAttackMap.put(Direction.LEFT, new Animation(ATTACKING_FRAME_DURATION,
+				jumpAttackFrames[1]));
+		jumpAttackMap.put(Direction.UP,
+				new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[2]));
+		jumpAttackMap.put(Direction.RIGHT, new Animation(ATTACKING_FRAME_DURATION,
+				jumpAttackFrames[3]));
+		jumpAttackMap.put(Direction.DOWN_LEFT, new Animation(ATTACKING_FRAME_DURATION,
+				jumpAttackFrames[4]));
+		jumpAttackMap.put(Direction.UP_LEFT, new Animation(ATTACKING_FRAME_DURATION,
+				jumpAttackFrames[5]));
+		jumpAttackMap.put(Direction.UP_RIGHT, new Animation(ATTACKING_FRAME_DURATION,
+				jumpAttackFrames[6]));
+		jumpAttackMap.put(Direction.DOWN_RIGHT, new Animation(ATTACKING_FRAME_DURATION,
+				jumpAttackFrames[7]));
 
 		dead = new Texture(Gdx.files.internal("images/dead.png"));
 		damage = new Texture(Gdx.files.internal("images/damage.png"));
@@ -218,19 +232,10 @@ public class Renderer {
 		touchPad = new Texture(Gdx.files.internal("images/touchpad.png"));
 		grass = new Texture(Gdx.files.internal("images/grass.png"));
 		water = new Texture(Gdx.files.internal("images/water.png"));
-
-		loadMap();
-	}
-
-	private void loadMap() {
-		TmxMapLoader loader = new TmxMapLoader();
-		map = loader.load("data/world/level/level.tmx");
-
-		renderer = new OrthogonalTiledMapRenderer(map, 1f / 32f);
 	}
 
 	public void render(float delta) {
-		moveCamera(mike.getVelocity().x, mike.getVelocity().y);
+		setCamera();
 		renderer.setView(camera);
 		renderer.render();
 
@@ -247,29 +252,31 @@ public class Renderer {
 
 		drawCollisionBlocks();
 		// drawTouchPad();
-		if (debug)
+		if (debug) {
 			drawDebug();
-	}
-
-	public void moveCamera(float x, float y) {
-		float mikeX = mike.getPosition().x;
-		float mikeY = mike.getPosition().y;
-		// camera.position.x = mike.getPosition().x;
-		float left = CAMERA_WIDTH / 2;
-		float right = (Gdx.graphics.getWidth() / CAMERA_WIDTH) - (CAMERA_WIDTH / 2);
-		float bottom = CAMERA_HEIGHT / 2;
-		float top = (Gdx.graphics.getHeight() / CAMERA_HEIGHT) - (CAMERA_HEIGHT / 2);
-		if (mikeX > left && mikeX < right && mikeY > bottom && mikeY < top) {
-			camera.position.set(mikeX, mikeY, 0);
-		} else {
-
 		}
-
-		camera.update();
 	}
 
-	public Texture getTouchPad() {
-		return touchPad;
+	/**
+	 * Set the position of the camera to surround the boundaries of the map.<br>
+	 * Source: http://xiopod.net/libgdx-lock-camera-to-bounds-of-tiledmap-with-centered-player
+	 */
+	private void setCamera() {
+		// Get the properties of the map to find the width and height.
+		MapProperties prop = renderer.getMap().getProperties();
+		int mapWidth = prop.get("width", Integer.class);
+		int mapHeight = prop.get("height", Integer.class);
+
+		// Set the minimum and maximum areas of the map.
+		float minCameraX = camera.zoom * (CAMERA_WIDTH / 2);
+		float maxCameraX = mapWidth - minCameraX;
+		float minCameraY = camera.zoom * (CAMERA_HEIGHT / 2);
+		float maxCameraY = mapHeight - minCameraY;
+
+		// Set the position of the map based on the minimum value of the bounds, based of the current position of the player.
+		camera.position.set(Math.min(maxCameraX, Math.max(mike.getPosition().x, minCameraX)),
+				Math.min(maxCameraY, Math.max(mike.getPosition().y, minCameraY)), 0);
+		camera.update();
 	}
 
 	/**
@@ -291,16 +298,20 @@ public class Renderer {
 			mikeFrame = jumpMap.get(direction);
 		}
 		if (mike.getState().equals(State.ATTACKING)) {
-			// Get the time since last render and the current frame, based on the attack frame rate. Then set Mike's
-			// frame to attack. If the current attack frame is the second one in the animation, set his attacking
-			// boolean to true so that he will attack on the next update. When the attack animation is finished,
+			// Get the time since last render and the current frame, based on
+			// the attack frame rate. Then set Mike's
+			// frame to attack. If the current attack frame is the second one in
+			// the animation, set his attacking
+			// boolean to true so that he will attack on the next update. When
+			// the attack animation is finished,
 			// set his state back to idle.
 			stateTime += delta;
 			currentFrame += (int) (stateTime / ATTACKING_FRAME_DURATION);
 			mikeFrame = attackMap.get(direction).getKeyFrame(stateTime, false);
 			if (currentFrame == 1) {
-				mike.setAttacking(true);	// Attack!
-				currentFrame += 1;			// Increase the frame count so this will be skipped on the next render
+				mike.setAttacking(true); // Attack!
+				currentFrame += 1; // Increase the frame count so this will be
+									// skipped on the next render
 			} else {
 				mike.setAttacking(false);
 			}
@@ -311,14 +322,17 @@ public class Renderer {
 			}
 		}
 		if (mike.getState().equals(State.JUMP_ATTACK)) {
-			// Get the time since last render. Then set Mike's frame to attack. When the attack animation is finished,
-			// check whether he is in the air or not, and set his state accordingly.
+			// Get the time since last render. Then set Mike's frame to attack.
+			// When the attack animation is finished,
+			// check whether he is in the air or not, and set his state
+			// accordingly.
 			stateTime += delta;
 			currentFrame += (int) (stateTime / ATTACKING_FRAME_DURATION);
 			mikeFrame = jumpAttackMap.get(direction).getKeyFrame(stateTime, false);
 			if (currentFrame == 1) {
-				mike.setAttacking(true);	// Attack!
-				currentFrame += 1; // Increase the frame count so this will be skipped on the next render
+				mike.setAttacking(true); // Attack!
+				currentFrame += 1; // Increase the frame count so this will be
+									// skipped on the next render
 			} else {
 				mike.setAttacking(false);
 			}
@@ -335,17 +349,17 @@ public class Renderer {
 
 		if (mike.getState().equals(State.DYING)) {
 			mike.setSpriteRegion(dead);
-			mike.loadSprite(spriteBatch, ppuX, ppuY);
+			mike.loadSprite(spriteBatch);
 		} else if (mike.getState().equals(State.DAMAGE)) {
 			mike.setSpriteRegion(damage);
-			mike.loadSprite(spriteBatch, ppuX, ppuY);
-		} else {	// TODO Check this...
+			mike.loadSprite(spriteBatch);
+		} else { // TODO Check this...
 			mike.setSpriteRegion(mikeFrame);
 			if (direction == Mike.Direction.DOWN || direction == Mike.Direction.DOWN_LEFT
 					|| direction == Mike.Direction.DOWN_RIGHT || direction == Mike.Direction.RIGHT) {
-				mike.loadSprite(spriteBatch, ppuX, ppuY);
+				mike.loadSprite(spriteBatch);
 			} else {
-				mike.loadSprite(spriteBatch, ppuX, ppuY);
+				mike.loadSprite(spriteBatch);
 			}
 		}
 	}
@@ -354,13 +368,13 @@ public class Renderer {
 		for (Chakram c : mike.getChakrams()) {
 			c.setShadowSpriteRegion(shadow);
 			c.setSpriteRegion(chakram);
-			c.loadSprite(spriteBatch, ppuX, ppuY);
+			c.loadSprite(spriteBatch);
 		}
 	}
 
 	private void drawEnemy() {
 		enemy.setSpriteRegion(enemyTexture);
-		enemy.loadSprite(spriteBatch, ppuX, ppuY);
+		enemy.loadSprite(spriteBatch);
 	}
 
 	/**
@@ -377,8 +391,9 @@ public class Renderer {
 			shadows.add(mike.getShadowSprite());
 			mike.setBaseY(mike.getShadowPosition().y);
 			sprites.add(mike);
-		} else
+		} else {
 			sprites.add(mike);
+		}
 
 		sprites.add(enemy);
 		for (Chakram c : mike.getChakrams()) {
@@ -402,7 +417,8 @@ public class Renderer {
 		debugRenderer.setProjectionMatrix(camera.combined);
 		debugRenderer.begin(ShapeType.Filled);
 		debugRenderer.setColor(new Color(1, 1, 1, 1));
-		debugRenderer.circle(mike.getShadowVelocity().x, mike.getShadowVelocity().y, mike.getBounds().width / 2);
+		debugRenderer.circle(mike.getShadowVelocity().x, mike.getShadowVelocity().y,
+				mike.getBounds().width / 2);
 		debugRenderer.end();
 	}
 
@@ -413,12 +429,12 @@ public class Renderer {
 
 	private void drawBlocks() {
 		for (Block block : world.getWaterBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
-			spriteBatch.draw(grass, block.getPosition().x * ppuX, block.getPosition().y * ppuY, Block.SIZE * ppuX,
-					Block.SIZE * ppuY);
+			spriteBatch.draw(grass, block.getPosition().x * ppuX, block.getPosition().y * ppuY,
+					Block.SIZE * ppuX, Block.SIZE * ppuY);
 		}
 		for (Block block : world.getGrassBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
-			spriteBatch.draw(water, block.getPosition().x * ppuX, block.getPosition().y * ppuY, Block.SIZE * ppuX,
-					Block.SIZE * ppuY);
+			spriteBatch.draw(water, block.getPosition().x * ppuX, block.getPosition().y * ppuY,
+					Block.SIZE * ppuX, Block.SIZE * ppuY);
 		}
 	}
 
@@ -437,7 +453,7 @@ public class Renderer {
 		debugRenderer.identity();
 		debugRenderer.begin(ShapeType.Filled);
 		debugRenderer.setColor(new Color(1, 0, 0, 1f));
-		debugRenderer.ellipse(1, 1, (int) 1, (int) 1);
+		debugRenderer.ellipse(1, 1, 1, 1);
 		debugRenderer.end();
 	}
 
@@ -445,12 +461,14 @@ public class Renderer {
 		// Render blocks
 		debugRenderer.setProjectionMatrix(camera.combined);
 		debugRenderer.begin(ShapeType.Line);
-		// for (Block block : world.getDrawableBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
+		// for (Block block : world.getDrawableBlocks((int) CAMERA_WIDTH, (int)
+		// CAMERA_HEIGHT)) {
 		// Rectangle rect = block.getBounds();
 		// debugRenderer.setColor(new Color(1, 0, 0, 1));
 		// debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
 		// }
-		// for (Block block : world.getOtherBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
+		// for (Block block : world.getOtherBlocks((int) CAMERA_WIDTH, (int)
+		// CAMERA_HEIGHT)) {
 		// Rectangle rect = block.getBounds();
 		// debugRenderer.setColor(new Color(1, 0, 0, 1));
 		// debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
@@ -489,36 +507,8 @@ public class Renderer {
 	public void setSize(int width, int height) {
 		this.width = width;
 		this.height = height;
-		ppuX = (float) width / CAMERA_WIDTH;
-		ppuY = (float) height / CAMERA_HEIGHT;
-	}
-
-	public void move() {
-		float x = (mike.getPosition().x + Mike.SIZE / 2) * ppuX;
-		float y = (mike.getPosition().y + Mike.SIZE / 2) * ppuY;
-		camera.position.set(x, y, 0);
-		float w = width + mike.getAcceleration().x;
-		float h = height + mike.getAcceleration().y;
-		camera.viewportWidth = w;
-		camera.viewportHeight = h;
-		/**
-		 * Ensure that the camera is only showing the map, nothing outside.
-		 */
-		if (camera.position.x < width / 2) {
-			camera.position.x = width / 2;
-		}
-		if (camera.position.x >= CAMERA_WIDTH - width / 2) {
-			camera.position.x = CAMERA_WIDTH - width / 2;
-		}
-
-		if (camera.position.y < height / 2) {
-			camera.position.y = height / 2;
-		}
-		if (camera.position.y >= CAMERA_HEIGHT - height / 2) {
-			camera.position.y = CAMERA_HEIGHT - height / 2;
-		}
-
-		camera.update();
+		ppuX = width / CAMERA_WIDTH;
+		ppuY = height / CAMERA_HEIGHT;
 	}
 
 	public OrthographicCamera getCamera() {
@@ -527,6 +517,18 @@ public class Renderer {
 
 	public void setCamera(OrthographicCamera camera) {
 		this.camera = camera;
+	}
+
+	public Texture getTouchPad() {
+		return touchPad;
+	}
+
+	public TiledMap getMap() {
+		return map;
+	}
+
+	public void setMap(TiledMap map) {
+		this.map = map;
 	}
 
 	public boolean isDebug() {

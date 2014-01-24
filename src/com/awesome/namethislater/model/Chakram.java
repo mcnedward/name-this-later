@@ -8,25 +8,25 @@ import com.badlogic.gdx.math.Vector2;
 
 public class Chakram extends Drawable implements IDrawable {
 
-	public static float SIZE = 0.5f;				// The size of the chakram
-	private static final float ACCELERATION = 0.5f;	// The speed the chakram is thrown
+	public static float SIZE = 0.5f; // The size of the chakram
+	private static final float ACCELERATION = 0.5f; // The speed the chakram is thrown
 
 	// Set the bounds of the chakram. Attack bounds use the shadow position to better determine how to collide with an
 	// objects.
 	public Rectangle bounds = new Rectangle();
 	public Rectangle attackBounds = new Rectangle();
 
-	Direction direction;	// The direction that the chakram is thrown
+	Direction direction; // The direction that the chakram is thrown
 
 	float stateTime = 0;
-	float airHeight = 0;	// If thrown in jump attack, adjust the height of the shadow
-	float rotation = 0;		// How much to rotate the chakram
+	float airHeight = 0; // If thrown in jump attack, adjust the height of the shadow
+	float rotation = 0; // How much to rotate the chakram
 
 	/**
-	 * Create a new instance of a chakram. Set the x and y coordinates, the sprite that threw the chakram, and the
-	 * height in the air that the chakram is.
+	 * Create a new instance of a chakram. Set the x and y coordinates, the sprite that threw the chakram, and the height in the air that the chakram is.
 	 * 
-	 * @param position The position of the chakram.
+	 * @param position
+	 *            The position of the chakram.
 	 * @param mike
 	 *            The sprite that threw the chakram.
 	 * @param airHeight
@@ -45,9 +45,9 @@ public class Chakram extends Drawable implements IDrawable {
 		bounds.height = SIZE;
 		bounds.width = SIZE;
 
-		direction = mike.getDirection();	// The direction the chakram was thrown
+		direction = mike.getDirection(); // The direction the chakram was thrown
 
-		this.airHeight = airHeight;			// The height in the air the chakram is
+		this.airHeight = airHeight; // The height in the air the chakram is
 
 		updateBounds(position);
 
@@ -58,45 +58,45 @@ public class Chakram extends Drawable implements IDrawable {
 		// Set the position and acceleration of the chakram based on Mike's direction
 		switch (direction) {
 		case DOWN:
-			position.x += SIZE / 4;				// Set the chakram in the middle of Mike
+			position.x += SIZE / 4; // Set the chakram in the middle of Mike
 			acceleration.y = -ACCELERATION;
 			break;
 		case UP:
-			position.x += SIZE / 4;				// Set the chakram in the middle of Mike
-			position.y += SIZE;					// Set the chakram in the middle of Mike
+			position.x += SIZE / 4; // Set the chakram in the middle of Mike
+			position.y += SIZE; // Set the chakram in the middle of Mike
 			acceleration.y = ACCELERATION;
 			break;
 		case LEFT:
-			position.x -= (SIZE / 2);			// Set the chakram right in front of Mike's hand
-			position.y += SIZE;					// Set the chakram in the middle of Mike
+			position.x -= (SIZE / 2); // Set the chakram right in front of Mike's hand
+			position.y += SIZE; // Set the chakram in the middle of Mike
 			acceleration.x = -ACCELERATION;
 			break;
 		case RIGHT:
-			position.x += SIZE + (SIZE / 3);	// Set the chakram right in front of Mike's hand
-			position.y += SIZE;					// Set the chakram in the middle of Mike
+			position.x += SIZE + (SIZE / 3); // Set the chakram right in front of Mike's hand
+			position.y += SIZE; // Set the chakram in the middle of Mike
 			acceleration.x = ACCELERATION;
 			break;
 		case DOWN_LEFT:
-			position.x -= (SIZE / 3);			// Set the chakram right in front of Mike's hand
-			position.y += SIZE / 2;				// Set the chakram in the middle of Mike
+			position.x -= (SIZE / 3); // Set the chakram right in front of Mike's hand
+			position.y += SIZE / 2; // Set the chakram in the middle of Mike
 			acceleration.y = -ACCELERATION;
 			acceleration.x = -ACCELERATION;
 			break;
 		case DOWN_RIGHT:
-			position.x += SIZE + (SIZE / 2);	// Set the chakram right in front of Mike's hand
-			position.y += SIZE / 2;				// Set the chakram in the middle of Mike
+			position.x += SIZE + (SIZE / 2); // Set the chakram right in front of Mike's hand
+			position.y += SIZE / 2; // Set the chakram in the middle of Mike
 			acceleration.y = -ACCELERATION;
 			acceleration.x = ACCELERATION;
 			break;
 		case UP_LEFT:
-			position.x -= (SIZE / 2);			// Set the chakram right in front of Mike's hand
-			position.y += SIZE;					// Set the chakram in the middle of Mike
+			position.x -= (SIZE / 2); // Set the chakram right in front of Mike's hand
+			position.y += SIZE; // Set the chakram in the middle of Mike
 			acceleration.y = ACCELERATION;
 			acceleration.x = -ACCELERATION;
 			break;
 		case UP_RIGHT:
-			position.x += SIZE + (SIZE / 3);	// Set the chakram right in front of Mike's hand
-			position.y += SIZE;		 			// Set the chakram in the middle of Mike
+			position.x += SIZE + (SIZE / 3); // Set the chakram right in front of Mike's hand
+			position.y += SIZE; // Set the chakram in the middle of Mike
 			acceleration.y = ACCELERATION;
 			acceleration.x = ACCELERATION;
 			break;
@@ -106,7 +106,8 @@ public class Chakram extends Drawable implements IDrawable {
 	/**
 	 * Used to update the position of the chakram and it's shadow.
 	 * 
-	 * @param position The position of the chakram.
+	 * @param position
+	 *            The position of the chakram.
 	 * @param rotation
 	 *            The amount to rotate the chakram.
 	 */
@@ -131,7 +132,7 @@ public class Chakram extends Drawable implements IDrawable {
 			break;
 		case RIGHT:
 			shadowPosition.x = position.x;
-			this.rotation *= -1;					// Switch direction on rotation
+			this.rotation *= -1; // Switch direction on rotation
 			break;
 		case DOWN_LEFT:
 			shadowPosition.x = position.x;
@@ -140,7 +141,7 @@ public class Chakram extends Drawable implements IDrawable {
 		case DOWN_RIGHT:
 			shadowPosition.x = position.x;
 			shadowPosition.y = position.y - shadowMove;
-			this.rotation *= -1;					// Switch direction on rotation
+			this.rotation *= -1; // Switch direction on rotation
 			break;
 		case UP_LEFT:
 			shadowPosition.x = position.x;
@@ -149,7 +150,7 @@ public class Chakram extends Drawable implements IDrawable {
 		case UP_RIGHT:
 			shadowPosition.x = position.x;
 			shadowPosition.y = position.y - shadowMove;
-			this.rotation *= -1;					// Switch direction on rotation
+			this.rotation *= -1; // Switch direction on rotation
 			break;
 		}
 
@@ -176,18 +177,18 @@ public class Chakram extends Drawable implements IDrawable {
 	 *            The pixel point units for scaling the y coordinates.
 	 */
 	@Override
-	public void loadSprite(SpriteBatch spriteBatch, float ppuX, float ppuY) {
-		float x = (float) (position.x * ppuX);
-		float y = (float) (position.y * ppuY);
+	public void loadSprite(SpriteBatch spriteBatch) {
+		float x = position.x;
+		float y = position.y;
 
-		float width = (float) (SIZE * ppuX);
-		float height = (float) (SIZE * ppuX);
+		float width = SIZE;
+		float height = SIZE;
 
-		drawShadow(spriteBatch, ppuX, ppuY);
+		drawShadow(spriteBatch);
 
-		sprite.setOrigin(width / 2, height / 2);	// Set the origin in the middle
-		sprite.setRotation(rotation);				// Rotate the sprite
-		sprite.setBounds(x, y, width, height);		// Set the bounds
+		sprite.setOrigin(width / 2, height / 2); // Set the origin in the middle
+		sprite.setRotation(rotation); // Rotate the sprite
+		sprite.setBounds(x, y, width, height); // Set the bounds
 	}
 
 	/**
@@ -203,17 +204,17 @@ public class Chakram extends Drawable implements IDrawable {
 	 *            The pixel point units for scaling the y coordinates.
 	 */
 	@Override
-	public void drawShadow(SpriteBatch spriteBatch, float ppuX, float ppuY) {
+	public void drawShadow(SpriteBatch spriteBatch) {
 		// Get the x and y coordinates to draw. These are the lower left corners of the ellipse.
-		float x = (float) (shadow.getX() * ppuX);
-		float y = (float) (shadow.getY() * ppuY);
+		float x = (float) shadow.getX();
+		float y = (float) shadow.getY();
 
 		// Get the width and height of the shadow, and scale them according to the scale percentage.
-		float width = (float) (shadow.getWidth() * ppuX);
-		float height = (float) (shadow.getHeight() * ppuY);
+		float width = (float) shadow.getWidth();
+		float height = (float) shadow.getHeight();
 
-		shadowSprite.setOrigin(width / 2, height / 2);	// Set the origin in the middle
-		shadowSprite.setBounds(x, y, width, height);	// Set the bounds
+		shadowSprite.setOrigin(width / 2, height / 2); // Set the origin in the middle
+		shadowSprite.setBounds(x, y, width, height); // Set the bounds
 	}
 
 	/**

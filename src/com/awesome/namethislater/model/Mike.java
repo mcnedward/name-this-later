@@ -9,24 +9,24 @@ import com.badlogic.gdx.math.Vector2;
 
 public class Mike extends Drawable implements IDrawable {
 
-	public static final float SIZE = 1f;        // The size of Mike
+	public static final float SIZE = 1f; // The size of Mike
 
 	/** The different states that Mike can be in **/
 	public enum State {
 		IDLE, RUNNING, JUMPING, FALLING, DYING, DAMAGE, ATTACKING, JUMP_ATTACK
 	}
 
-	Rectangle feetBounds = new Rectangle();     // The bounds of Mike's feet
+	Rectangle feetBounds = new Rectangle(); // The bounds of Mike's feet
 	Rectangle jumpingBounds = new Rectangle();
 
-	State state = State.IDLE;                   // The state that Mike is in
-	Direction direction = Direction.DOWN;       // The direction Mike is facing
+	State state = State.IDLE; // The state that Mike is in
+	Direction direction = Direction.DOWN; // The direction Mike is facing
 
 	List<Chakram> chakrams;
 
-	boolean isGrounded;                         // Whether Mike is on the ground or not
-	boolean attacking;                          // Whether Mike is attacking or not
-	float shadowPercentage;                     // The amount to scale Mike's jumping shadow
+	boolean isGrounded; // Whether Mike is on the ground or not
+	boolean attacking; // Whether Mike is attacking or not
+	float shadowPercentage; // The amount to scale Mike's jumping shadow
 
 	public Mike(Vector2 position) {
 		super(position, SIZE);
@@ -49,18 +49,19 @@ public class Mike extends Drawable implements IDrawable {
 	}
 
 	@Override
-	public void loadSprite(SpriteBatch spriteBatch, float ppuX, float ppuY) {
-		float x = (float) (position.x * 1);
-		float y = (float) (position.y * 1);
+	public void loadSprite(SpriteBatch spriteBatch) {
+		float x = position.x;
+		float y = position.y;
 
-		float width = (float) (SIZE * 1);
-		float height = (float) (SIZE * 1) * 1.5f;
+		float width = SIZE;
+		float height = SIZE * 1.5f;
 
-		if (isJumping())
-			drawShadow(spriteBatch, 1, 1);
+		if (isJumping()) {
+			drawShadow(spriteBatch);
+		}
 
-		sprite.setOrigin(width / 2, height / 2);    // Set the origin in the middle
-		sprite.setBounds(x, y, width, height);      // Set the bounds
+		sprite.setOrigin(width / 2, height / 2); // Set the origin in the middle
+		sprite.setBounds(x, y, width, height); // Set the bounds
 	}
 
 	/**
@@ -76,26 +77,26 @@ public class Mike extends Drawable implements IDrawable {
 	 *            The pixel point units for the y coordinates.
 	 */
 	@Override
-	public void drawShadow(SpriteBatch spriteBatch, float ppuX, float ppuY) {
+	public void drawShadow(SpriteBatch spriteBatch) {
 		// Get the origin x and y. These are used to scale the shadow around the center of the ellipse.
-		float originX = (float) (shadow.getCenterX() * ppuX);
-		float originY = (float) (shadow.getCenterY() * ppuY);
+		float originX = (float) shadow.getCenterX();
+		float originY = (float) shadow.getCenterY();
 
 		// Get the x and y coordinates to draw. These are the lower left corners of the ellipse.
-		float x = (float) (shadow.getX() * ppuX);
-		float y = (float) (shadow.getY() * ppuY);
+		float x = (float) shadow.getX();
+		float y = (float) shadow.getY();
 
 		// Get the width and height of the shadow, and scale them according to the scale percentage.
-		float width = (float) (shadow.getWidth() * shadowPercentage * ppuX);
-		float height = (float) (shadow.getHeight() * shadowPercentage * ppuY);
+		float width = (float) shadow.getWidth() * shadowPercentage;
+		float height = (float) shadow.getHeight() * shadowPercentage;
 
 		// Determine the amount of pixels to move the shadow's x and y coordinates. These are used to keep the scaling
 		// of the shadow around the center of the ellipse.
 		float moveX = (originX - x) - ((originX - x) * shadowPercentage);
 		float moveY = (originY - y) - ((originY - y) * shadowPercentage);
 
-		shadowSprite.setOrigin(width / 2, height / 2);  // Set the origin in the middle
-		shadowSprite.setBounds(x + moveX, y + moveY, width, height - moveY);        // Set the bounds
+		shadowSprite.setOrigin(width / 2, height / 2); // Set the origin in the middle
+		shadowSprite.setBounds(x + moveX, y + moveY, width, height - moveY); // Set the bounds
 	}
 
 	/**
@@ -107,8 +108,7 @@ public class Mike extends Drawable implements IDrawable {
 	}
 
 	/**
-	 * Throw a chakram. This creates a new Chakram and adds it to Mike's list of thrown chakrams. The air height is used
-	 * to determine shadow position of the chakram.
+	 * Throw a chakram. This creates a new Chakram and adds it to Mike's list of thrown chakrams. The air height is used to determine shadow position of the chakram.
 	 * 
 	 * @param airHeight
 	 *            The height that Mike is in the air.
@@ -119,8 +119,7 @@ public class Mike extends Drawable implements IDrawable {
 	}
 
 	/**
-	 * This is used to update the Rectangle boundaries surrounding Mike's feet. Use this for collision detection with
-	 * floor tiles (pits, water).
+	 * This is used to update the Rectangle boundaries surrounding Mike's feet. Use this for collision detection with floor tiles (pits, water).
 	 * 
 	 * @param position
 	 *            The current position of Mike.
@@ -150,8 +149,7 @@ public class Mike extends Drawable implements IDrawable {
 	}
 
 	/**
-	 * This is used to update the Rectangle boundaries surrounding Mike's shadow when jumping. Use this for collision
-	 * detection with enemies.
+	 * This is used to update the Rectangle boundaries surrounding Mike's shadow when jumping. Use this for collision detection with enemies.
 	 * 
 	 * @param position
 	 *            The current position of Mike.
@@ -170,16 +168,16 @@ public class Mike extends Drawable implements IDrawable {
 	 * @return True if Mike is jumping, false otherwise.
 	 */
 	public boolean isJumping() {
-		if (state == State.JUMPING || state == State.JUMP_ATTACK || !isGrounded) {
+		if (state == State.JUMPING || state == State.JUMP_ATTACK || !isGrounded)
 			return true;
-		} else
+		else
 			return false;
 	}
 
 	public boolean isAttackingState() {
-		if (state == State.ATTACKING || state == State.JUMP_ATTACK || attacking) {
+		if (state == State.ATTACKING || state == State.JUMP_ATTACK || attacking)
 			return true;
-		} else
+		else
 			return false;
 	}
 
