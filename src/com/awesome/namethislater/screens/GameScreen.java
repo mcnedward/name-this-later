@@ -146,15 +146,15 @@ public class GameScreen implements Screen, InputProcessor {
 
 	@Override
 	public boolean touchDown(int x, int y, int pointer, int button) {
-//		if (!Gdx.app.getType().equals(ApplicationType.Android))
-//			return false;
+		// if (!Gdx.app.getType().equals(ApplicationType.Android))
+		// return false;
 		return false;
 	}
 
 	@Override
 	public boolean touchUp(int x, int y, int pointer, int button) {
-//		if (!Gdx.app.getType().equals(ApplicationType.Android))
-//			return false;
+		// if (!Gdx.app.getType().equals(ApplicationType.Android))
+		// return false;
 		controller.onTouchUp(Gdx.input.getX(pointer), Gdx.input.getY(pointer), renderer);
 		return true;
 	}
@@ -165,7 +165,7 @@ public class GameScreen implements Screen, InputProcessor {
 		return false;
 	}
 
-	private Map<Integer, TouchInfo> touches = new HashMap<Integer, TouchInfo>();
+	private final Map<Integer, TouchInfo> touches = new HashMap<Integer, TouchInfo>();
 
 	class TouchInfo {
 		public float x = 0;

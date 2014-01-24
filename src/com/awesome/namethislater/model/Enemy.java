@@ -3,17 +3,15 @@ package com.awesome.namethislater.model;
 import java.awt.geom.Ellipse2D;
 import java.util.Random;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 public class Enemy extends Drawable {
 
-	public static final float SIZE = 1f;			// The size of the enemy
+	public static final float SIZE = 1f; // The size of the enemy
 
-	Rectangle damageBounds = new Rectangle();		// The bounds of the enemy's feet
+	Rectangle damageBounds = new Rectangle(); // The bounds of the enemy's feet
 
 	float currentFrame;
 
@@ -37,20 +35,19 @@ public class Enemy extends Drawable {
 		shadow = new Ellipse2D.Float();
 	}
 
-	public void loadSprite(SpriteBatch spriteBatch, float ppuX, float ppuY) {
-		float x = (float) (position.x * ppuX);
-		float y = (float) (position.y * ppuY);
+	public void loadSprite(SpriteBatch spriteBatch) {
+		float x = position.x;
+		float y = position.y;
 
-		float width = (float) (SIZE * ppuX);
-		float height = (float) (SIZE * ppuX) * 1.5f;
+		float width = SIZE;
+		float height = SIZE * 1.5f;
 
-		sprite.setOrigin(width / 2, height / 2);	// Set the origin in the middle
-		sprite.setBounds(x, y, width, height);		// Set the bounds
+		sprite.setOrigin(width / 2, height / 2); // Set the origin in the middle
+		sprite.setBounds(x, y, width, height); // Set the bounds
 	}
 
 	/**
-	 * This is used to update the Rectangle boundaries surrounding for the damage area. Use this for collision
-	 * detection.
+	 * This is used to update the Rectangle boundaries surrounding for the damage area. Use this for collision detection.
 	 * 
 	 * @param position
 	 *            The current position of the enemy.

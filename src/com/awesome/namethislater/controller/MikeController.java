@@ -13,6 +13,9 @@ import com.awesome.namethislater.model.Mike;
 import com.awesome.namethislater.model.Mike.State;
 import com.awesome.namethislater.model.World;
 import com.awesome.namethislater.view.Renderer;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
@@ -25,11 +28,11 @@ public class MikeController {
 		DOWN, LEFT, UP, RIGHT, JUMP, ATTACK
 	}
 
-	private static final float ACCELERATION = 100f;			// The speed of walking
-	private static final float JUMP_ACCELERATION = ACCELERATION / 1.5f;	// The acceleration of a jump
-	private static final float DEATH_ACCELERATION = ACCELERATION / 4;	// The acceleration of the death rise
-	private static final float SHADOW_ACCELERATION = 0.07f;	// The acceleration of the base of the jump
-	private static final float DAMP = 0.90f;				// Used to smooth out the walking animation
+	private static final float ACCELERATION = 400f; // The speed of walking
+	private static final float JUMP_ACCELERATION = ACCELERATION / 1.5f; // The acceleration of a jump
+	private static final float DEATH_ACCELERATION = ACCELERATION / 4; // The acceleration of the death rise
+	private static final float SHADOW_ACCELERATION = 0.07f; // The acceleration of the base of the jump
+	private static final float DAMP = 0.90f; // Used to smooth out the walking animation
 	private static final float MAX_VEL = 4f;
 
 	private float deadDegree;
@@ -39,16 +42,16 @@ public class MikeController {
 	private float deadStartX;
 
 	private float jumpDegree;
-	private float lift;								// The amount to increase or decrease the y-coord for a jump
+	private float lift; // The amount to increase or decrease the y-coord for a jump
 	private float shadowPercentage;
-	private float rotation = 0;						// The amount to rotate the chakram
+	private float rotation = 0; // The amount to rotate the chakram
 
-	private boolean jumpPressed = false;			// Used to prevent auto-jump by holding down jump button
+	private boolean jumpPressed = false; // Used to prevent auto-jump by holding down jump button
 	private boolean attackPressed = false;
 
 	// This is the rectangle pool used in collision detection
 	// Good to avoid instantiation each frame
-	private Pool<Rectangle> rectPool = new Pool<Rectangle>() {
+	private final Pool<Rectangle> rectPool = new Pool<Rectangle>() {
 		@Override
 		protected Rectangle newObject() {
 			return new Rectangle();
@@ -65,22 +68,25 @@ public class MikeController {
 		keys.put(Keys.ATTACK, false);
 	}
 
-	private World world;
-	private Level level;
-	private Mike mike;
+	private final World world;
+	private final Level level;
+	private final Mike mike;
+	private final TiledMap map;
 	// Blocks that can be collided with in any frame
-	private Array<Block> collidable = new Array<Block>();
+	private final Array<Block> collidable = new Array<Block>();
 
 	public MikeController(World world) {
 		this.world = world;
 		this.level = world.getLevel();
 		this.mike = world.getMike();
+		map = level.getMap();
 	}
 
 	public void update(float delta) {
 		if (!mike.getState().equals(State.DYING) && !mike.getState().equals(State.ATTACKING)
-				&& !mike.getState().equals(State.JUMP_ATTACK))
-			processInput(delta);	// Allow for movement unless dead
+				&& !mike.getState().equals(State.JUMP_ATTACK)) {
+			processInput(delta); // Allow for movement unless dead
+		}
 
 		// Multiply by the delta to convert acceleration to frame units
 		mike.getAcceleration().mul(delta);
@@ -93,8 +99,9 @@ public class MikeController {
 			if (mike.isJumping()) {
 				float airHeight = mike.getPosition().y - mike.getShadowVelocity().y;
 				mike.jumpAttack(airHeight);
-			} else
+			} else {
 				mike.attack();
+			}
 		}
 
 		// Check if Mike is currently jumping. If he is, check the time he has been in
@@ -108,24 +115,27 @@ public class MikeController {
 			float velocityY = (float) Math.sin(radian);
 			lift = mike.getShadowVelocity().y + velocityY;
 			// If the y velocity is less than 0, then the jump is over.
-			if (velocityY < 0)
+			if (velocityY < 0) {
 				velocityY = 0;
+			}
 			mike.getPosition().y = lift;
 			// Increase the angle of the jump. The jump peaks at 90 degrees, and lands on the ground at 180.
 			jumpDegree += 5;
-			if (jumpDegree < 90)
+			if (jumpDegree < 90) {
 				shadowPercentage -= 2.5;
-			else
+			} else {
 				shadowPercentage += 2.5;
+			}
 
 			mike.updateShadow(mike.getPosition().x, mike.getShadowVelocity().y, shadowPercentage);
 
 			if (jumpDegree > 180) {
 				mike.setGrounded(true);
-				if (mike.getState().equals(State.JUMP_ATTACK))
+				if (mike.getState().equals(State.JUMP_ATTACK)) {
 					mike.setState(State.ATTACKING);
-				else
+				} else {
 					mike.setState(State.IDLE);
+				}
 			}
 		}
 
@@ -142,7 +152,7 @@ public class MikeController {
 
 		rotation += 5;
 
-		checkCollisions(delta);
+		checkCollisionsTiled(delta);
 
 		// Dampen Mike's movement so it appears smoother
 		if (!mike.isJumping()) {
@@ -175,9 +185,9 @@ public class MikeController {
 				if (!mike.isJumping()) {
 					mike.setState(State.JUMPING);
 					mike.setGrounded(false);
-					jumpPressed = true;						// The button for jumping is pressed
-					jumpDegree = 0;							// Reset the degree for the jump angle
-					mike.getShadowVelocity().y = mike.getPosition().y;		// The starting y-coordinate of the jump
+					jumpPressed = true; // The button for jumping is pressed
+					jumpDegree = 0; // Reset the degree for the jump angle
+					mike.getShadowVelocity().y = mike.getPosition().y; // The starting y-coordinate of the jump
 					shadowPercentage = 100.0f;
 				}
 			}
@@ -325,8 +335,8 @@ public class MikeController {
 		if (mike.getVelocity().x < 0) {
 			startX = endX = (int) Math.floor(mike.getFeetBounds().x + mike.getVelocity().x);
 		} else {
-			startX = endX = (int) Math
-					.floor(mike.getFeetBounds().x + mike.getFeetBounds().width + mike.getVelocity().x);
+			startX = endX = (int) Math.floor(mike.getFeetBounds().x + mike.getFeetBounds().width
+					+ mike.getVelocity().x);
 		}
 
 		// populateCollidableBlocks(startX, startY, endX, endY);
@@ -336,8 +346,9 @@ public class MikeController {
 
 		// If Mike collides, set his horizontal velocity to 0
 		for (Block block : collidable) {
-			if (block == null)
+			if (block == null) {
 				continue;
+			}
 			if (!mike.isJumping() && !mike.getState().equals(State.DYING)) {
 				if (mikeRect.overlaps(block.getBounds())) {
 					// Stop all movement and set Mike's state to dying. Then reset the degree used to change the float
@@ -367,8 +378,9 @@ public class MikeController {
 		// populateCollidableBlocks(startX, startY, endX, endY);
 
 		for (Block block : collidable) {
-			if (block == null)
+			if (block == null) {
 				continue;
+			}
 			if (!mike.isJumping() && !mike.getState().equals(State.DYING)) {
 				if (mikeRect.overlaps(block.getBounds())) {
 					// Stop all movement and set Mike's state to dying. Then reset the degree used to change the float
@@ -422,8 +434,9 @@ public class MikeController {
 			riseX = deadStartX + velocityX;
 			riseY = deadStartY + velocityY;
 
-			if (velocityX < 0)
+			if (velocityX < 0) {
 				velocityX = 0;
+			}
 
 			mike.getPosition().x = riseX;
 			mike.getAcceleration().y = DEATH_ACCELERATION;
@@ -504,9 +517,151 @@ public class MikeController {
 		collidable.clear();
 		for (int x = startX; x <= endX; x++) {
 			for (int y = startY; y <= endY; y++) {
-				if (x >= 0 && x < world.getRoom().getWidth() && y >= 0 && y < world.getRoom().getHeight()) {
+				if (x >= 0 && x < world.getRoom().getWidth() && y >= 0
+						&& y < world.getRoom().getHeight()) {
 					collidable.add(world.getRoom().getWaterBlockAt(x, y));
 				}
+			}
+		}
+	}
+
+	private final Array<Rectangle> tiles = new Array<Rectangle>();
+
+	private void checkCollisionsTiled(float delta) {
+		// Multiply by the delta to convert velocity to frame units
+		mike.getVelocity().mul(delta);
+
+		Array<TiledMapTileLayer> collision = new Array<TiledMapTileLayer>();
+
+		// Get the width and height of the level
+		int width = world.getLevel().getWidth();
+		int height = world.getLevel().getHeight();
+
+		// Obtain Mike's rectangle from the pool of rectangles instead of instantiating every frame. Then set the
+		// bounds of the rectangle.
+		Rectangle mikeRect = rectPool.obtain();
+		float left = mike.getFeetBounds().x;
+		float bottom = mike.getFeetBounds().y;
+		float right = mike.getFeetBounds().width;
+		float top = mike.getFeetBounds().height;
+
+		Rectangle mikeShadow = new Rectangle();
+		float l = mike.getShadowBounds().x;
+		float b = mike.getShadowBounds().y;
+		float r = mike.getShadowBounds().width;
+		float t = mike.getShadowBounds().height;
+
+		mikeRect.set(left, bottom, right, top);
+		mikeShadow.set(l, b, r, t);
+
+		// Set Mike's collision rect to include his X and Y velocity
+		mikeRect.x += mike.getVelocity().x;
+		mikeRect.y += mike.getVelocity().y;
+		mikeShadow.x += mike.getVelocity().x;
+		mikeShadow.y += mike.getVelocity().y;
+
+		int startX, endX;
+		int startY = (int) mike.getFeetBounds().y;
+		int endY = (int) (mike.getFeetBounds().y + mike.getFeetBounds().height);
+		if (mike.getVelocity().x < 0) { // If going left...
+			startX = endX = (int) Math.floor(mike.getFeetBounds().x + mike.getVelocity().x);
+		} else { // If going right...
+			startX = endX = (int) Math.floor(mike.getFeetBounds().x + mike.getFeetBounds().width
+					+ mike.getVelocity().x);
+		}
+
+		getWaterTiles(startX, startY, endX, endY, tiles);
+		for (Rectangle tile : tiles) {
+			if (mikeRect.overlaps(tile)) {
+				// Stop all movement and set Mike's state to dying. Then reset the degree used to change the float
+				// angle and get the starting x and y coordinates for the death.
+				mike.getVelocity().x = 0;
+				mike.getVelocity().y = 0;
+				mike.setState(State.DYING);
+				deadDegree = 0;
+				deadStartY = mike.getPosition().y;
+				deadStartX = mike.getPosition().x;
+				break;
+			}
+		}
+
+		startX = (int) mike.getFeetBounds().x;
+		endX = (int) (mike.getFeetBounds().x + mike.getFeetBounds().width);
+		if (mike.getVelocity().y < 0) { // If going down...
+			startY = endY = (int) Math.floor(mike.getFeetBounds().y + mike.getVelocity().y);
+		} else { // If going up...
+			startY = endY = (int) Math.floor(mike.getFeetBounds().y + mike.getFeetBounds().height
+					+ mike.getVelocity().y);
+		}
+
+		getWaterTiles(startX, startY, endX, endY, tiles);
+		for (Rectangle tile : tiles) {
+			if (mikeRect.overlaps(tile)) {
+				// Stop all movement and set Mike's state to dying. Then reset the degree used to change the float
+				// angle and get the starting x and y coordinates for the death.
+				mike.getVelocity().x = 0;
+				mike.getVelocity().y = 0;
+				mike.setState(State.DYING);
+				deadDegree = 0;
+				deadStartY = mike.getPosition().y;
+				deadStartX = mike.getPosition().x;
+				break;
+			}
+		}
+
+		if (mike.getState().equals(State.DYING)) {
+
+			double radian = deadDegree * (Math.PI / 180);
+			float velocityX = (float) Math.sin(radian);
+			float velocityY = velocityX;
+			riseX = deadStartX + velocityX;
+			riseY = deadStartY + velocityY;
+
+			if (velocityX < 0) {
+				velocityX = 0;
+			}
+
+			mike.getPosition().x = riseX;
+			mike.getAcceleration().y = DEATH_ACCELERATION;
+
+			deadDegree += 3;
+			if (deadDegree >= 360) {
+				mike.getPosition().x = world.getLevel().getStartingPosition().x;
+				mike.getPosition().y = world.getLevel().getStartingPosition().y;
+				mike.setState(State.IDLE);
+			}
+		}
+
+		// Reset Mike's collision rect with his position
+		mikeRect.x = mike.getPosition().x;
+		mikeRect.y = mike.getPosition().y;
+		mikeShadow.x = mike.getPosition().x;
+		mikeShadow.y = mike.getShadowVelocity().y;
+
+		// rectPool.free(mikeRect);
+
+		// Update the position
+		mike.getPosition().add(mike.getVelocity());
+		mike.getFeetBounds().x = mike.getPosition().x + (Mike.SIZE / 7);
+		mike.getFeetBounds().y = mike.getPosition().y;
+		// Un-scale the velocity so that it is no longer in frame time
+		mike.getVelocity().mul(1 / delta);
+	}
+
+	private void getWaterTiles(int startX, int endX, int startY, int endY, Array<Rectangle> tiles) {
+		TiledMapTileLayer layer = (TiledMapTileLayer) map.getLayers().get(0);
+		rectPool.freeAll(tiles);
+		tiles.clear();
+		for (int y = startY; y < endY; y++) {
+			for (int x = startX; y < endX; x++) {
+				Cell cell = layer.getCell(x, y);
+				// if (cell != null) {
+				if (cell.getTile().getProperties().containsKey("swim")) {
+					Rectangle rect = rectPool.obtain();
+					rect.set(x, y, 1, 1);
+					tiles.add(rect);
+				}
+				// }
 			}
 		}
 	}
@@ -517,9 +672,9 @@ public class MikeController {
 		float width = renderer.width;
 		float height = renderer.height;
 
-		float radius = (width / 5) / 2;				// The radius of the touch pad
-		float cx = (width / 12) + radius;			// Get the center X of the touch pad
-		float cy = height - (height / 10) - radius;	// Get the center Y of the touch pad
+		float radius = (width / 5) / 2; // The radius of the touch pad
+		float cx = (width / 12) + radius; // Get the center X of the touch pad
+		float cy = height - (height / 10) - radius; // Get the center Y of the touch pad
 		// Get the maximum and minimum x and y coordinates allowed for the touch pad
 		float maxX = cx + radius;
 		float minX = Math.abs(cx - radius);
@@ -666,9 +821,9 @@ public class MikeController {
 		float width = renderer.width;
 		float height = renderer.height;
 
-		float radius = (width / 5) / 2;				// The radius of the touch pad
-		float cx = (width / 12) + radius;			// Get the center X of the touch pad
-		float cy = height - (height / 10) - radius;	// Get the center Y of the touch pad
+		float radius = (width / 5) / 2; // The radius of the touch pad
+		float cx = (width / 12) + radius; // Get the center X of the touch pad
+		float cy = height - (height / 10) - radius; // Get the center Y of the touch pad
 		// Get the maximum and minimum x and y coordinates allowed for the touch pad
 		float maxX = cx + radius;
 		float minX = Math.abs(cx - radius);

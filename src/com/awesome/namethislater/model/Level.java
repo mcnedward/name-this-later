@@ -1,5 +1,7 @@
 package com.awesome.namethislater.model;
 
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.math.Vector2;
 
 public class Level {
@@ -10,6 +12,8 @@ public class Level {
 
 	private Enemy enemy;
 
+	private TiledMap map;
+
 	private Vector2 startingPosition;
 
 	public Level() {
@@ -17,6 +21,7 @@ public class Level {
 	}
 
 	private void loadDemoLevel() {
+		loadMap();
 		startingPosition = new Vector2(3, 3);
 		width = 10;
 		height = 7;
@@ -50,6 +55,11 @@ public class Level {
 		enemy = new Enemy(new Vector2(4, 4));
 	}
 
+	private void loadMap() {
+		TmxMapLoader loader = new TmxMapLoader();
+		map = loader.load("data/world/level/level.tmx");
+	}
+
 	/**
 	 * @return the enemy
 	 */
@@ -71,6 +81,14 @@ public class Level {
 
 	public Block getGrassBlocks(int x, int y) {
 		return grassBlocks[x][y];
+	}
+
+	public TiledMap getMap() {
+		return map;
+	}
+
+	public void setMap(TiledMap map) {
+		this.map = map;
 	}
 
 	/**
