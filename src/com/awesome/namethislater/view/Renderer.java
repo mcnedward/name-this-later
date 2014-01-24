@@ -15,24 +15,16 @@ import com.awesome.namethislater.model.Mike.State;
 import com.awesome.namethislater.model.Room;
 import com.awesome.namethislater.model.World;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.assets.loaders.TextureLoader.TextureParameter;
-import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.maps.tiled.TideMapLoader;
 import com.badlogic.gdx.maps.tiled.TiledMap;
-import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
-import com.badlogic.gdx.maps.tiled.TiledMapTile;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
@@ -91,6 +83,9 @@ public class Renderer {
 	private Mike mike;
 	private Enemy enemy;
 
+	private TiledMap map;
+	private OrthogonalTiledMapRenderer renderer;
+
 	public Renderer(World world, boolean debug) {
 		this.world = world;
 		this.level = world.getLevel();
@@ -98,11 +93,11 @@ public class Renderer {
 		mike = world.getMike();
 		enemy = level.getEnemy();
 
-		camera = new OrthographicCamera();
-		//camera.position.set(mike.getPosition().x + Mike.SIZE / 2, mike.getPosition().y + Mike.SIZE / 2, 0);
-		//camera.setToOrtho(false, CAMERA_WIDTH, CAMERA_HEIGHT);
+		camera = new OrthographicCamera(CAMERA_WIDTH, CAMERA_HEIGHT);
+		camera.position.set(CAMERA_WIDTH, CAMERA_HEIGHT, 0);
+		camera.setToOrtho(false, CAMERA_WIDTH, CAMERA_HEIGHT);
 		camera.update();
-		
+
 		this.debug = debug;
 		spriteBatch = new SpriteBatch();
 		stateTime = 0f;
@@ -223,29 +218,54 @@ public class Renderer {
 		touchPad = new Texture(Gdx.files.internal("images/touchpad.png"));
 		grass = new Texture(Gdx.files.internal("images/grass.png"));
 		water = new Texture(Gdx.files.internal("images/water.png"));
-		
+
 		loadMap();
 	}
 
+	private void loadMap() {
+		TmxMapLoader loader = new TmxMapLoader();
+		map = loader.load("data/world/level/level.tmx");
+
+		renderer = new OrthogonalTiledMapRenderer(map, 1f / 32f);
+	}
+
 	public void render(float delta) {
-		move();
+		moveCamera(mike.getVelocity().x, mike.getVelocity().y);
+		renderer.setView(camera);
 		renderer.render();
-		
+
+		spriteBatch.setProjectionMatrix(camera.combined);
 		spriteBatch.begin();
 
-		//drawBlocks();
+		// drawBlocks();
 		drawEnemy();
 		drawMike(delta);
 		drawChakrams();
 		drawSprites();
 		// drawButtons();
-		
 		spriteBatch.end();
-		
+
 		drawCollisionBlocks();
 		// drawTouchPad();
 		if (debug)
 			drawDebug();
+	}
+
+	public void moveCamera(float x, float y) {
+		float mikeX = mike.getPosition().x;
+		float mikeY = mike.getPosition().y;
+		// camera.position.x = mike.getPosition().x;
+		float left = CAMERA_WIDTH / 2;
+		float right = (Gdx.graphics.getWidth() / CAMERA_WIDTH) - (CAMERA_WIDTH / 2);
+		float bottom = CAMERA_HEIGHT / 2;
+		float top = (Gdx.graphics.getHeight() / CAMERA_HEIGHT) - (CAMERA_HEIGHT / 2);
+		if (mikeX > left && mikeX < right && mikeY > bottom && mikeY < top) {
+			camera.position.set(mikeX, mikeY, 0);
+		} else {
+
+		}
+
+		camera.update();
 	}
 
 	public Texture getTouchPad() {
@@ -392,11 +412,11 @@ public class Renderer {
 	}
 
 	private void drawBlocks() {
-		for (Block block : world.getOtherBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
+		for (Block block : world.getWaterBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
 			spriteBatch.draw(grass, block.getPosition().x * ppuX, block.getPosition().y * ppuY, Block.SIZE * ppuX,
 					Block.SIZE * ppuY);
 		}
-		for (Block block : world.getDrawableBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
+		for (Block block : world.getGrassBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
 			spriteBatch.draw(water, block.getPosition().x * ppuX, block.getPosition().y * ppuY, Block.SIZE * ppuX,
 					Block.SIZE * ppuY);
 		}
@@ -460,18 +480,7 @@ public class Renderer {
 		debugRenderer.rect(r.x, r.y, r.width, r.height);
 		debugRenderer.end();
 	}
-	
-	private TiledMap map;
-	private OrthogonalTiledMapRenderer renderer;
-	
-	private void loadMap() {
-		TmxMapLoader loader = new TmxMapLoader();
-		map = loader.load("data/world/level/level.tmx");
-		
-		renderer = new OrthogonalTiledMapRenderer(map, 1f / 32f);
-		renderer.setView(camera);
-	}
-	
+
 	public void dispose() {
 		map.dispose();
 		renderer.dispose();
@@ -482,47 +491,31 @@ public class Renderer {
 		this.height = height;
 		ppuX = (float) width / CAMERA_WIDTH;
 		ppuY = (float) height / CAMERA_HEIGHT;
-		// Update the camera
-		//camera.viewportWidth = width;
-		//camera.viewportHeight = height;
-		camera.update();
 	}
-	
+
 	public void move() {
-		camera.position.set((mike.getPosition().x + Mike.SIZE / 2) * ppuX, (mike.getPosition().y + Mike.SIZE / 2) * ppuY, 0);
-		camera.viewportWidth = Gdx.graphics.getWidth() / mike.getVelocity().x;
-		camera.viewportHeight = Gdx.graphics.getHeight() / mike.getVelocity().y;
-		camera.update();
-	}
-	
-	public void moveCamera(float x, float y) {
-			camera.position.x += x * ppuX;
-
-			/**
-			 * Camera y is opposite of Gdx.input y, so the subtraction is
-			 * swapped.
-			 */
-			camera.position.y += y * ppuY;
-
+		float x = (mike.getPosition().x + Mike.SIZE / 2) * ppuX;
+		float y = (mike.getPosition().y + Mike.SIZE / 2) * ppuY;
+		camera.position.set(x, y, 0);
+		float w = width + mike.getAcceleration().x;
+		float h = height + mike.getAcceleration().y;
+		camera.viewportWidth = w;
+		camera.viewportHeight = h;
 		/**
 		 * Ensure that the camera is only showing the map, nothing outside.
 		 */
 		if (camera.position.x < width / 2) {
 			camera.position.x = width / 2;
 		}
-		if (camera.position.x >= CAMERA_WIDTH
-				- width / 2) {
-			camera.position.x = CAMERA_WIDTH
-					- width / 2;
+		if (camera.position.x >= CAMERA_WIDTH - width / 2) {
+			camera.position.x = CAMERA_WIDTH - width / 2;
 		}
 
 		if (camera.position.y < height / 2) {
 			camera.position.y = height / 2;
 		}
-		if (camera.position.y >= CAMERA_HEIGHT
-				- height / 2) {
-			camera.position.y = CAMERA_HEIGHT
-					- height / 2;
+		if (camera.position.y >= CAMERA_HEIGHT - height / 2) {
+			camera.position.y = CAMERA_HEIGHT - height / 2;
 		}
 
 		camera.update();
