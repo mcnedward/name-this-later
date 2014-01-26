@@ -2,11 +2,13 @@ package com.awesome.namethislater.controller;
 
 import java.util.Random;
 
-import com.awesome.namethislater.model.Block;
-import com.awesome.namethislater.model.Enemy;
 import com.awesome.namethislater.model.Drawable.Direction;
+import com.awesome.namethislater.model.Enemy;
 import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.World;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
@@ -20,8 +22,9 @@ public class WorldController {
 	private World world;
 	private Level level;
 	private Enemy enemy;
+	private final TiledMap map;
 	// Blocks that can be collided with in any frame
-	private Array<Block> collidable = new Array<Block>();
+	private Array<Rectangle> tiles = new Array<Rectangle>();
 	// This is the rectangle pool used in collision detection
 	// Good to avoid instantiation each frame
 	private Pool<Rectangle> rectPool = new Pool<Rectangle>() {
@@ -39,6 +42,7 @@ public class WorldController {
 		this.world = world;
 		level = world.getLevel();
 		enemy = level.getEnemy();
+		map = level.getMap();
 	}
 
 	public void update(float delta) {
@@ -128,22 +132,22 @@ public class WorldController {
 					+ enemy.getVelocity().x);
 		}
 
-		populateCollidableBlocks(startX, startY, endX, endY);
+		getWaterTiles(startX, startY, endX, endY);
 
 		// Clear the collision rectangles in the world
 		world.getCollisionRects().clear();
 
 		// If enemy collides, set his horizontal velocity to 0
-		for (Block block : collidable) {
-			if (block == null)
+		for (Rectangle tile : tiles) {
+			if (tile == null)
 				continue;
-			if (enemyRect.overlaps(block.getBounds())) {
+			if (enemyRect.overlaps(tile)) {
 				// Stop all movement and set enemy's state to dying. Then reset the degree used to change the float
 				// angle and get the starting x and y coordinates for the death.
 				enemy.getVelocity().x = 0;
 				enemy.getVelocity().y = 0;
 				enemyTime = 0;
-				world.getCollisionRects().add(block.getBounds());
+				world.getCollisionRects().add(tile);
 				break;
 			}
 		}
@@ -158,18 +162,18 @@ public class WorldController {
 					+ enemy.getVelocity().y);
 		}
 
-		populateCollidableBlocks(startX, startY, endX, endY);
+		getWaterTiles(startX, startY, endX, endY);
 
-		for (Block block : collidable) {
-			if (block == null)
+		for (Rectangle tile : tiles) {
+			if (tile == null)
 				continue;
-			if (enemyRect.overlaps(block.getBounds())) {
+			if (enemyRect.overlaps(tile)) {
 				// Stop all movement and set enemy's state to dying. Then reset the degree used to change the float
 				// angle and get the starting x and y coordinates for the death.
 				enemy.getVelocity().x = 0;
 				enemy.getVelocity().y = 0;
 				enemyTime = 0;
-				world.getCollisionRects().add(block.getBounds());
+				world.getCollisionRects().add(tile);
 				break;
 			}
 		}
@@ -201,26 +205,27 @@ public class WorldController {
 		enemy.getVelocity().mul(1 / delta);
 	}
 
-	/**
-	 * Populate the collidable array with the blocks found in the enclosing coordinates
-	 * 
-	 * @param startX
-	 *            The starting X coordinate.
-	 * @param startY
-	 *            The starting Y coordinate.
-	 * @param endX
-	 *            The ending X coordinate.
-	 * @param endY
-	 *            The ending Y coordinate.
-	 */
-	private void populateCollidableBlocks(int startX, int startY, int endX, int endY) {
-		collidable.clear();
-		for (int x = startX; x <= endX; x++) {
-			for (int y = startY; y <= endY; y++) {
-				if (x >= 0 && x < world.getLevel().getWidth() && y >= 0 && y < world.getLevel().getHeight()) {
-					collidable.add(world.getLevel().getBlockAt(x, y));
+	private void getWaterTiles(int startX, int endX, int startY, int endY) {
+		try {
+			TiledMapTileLayer layer = (TiledMapTileLayer) map.getLayers().get(0);
+			rectPool.freeAll(tiles);
+			float tileWidth = layer.getTileWidth(), tileHeight = layer.getTileHeight();
+			tiles.clear();
+			for (int x = startX; x <= endX; x++) {
+				for (int y = startY; y <= endY; y++) {
+					Cell cell = layer.getCell((int) (x), (int) (y));
+					if (cell != null) {
+						if (cell.getTile().getProperties().containsKey("water")) {
+							Rectangle rect = new Rectangle();
+							rect.set(x, y, 1, 1);
+							tiles.add(rect);
+						}
+					}
 				}
 			}
+		} catch (Exception e) {
+			System.out.println("ERROR!!! " + e.getLocalizedMessage());
+			e.printStackTrace();
 		}
 	}
 

@@ -227,7 +227,7 @@ public class Renderer {
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 		setCamera();
 		renderer.setView(camera);
-		renderer.render();
+		renderer.render(new int[] { 0 });
 
 		spriteBatch.setProjectionMatrix(camera.combined);
 		spriteBatch.begin();
@@ -239,6 +239,7 @@ public class Renderer {
 		drawSprites();
 		// drawButtons();
 		spriteBatch.end();
+		renderer.render(new int[] { 1 });
 
 		drawCollisionBlocks();
 		// drawTouchPad();

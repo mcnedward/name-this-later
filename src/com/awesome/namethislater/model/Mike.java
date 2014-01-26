@@ -48,6 +48,7 @@ public class Mike extends Drawable implements IDrawable {
 	 */
 	public void update(float delta) {
 		stateTime += delta;
+		baseY = position.y;
 	}
 
 	@Override
