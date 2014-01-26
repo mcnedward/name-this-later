@@ -28,7 +28,7 @@ public class MikeController {
 		DOWN, LEFT, UP, RIGHT, JUMP, ATTACK
 	}
 
-	private static final float ACCELERATION = 400f; // The speed of walking
+	private static final float ACCELERATION = 20f; // The speed of walking
 	private static final float JUMP_ACCELERATION = ACCELERATION / 1.5f; // The acceleration of a jump
 	private static final float DEATH_ACCELERATION = ACCELERATION / 4; // The acceleration of the death rise
 	private static final float SHADOW_ACCELERATION = 0.07f; // The acceleration of the base of the jump
@@ -49,6 +49,7 @@ public class MikeController {
 	private boolean jumpPressed = false; // Used to prevent auto-jump by holding down jump button
 	private boolean attackPressed = false;
 
+	private final Array<Rectangle> tiles = new Array<Rectangle>();
 	// This is the rectangle pool used in collision detection
 	// Good to avoid instantiation each frame
 	private final Pool<Rectangle> rectPool = new Pool<Rectangle>() {
@@ -335,8 +336,8 @@ public class MikeController {
 		if (mike.getVelocity().x < 0) {
 			startX = endX = (int) Math.floor(mike.getFeetBounds().x + mike.getVelocity().x);
 		} else {
-			startX = endX = (int) Math.floor(mike.getFeetBounds().x + mike.getFeetBounds().width
-					+ mike.getVelocity().x);
+			startX = endX = (int) Math
+					.floor(mike.getFeetBounds().x + mike.getFeetBounds().width + mike.getVelocity().x);
 		}
 
 		// populateCollidableBlocks(startX, startY, endX, endY);
@@ -419,11 +420,11 @@ public class MikeController {
 
 		// Check for collisions with the left and right sides of the level
 		if (mikeRect.x <= 0 || mikeRect.x > width - mikeRect.width - mike.getVelocity().x) {
-			// mike.getVelocity().x = 0;
+			mike.getVelocity().x = 0;
 		}
 		// Check for collisions with the bottom and top sides of the levels
 		if (mikeRect.y <= 0 || mikeRect.y > height - mikeRect.height - mike.getVelocity().y) {
-			// mike.getVelocity().y = 0;
+			mike.getVelocity().y = 0;
 		}
 
 		if (mike.getState().equals(State.DYING)) {
@@ -517,21 +518,16 @@ public class MikeController {
 		collidable.clear();
 		for (int x = startX; x <= endX; x++) {
 			for (int y = startY; y <= endY; y++) {
-				if (x >= 0 && x < world.getRoom().getWidth() && y >= 0
-						&& y < world.getRoom().getHeight()) {
+				if (x >= 0 && x < world.getRoom().getWidth() && y >= 0 && y < world.getRoom().getHeight()) {
 					collidable.add(world.getRoom().getWaterBlockAt(x, y));
 				}
 			}
 		}
 	}
 
-	private final Array<Rectangle> tiles = new Array<Rectangle>();
-
 	private void checkCollisionsTiled(float delta) {
 		// Multiply by the delta to convert velocity to frame units
 		mike.getVelocity().mul(delta);
-
-		Array<TiledMapTileLayer> collision = new Array<TiledMapTileLayer>();
 
 		// Get the width and height of the level
 		int width = world.getLevel().getWidth();
@@ -545,7 +541,7 @@ public class MikeController {
 		float right = mike.getFeetBounds().width;
 		float top = mike.getFeetBounds().height;
 
-		Rectangle mikeShadow = new Rectangle();
+		Rectangle mikeShadow = rectPool.obtain();
 		float l = mike.getShadowBounds().x;
 		float b = mike.getShadowBounds().y;
 		float r = mike.getShadowBounds().width;
@@ -560,52 +556,65 @@ public class MikeController {
 		mikeShadow.x += mike.getVelocity().x;
 		mikeShadow.y += mike.getVelocity().y;
 
+		// Check for collisions on the horizontal X axis
 		int startX, endX;
 		int startY = (int) mike.getFeetBounds().y;
 		int endY = (int) (mike.getFeetBounds().y + mike.getFeetBounds().height);
-		if (mike.getVelocity().x < 0) { // If going left...
+		// Check for collisions with blocks on the left and right
+		if (mike.getVelocity().x < 0) {
 			startX = endX = (int) Math.floor(mike.getFeetBounds().x + mike.getVelocity().x);
-		} else { // If going right...
-			startX = endX = (int) Math.floor(mike.getFeetBounds().x + mike.getFeetBounds().width
-					+ mike.getVelocity().x);
+		} else {
+			startX = endX = (int) Math
+					.floor(mike.getFeetBounds().x + mike.getFeetBounds().width + mike.getVelocity().x);
 		}
 
-		getWaterTiles(startX, startY, endX, endY, tiles);
+		getWaterTiles(startX, endX, startY, endY);
 		for (Rectangle tile : tiles) {
-			if (mikeRect.overlaps(tile)) {
-				// Stop all movement and set Mike's state to dying. Then reset the degree used to change the float
-				// angle and get the starting x and y coordinates for the death.
-				mike.getVelocity().x = 0;
-				mike.getVelocity().y = 0;
-				mike.setState(State.DYING);
-				deadDegree = 0;
-				deadStartY = mike.getPosition().y;
-				deadStartX = mike.getPosition().x;
-				break;
+			if (tile == null) {
+				continue;
+			}
+			if (!mike.isJumping() && !mike.getState().equals(State.DYING)) {
+				if (mikeRect.overlaps(tile)) {
+					// Stop all movement and set Mike's state to dying. Then reset the degree used to change the float
+					// angle and get the starting x and y coordinates for the death.
+					mike.getVelocity().x = 0;
+					mike.getVelocity().y = 0;
+					mike.setState(State.DAMAGE);
+					deadDegree = 0;
+					deadStartY = mike.getPosition().y;
+					deadStartX = mike.getPosition().x;
+					break;
+				}
 			}
 		}
 
+		// Check for collisions on the vertical Y axis
 		startX = (int) mike.getFeetBounds().x;
 		endX = (int) (mike.getFeetBounds().x + mike.getFeetBounds().width);
-		if (mike.getVelocity().y < 0) { // If going down...
+		if (mike.getVelocity().y < 0) {
 			startY = endY = (int) Math.floor(mike.getFeetBounds().y + mike.getVelocity().y);
-		} else { // If going up...
-			startY = endY = (int) Math.floor(mike.getFeetBounds().y + mike.getFeetBounds().height
+		} else {
+			startY = endY = (int) Math.floor(mike.getFeetBounds().y + (mike.getFeetBounds().height)
 					+ mike.getVelocity().y);
 		}
 
-		getWaterTiles(startX, startY, endX, endY, tiles);
+		getWaterTiles(startX, endX, startY, endY);
 		for (Rectangle tile : tiles) {
-			if (mikeRect.overlaps(tile)) {
-				// Stop all movement and set Mike's state to dying. Then reset the degree used to change the float
-				// angle and get the starting x and y coordinates for the death.
-				mike.getVelocity().x = 0;
-				mike.getVelocity().y = 0;
-				mike.setState(State.DYING);
-				deadDegree = 0;
-				deadStartY = mike.getPosition().y;
-				deadStartX = mike.getPosition().x;
-				break;
+			if (tile == null) {
+				continue;
+			}
+			if (!mike.isJumping() && !mike.getState().equals(State.DYING)) {
+				if (mikeRect.overlaps(tile)) {
+					// Stop all movement and set Mike's state to dying. Then reset the degree used to change the float
+					// angle and get the starting x and y coordinates for the death.
+					mike.getVelocity().x = 0;
+					mike.getVelocity().y = 0;
+					mike.setState(State.DAMAGE);
+					deadDegree = 0;
+					deadStartY = mike.getPosition().y;
+					deadStartX = mike.getPosition().x;
+					break;
+				}
 			}
 		}
 
@@ -638,31 +647,39 @@ public class MikeController {
 		mikeShadow.x = mike.getPosition().x;
 		mikeShadow.y = mike.getShadowVelocity().y;
 
-		// rectPool.free(mikeRect);
+		rectPool.free(mikeRect);
 
 		// Update the position
 		mike.getPosition().add(mike.getVelocity());
-		mike.getFeetBounds().x = mike.getPosition().x + (Mike.SIZE / 7);
-		mike.getFeetBounds().y = mike.getPosition().y;
+		mike.updateDamageBounds(mike.getPosition());
+		mike.updateFeetBounds(mike.getPosition());
+		// mike.getFeetBounds().x = mike.getPosition().x + (Mike.SIZE / 7);
+		// mike.getFeetBounds().y = mike.getPosition().y;
 		// Un-scale the velocity so that it is no longer in frame time
 		mike.getVelocity().mul(1 / delta);
 	}
 
-	private void getWaterTiles(int startX, int endX, int startY, int endY, Array<Rectangle> tiles) {
-		TiledMapTileLayer layer = (TiledMapTileLayer) map.getLayers().get(0);
-		rectPool.freeAll(tiles);
-		tiles.clear();
-		for (int y = startY; y < endY; y++) {
-			for (int x = startX; y < endX; x++) {
-				Cell cell = layer.getCell(x, y);
-				// if (cell != null) {
-				if (cell.getTile().getProperties().containsKey("swim")) {
-					Rectangle rect = rectPool.obtain();
-					rect.set(x, y, 1, 1);
-					tiles.add(rect);
+	private void getWaterTiles(int startX, int endX, int startY, int endY) {
+		try {
+			TiledMapTileLayer layer = (TiledMapTileLayer) map.getLayers().get(0);
+			rectPool.freeAll(tiles);
+			float tileWidth = layer.getTileWidth(), tileHeight = layer.getTileHeight();
+			tiles.clear();
+			for (int x = startX; x <= endX; x++) {
+				for (int y = startY; y <= endY; y++) {
+					Cell cell = layer.getCell((int) (x), (int) (y));
+					if (cell != null) {
+						if (cell.getTile().getProperties().containsKey("water")) {
+							Rectangle rect = new Rectangle();
+							rect.set(x, y, 1, 1);
+							tiles.add(rect);
+						}
+					}
 				}
-				// }
 			}
+		} catch (Exception e) {
+			System.out.println("ERROR!!! " + e.getLocalizedMessage());
+			e.printStackTrace();
 		}
 	}
 

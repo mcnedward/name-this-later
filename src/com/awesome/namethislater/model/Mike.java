@@ -13,7 +13,7 @@ public class Mike extends Drawable implements IDrawable {
 
 	/** The different states that Mike can be in **/
 	public enum State {
-		IDLE, RUNNING, JUMPING, FALLING, DYING, DAMAGE, ATTACKING, JUMP_ATTACK
+		IDLE, RUNNING, JUMPING, FALLING, DYING, DAMAGE, ATTACKING, JUMP_ATTACK, SWIMMING
 	}
 
 	Rectangle feetBounds = new Rectangle(); // The bounds of Mike's feet
@@ -25,7 +25,8 @@ public class Mike extends Drawable implements IDrawable {
 	List<Chakram> chakrams;
 
 	boolean isGrounded; // Whether Mike is on the ground or not
-	boolean attacking; // Whether Mike is attacking or not
+	boolean isSwimming;
+	boolean isAttacking; // Whether Mike is attacking or not
 	float shadowPercentage; // The amount to scale Mike's jumping shadow
 
 	public Mike(Vector2 position) {
@@ -34,6 +35,7 @@ public class Mike extends Drawable implements IDrawable {
 		chakrams = new ArrayList<Chakram>();
 
 		isGrounded = true;
+		updateDamageBounds(position);
 		updateFeetBounds(position);
 		shadowPercentage = 100.0f;
 	}
@@ -108,7 +110,8 @@ public class Mike extends Drawable implements IDrawable {
 	}
 
 	/**
-	 * Throw a chakram. This creates a new Chakram and adds it to Mike's list of thrown chakrams. The air height is used to determine shadow position of the chakram.
+	 * Throw a chakram. This creates a new Chakram and adds it to Mike's list of thrown chakrams. The air height is used
+	 * to determine shadow position of the chakram.
 	 * 
 	 * @param airHeight
 	 *            The height that Mike is in the air.
@@ -119,17 +122,32 @@ public class Mike extends Drawable implements IDrawable {
 	}
 
 	/**
-	 * This is used to update the Rectangle boundaries surrounding Mike's feet. Use this for collision detection with floor tiles (pits, water).
+	 * This is used to update the Rectangle boundaries surrounding the area where Mike will recieve damage. Use this for
+	 * collision detection with
+	 * damage and death tiles, and for enemy attacks.
+	 * 
+	 * @param position
+	 *            The current position of Mike.
+	 */
+	public void updateDamageBounds(Vector2 position) {
+		damageBounds.x = position.x + (SIZE / 8);
+		damageBounds.y = position.y;
+		damageBounds.width = SIZE * 0.7f;
+		damageBounds.height = SIZE / 3;
+	}
+
+	/**
+	 * This is used to update the Rectangle boundaries surrounding Mike's feet. Use this for collision detection with
+	 * floor tiles (pits, water).
 	 * 
 	 * @param position
 	 *            The current position of Mike.
 	 */
 	public void updateFeetBounds(Vector2 position) {
-		float width = (float) (SIZE * (2.0 / 3));
-		feetBounds.x = position.x + (SIZE / 7);
-		feetBounds.y = position.y;
-		feetBounds.width = width;
-		feetBounds.height = SIZE / 3;
+		feetBounds.x = position.x + (SIZE / 3);
+		feetBounds.y = position.y + (SIZE / 12);
+		feetBounds.width = SIZE * 0.3f;
+		feetBounds.height = SIZE * 0.2f;
 	}
 
 	/**
@@ -141,25 +159,26 @@ public class Mike extends Drawable implements IDrawable {
 	public void updateShadow(float x, float y, float percentage) {
 		shadowPercentage = (percentage / 100);
 		shadow.setFrame(x, y, SIZE, SIZE);
-		shadowBounds.x = x + (SIZE / 7);
+		shadowBounds.x = x + (SIZE / 3);
 		shadowBounds.y = y;
-		shadowBounds.width = feetBounds.width;
-		shadowBounds.height = SIZE / 2;
-		updateJumpingBounds(x, y);
+		shadowBounds.width = SIZE * 0.3f;
+		shadowBounds.height = SIZE * 0.2f;
+		updateJumpingBounds(y);
 	}
 
 	/**
-	 * This is used to update the Rectangle boundaries surrounding Mike's shadow when jumping. Use this for collision detection with enemies.
+	 * This is used to update the Rectangle boundaries surrounding Mike's shadow when jumping. Use this for collision
+	 * detection with enemies.
 	 * 
 	 * @param position
 	 *            The current position of Mike.
 	 */
-	public void updateJumpingBounds(float x, float y) {
+	public void updateJumpingBounds(float y) {
 		float air = feetBounds.y - y;
-		jumpingBounds.x = feetBounds.x;
+		jumpingBounds.x = damageBounds.x;
 		jumpingBounds.y = y;
-		jumpingBounds.width = feetBounds.width;
-		jumpingBounds.height = feetBounds.height + air;
+		jumpingBounds.width = damageBounds.width;
+		jumpingBounds.height = damageBounds.height + air;
 	}
 
 	/**
@@ -175,7 +194,7 @@ public class Mike extends Drawable implements IDrawable {
 	}
 
 	public boolean isAttackingState() {
-		if (state == State.ATTACKING || state == State.JUMP_ATTACK || attacking)
+		if (state == State.ATTACKING || state == State.JUMP_ATTACK || isAttacking)
 			return true;
 		else
 			return false;
@@ -197,10 +216,25 @@ public class Mike extends Drawable implements IDrawable {
 	}
 
 	/**
+	 * @return the isSwimming
+	 */
+	public boolean isSwimming() {
+		return isSwimming;
+	}
+
+	/**
+	 * @param isSwimming
+	 *            the isSwimming to set
+	 */
+	public void setSwimming(boolean isSwimming) {
+		this.isSwimming = isSwimming;
+	}
+
+	/**
 	 * @return the isAttacking
 	 */
 	public boolean isAttacking() {
-		return attacking;
+		return isAttacking;
 	}
 
 	/**
@@ -208,7 +242,7 @@ public class Mike extends Drawable implements IDrawable {
 	 *            the isAttacking to set
 	 */
 	public void setAttacking(boolean isAttacking) {
-		this.attacking = isAttacking;
+		this.isAttacking = isAttacking;
 	}
 
 	/**
@@ -226,6 +260,7 @@ public class Mike extends Drawable implements IDrawable {
 		this.chakrams = chakrams;
 	}
 
+	// TODO Add all states
 	/**
 	 * @return The current state that Mike is in at the moment.<br>
 	 *         The States are:<br>
