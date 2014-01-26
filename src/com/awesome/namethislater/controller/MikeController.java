@@ -28,7 +28,7 @@ public class MikeController {
 		DOWN, LEFT, UP, RIGHT, JUMP, ATTACK
 	}
 
-	private static final float ACCELERATION = 20f; // The speed of walking
+	private static final float ACCELERATION = 40f; // The speed of walking
 	private static final float JUMP_ACCELERATION = ACCELERATION / 1.5f; // The acceleration of a jump
 	private static final float DEATH_ACCELERATION = ACCELERATION / 4; // The acceleration of the death rise
 	private static final float SHADOW_ACCELERATION = 0.07f; // The acceleration of the base of the jump
@@ -530,8 +530,8 @@ public class MikeController {
 		mike.getVelocity().mul(delta);
 
 		// Get the width and height of the level
-		int width = world.getLevel().getWidth();
-		int height = world.getLevel().getHeight();
+		int width = level.getWidth();
+		int height = level.getHeight();
 
 		// Obtain Mike's rectangle from the pool of rectangles instead of instantiating every frame. Then set the
 		// bounds of the rectangle.
@@ -618,6 +618,26 @@ public class MikeController {
 			}
 		}
 
+		Enemy enemy = level.getEnemy();
+		if (!mike.getState().equals(State.DYING)) {
+			if (mike.isJumping()) {
+				if ((mikeShadow.y + mikeShadow.height) >= enemy.getDamageBounds().y
+						|| mikeShadow.y <= (enemy.getDamageBounds().y + enemy.getDamageBounds().height)) {
+					if (mikeShadow.overlaps(enemy.getDamageBounds())) {
+						mike.setState(State.DAMAGE);
+						jumpPressed = false;
+						mike.getVelocity().x = 0;
+					}
+				}
+			} else {
+				if (mikeRect.overlaps(enemy.getDamageBounds())) {
+					mike.setState(State.DAMAGE);
+					mike.getVelocity().x = 0;
+					mike.getVelocity().y = 0;
+				}
+			}
+		}
+
 		if (mike.getState().equals(State.DYING)) {
 
 			double radian = deadDegree * (Math.PI / 180);
@@ -639,6 +659,15 @@ public class MikeController {
 				mike.getPosition().y = world.getLevel().getStartingPosition().y;
 				mike.setState(State.IDLE);
 			}
+		}
+
+		// Check for collisions with the left and right sides of the level
+		if (mikeRect.x <= 0 || mikeRect.x > width - mikeRect.width - mike.getVelocity().x) {
+			mike.getVelocity().x = 0;
+		}
+		// Check for collisions with the bottom and top sides of the levels
+		if (mikeRect.y <= 0 || mikeRect.y > height - mikeRect.height - mike.getVelocity().y) {
+			mike.getVelocity().y = 0;
 		}
 
 		// Reset Mike's collision rect with his position

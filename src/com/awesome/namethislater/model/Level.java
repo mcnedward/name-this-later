@@ -1,8 +1,16 @@
 package com.awesome.namethislater.model;
 
+import java.util.Iterator;
+
 import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTile;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.tiles.AnimatedTiledMapTile;
+import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 
 public class Level {
 
@@ -17,7 +25,60 @@ public class Level {
 	private Vector2 startingPosition;
 
 	public Level() {
-		loadDemoLevel();
+		loadMap();
+	}
+
+	private void loadMap() {
+		TmxMapLoader loader = new TmxMapLoader();
+		map = loader.load("data/world/level/level3.tmx");
+
+		startingPosition = new Vector2(2, 2);
+		enemy = new Enemy(new Vector2(0, 4));
+
+		width = map.getProperties().get("width", Integer.class);
+		height = map.getProperties().get("height", Integer.class);
+
+		// Animated tile frames
+		Array<StaticTiledMapTile> grassFrameTiles = new Array<StaticTiledMapTile>(2);
+		Array<StaticTiledMapTile> waterFrameTiles = new Array<StaticTiledMapTile>(2);
+
+		// Get each frame for the animated tiles
+		Iterator<TiledMapTile> tiles = map.getTileSets().getTileSet("level").iterator();
+		while (tiles.hasNext()) {
+			TiledMapTile tile = tiles.next();
+			if (tile.getProperties().containsKey("animation")) {
+				if (tile.getProperties().get("animation", String.class).equals("grass")) {
+					grassFrameTiles.add((StaticTiledMapTile) tile);
+				}
+				if (tile.getProperties().get("animation", String.class).equals("water")) {
+					waterFrameTiles.add((StaticTiledMapTile) tile);
+				}
+			}
+		}
+
+		// AnimatedTiledMapTile animatedGrass = new AnimatedTiledMapTile(2f, grassFrameTiles);
+		AnimatedTiledMapTile animatedWater = new AnimatedTiledMapTile(1f, waterFrameTiles);
+
+		// for (TiledMapTile tile : grassFrameTiles)
+		// animatedGrass.getProperties().putAll(tile.getProperties());
+		for (TiledMapTile tile : waterFrameTiles)
+			animatedWater.getProperties().putAll(tile.getProperties());
+
+		TiledMapTileLayer layer = (TiledMapTileLayer) map.getLayers().get("background");
+
+		for (int x = 0; x < layer.getWidth(); x++) {
+			for (int y = 0; y < layer.getHeight(); y++) {
+				Cell cell = layer.getCell(x, y);
+				if (cell.getTile().getProperties().containsKey("animation")
+						&& cell.getTile().getProperties().get("animation", String.class).equals("grass")) {
+					// cell.setTile(animatedGrass);
+				}
+				if (cell.getTile().getProperties().containsKey("animation")
+						&& cell.getTile().getProperties().get("animation", String.class).equals("water")) {
+					cell.setTile(animatedWater);
+				}
+			}
+		}
 	}
 
 	private void loadDemoLevel() {
@@ -52,12 +113,7 @@ public class Level {
 		waterBlocks[7][3] = new Block(new Vector2(7, 3));
 		waterBlocks[8][3] = new Block(new Vector2(8, 3));
 
-		enemy = new Enemy(new Vector2(4, 4));
-	}
-
-	private void loadMap() {
-		TmxMapLoader loader = new TmxMapLoader();
-		map = loader.load("data/world/level/level3.tmx");
+		enemy = new Enemy(new Vector2(0, 4));
 	}
 
 	/**

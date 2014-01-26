@@ -11,8 +11,6 @@ public class Enemy extends Drawable {
 
 	public static final float SIZE = 1f; // The size of the enemy
 
-	Rectangle damageBounds = new Rectangle(); // The bounds of the enemy's feet
-
 	float currentFrame;
 
 	final int distanceFromEnemy = 100;
@@ -47,7 +45,8 @@ public class Enemy extends Drawable {
 	}
 
 	/**
-	 * This is used to update the Rectangle boundaries surrounding for the damage area. Use this for collision detection.
+	 * This is used to update the Rectangle boundaries surrounding for the damage area. Use this for collision
+	 * detection.
 	 * 
 	 * @param position
 	 *            The current position of the enemy.
