@@ -22,7 +22,7 @@ public class Level {
 
 	private void loadDemoLevel() {
 		loadMap();
-		startingPosition = new Vector2(3, 3);
+		startingPosition = new Vector2(2, 2);
 		width = 10;
 		height = 7;
 		grassBlocks = new Block[width][height];
@@ -57,7 +57,7 @@ public class Level {
 
 	private void loadMap() {
 		TmxMapLoader loader = new TmxMapLoader();
-		map = loader.load("data/world/level/level.tmx");
+		map = loader.load("data/world/level/level3.tmx");
 	}
 
 	/**

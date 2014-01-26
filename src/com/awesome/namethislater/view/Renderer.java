@@ -16,9 +16,11 @@ import com.awesome.namethislater.model.Room;
 import com.awesome.namethislater.model.World;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -83,6 +85,8 @@ public class Renderer {
 	private TiledMap map;
 	private final OrthogonalTiledMapRenderer renderer;
 
+	private BitmapFont font;
+
 	public Renderer(World world, boolean debug) {
 		this.world = world;
 		this.level = world.getLevel();
@@ -132,7 +136,7 @@ public class Renderer {
 		idleMap.put(Direction.DOWN, new TextureRegion(animationFrames[0][0]));
 		idleMap.put(Direction.LEFT, new TextureRegion(animationFrames[1][0]));
 		idleMap.put(Direction.UP, new TextureRegion(animationFrames[2][0]));
-		idleMap.put(Direction.RIGHT, new TextureRegion(animationFrames[3][2]));
+		idleMap.put(Direction.RIGHT, new TextureRegion(animationFrames[3][0]));
 		idleMap.put(Direction.DOWN_LEFT, new TextureRegion(animationFrames[4][0]));
 		idleMap.put(Direction.UP_LEFT, new TextureRegion(animationFrames[5][0]));
 		idleMap.put(Direction.UP_RIGHT, new TextureRegion(animationFrames[6][0]));
@@ -141,16 +145,11 @@ public class Renderer {
 		animationMap.put(Direction.DOWN, new Animation(RUNNING_FRAME_DURATION, animationFrames[0]));
 		animationMap.put(Direction.LEFT, new Animation(RUNNING_FRAME_DURATION, animationFrames[1]));
 		animationMap.put(Direction.UP, new Animation(RUNNING_FRAME_DURATION, animationFrames[2]));
-		animationMap
-				.put(Direction.RIGHT, new Animation(RUNNING_FRAME_DURATION, animationFrames[3]));
-		animationMap.put(Direction.DOWN_LEFT, new Animation(RUNNING_FRAME_DURATION,
-				animationFrames[4]));
-		animationMap.put(Direction.UP_LEFT, new Animation(RUNNING_FRAME_DURATION,
-				animationFrames[5]));
-		animationMap.put(Direction.UP_RIGHT, new Animation(RUNNING_FRAME_DURATION,
-				animationFrames[6]));
-		animationMap.put(Direction.DOWN_RIGHT, new Animation(RUNNING_FRAME_DURATION,
-				animationFrames[7]));
+		animationMap.put(Direction.RIGHT, new Animation(RUNNING_FRAME_DURATION, animationFrames[3]));
+		animationMap.put(Direction.DOWN_LEFT, new Animation(RUNNING_FRAME_DURATION, animationFrames[4]));
+		animationMap.put(Direction.UP_LEFT, new Animation(RUNNING_FRAME_DURATION, animationFrames[5]));
+		animationMap.put(Direction.UP_RIGHT, new Animation(RUNNING_FRAME_DURATION, animationFrames[6]));
+		animationMap.put(Direction.DOWN_RIGHT, new Animation(RUNNING_FRAME_DURATION, animationFrames[7]));
 		// Set the jump for each direction
 		jumpMap.put(Direction.DOWN, new TextureRegion(jumpFrames[0][0]));
 		jumpMap.put(Direction.LEFT, new TextureRegion(jumpFrames[1][0]));
@@ -196,29 +195,19 @@ public class Renderer {
 		attackMap.put(Direction.LEFT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[1]));
 		attackMap.put(Direction.UP, new Animation(ATTACKING_FRAME_DURATION, attackFrames[2]));
 		attackMap.put(Direction.RIGHT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[3]));
-		attackMap
-				.put(Direction.DOWN_LEFT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[4]));
+		attackMap.put(Direction.DOWN_LEFT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[4]));
 		attackMap.put(Direction.UP_LEFT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[5]));
 		attackMap.put(Direction.UP_RIGHT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[6]));
-		attackMap.put(Direction.DOWN_RIGHT,
-				new Animation(ATTACKING_FRAME_DURATION, attackFrames[7]));
+		attackMap.put(Direction.DOWN_RIGHT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[7]));
 		// Set the jump attacking animation for each direction
-		jumpAttackMap.put(Direction.DOWN, new Animation(ATTACKING_FRAME_DURATION,
-				jumpAttackFrames[0]));
-		jumpAttackMap.put(Direction.LEFT, new Animation(ATTACKING_FRAME_DURATION,
-				jumpAttackFrames[1]));
-		jumpAttackMap.put(Direction.UP,
-				new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[2]));
-		jumpAttackMap.put(Direction.RIGHT, new Animation(ATTACKING_FRAME_DURATION,
-				jumpAttackFrames[3]));
-		jumpAttackMap.put(Direction.DOWN_LEFT, new Animation(ATTACKING_FRAME_DURATION,
-				jumpAttackFrames[4]));
-		jumpAttackMap.put(Direction.UP_LEFT, new Animation(ATTACKING_FRAME_DURATION,
-				jumpAttackFrames[5]));
-		jumpAttackMap.put(Direction.UP_RIGHT, new Animation(ATTACKING_FRAME_DURATION,
-				jumpAttackFrames[6]));
-		jumpAttackMap.put(Direction.DOWN_RIGHT, new Animation(ATTACKING_FRAME_DURATION,
-				jumpAttackFrames[7]));
+		jumpAttackMap.put(Direction.DOWN, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[0]));
+		jumpAttackMap.put(Direction.LEFT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[1]));
+		jumpAttackMap.put(Direction.UP, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[2]));
+		jumpAttackMap.put(Direction.RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[3]));
+		jumpAttackMap.put(Direction.DOWN_LEFT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[4]));
+		jumpAttackMap.put(Direction.UP_LEFT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[5]));
+		jumpAttackMap.put(Direction.UP_RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[6]));
+		jumpAttackMap.put(Direction.DOWN_RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[7]));
 
 		dead = new Texture(Gdx.files.internal("images/dead.png"));
 		damage = new Texture(Gdx.files.internal("images/damage.png"));
@@ -235,6 +224,7 @@ public class Renderer {
 	}
 
 	public void render(float delta) {
+		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 		setCamera();
 		renderer.setView(camera);
 		renderer.render();
@@ -273,7 +263,8 @@ public class Renderer {
 		float minCameraY = camera.zoom * (CAMERA_HEIGHT / 2);
 		float maxCameraY = mapHeight - minCameraY;
 
-		// Set the position of the map based on the minimum value of the bounds, based of the current position of the player.
+		// Set the position of the map based on the minimum value of the bounds, based of the current position of the
+		// player.
 		camera.position.set(Math.min(maxCameraX, Math.max(mike.getPosition().x, minCameraX)),
 				Math.min(maxCameraY, Math.max(mike.getPosition().y, minCameraY)), 0);
 		camera.update();
@@ -417,8 +408,7 @@ public class Renderer {
 		debugRenderer.setProjectionMatrix(camera.combined);
 		debugRenderer.begin(ShapeType.Filled);
 		debugRenderer.setColor(new Color(1, 1, 1, 1));
-		debugRenderer.circle(mike.getShadowVelocity().x, mike.getShadowVelocity().y,
-				mike.getBounds().width / 2);
+		debugRenderer.circle(mike.getShadowVelocity().x, mike.getShadowVelocity().y, mike.getBounds().width / 2);
 		debugRenderer.end();
 	}
 
@@ -429,12 +419,12 @@ public class Renderer {
 
 	private void drawBlocks() {
 		for (Block block : world.getWaterBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
-			spriteBatch.draw(grass, block.getPosition().x * ppuX, block.getPosition().y * ppuY,
-					Block.SIZE * ppuX, Block.SIZE * ppuY);
+			spriteBatch.draw(grass, block.getPosition().x * ppuX, block.getPosition().y * ppuY, Block.SIZE * ppuX,
+					Block.SIZE * ppuY);
 		}
 		for (Block block : world.getGrassBlocks((int) CAMERA_WIDTH, (int) CAMERA_HEIGHT)) {
-			spriteBatch.draw(water, block.getPosition().x * ppuX, block.getPosition().y * ppuY,
-					Block.SIZE * ppuX, Block.SIZE * ppuY);
+			spriteBatch.draw(water, block.getPosition().x * ppuX, block.getPosition().y * ppuY, Block.SIZE * ppuX,
+					Block.SIZE * ppuY);
 		}
 	}
 
@@ -461,29 +451,21 @@ public class Renderer {
 		// Render blocks
 		debugRenderer.setProjectionMatrix(camera.combined);
 		debugRenderer.begin(ShapeType.Line);
-		// for (Block block : world.getDrawableBlocks((int) CAMERA_WIDTH, (int)
-		// CAMERA_HEIGHT)) {
-		// Rectangle rect = block.getBounds();
-		// debugRenderer.setColor(new Color(1, 0, 0, 1));
-		// debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
-		// }
-		// for (Block block : world.getOtherBlocks((int) CAMERA_WIDTH, (int)
-		// CAMERA_HEIGHT)) {
-		// Rectangle rect = block.getBounds();
-		// debugRenderer.setColor(new Color(1, 0, 0, 1));
-		// debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
-		// }
 		// Render Mike
+		Rectangle db = mike.getDamageBounds();
+		debugRenderer.setColor(new Color(1, 0, 0, 1));
+		debugRenderer.rect(db.x, db.y, db.width, db.height);
+
 		Rectangle rect = mike.getFeetBounds();
 		debugRenderer.setColor(new Color(0, 1, 0, 1));
 		debugRenderer.rect(rect.x, rect.y, rect.width, rect.height);
 
 		Rectangle jb = mike.getJumpingBounds();
-		debugRenderer.setColor(new Color(1, 1, 1, 1));
+		debugRenderer.setColor(new Color(0, 0, 1, 1));
 		debugRenderer.rect(jb.x, jb.y, jb.width, jb.height);
 
 		Rectangle sb = mike.getShadowBounds();
-		debugRenderer.setColor(new Color(1, 1, 0, 1));
+		debugRenderer.setColor(new Color(0, 0, 0, 1));
 		debugRenderer.rect(sb.x, sb.y, sb.width, sb.height);
 
 		// Render chakram

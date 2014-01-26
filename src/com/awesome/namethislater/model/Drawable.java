@@ -24,13 +24,15 @@ public class Drawable {
 	Sprite sprite = new Sprite();
 	Sprite shadowSprite = new Sprite();
 
-	Rectangle bounds = new Rectangle();		// The bounds of this drawable
-    Rectangle shadowBounds = new Rectangle();
+	Rectangle bounds = new Rectangle();			// The bounds of this drawable
+	Rectangle damageBounds = new Rectangle();	// The bounds were damage will occur
+	Rectangle shadowBounds = new Rectangle();
 
 	Direction direction = Direction.DOWN;	// The direction
 
-	// This is the base of the drawable. Used for drawables that have multiple sprites to draw (ex: Mike when jumping has the Mike sprite and the shadow sprite. The baseY will be the lower y-coordinate of the shadow).
-	float baseY;		
+	// This is the base of the drawable. Used for drawables that have multiple sprites to draw (ex: Mike when jumping
+	// has the Mike sprite and the shadow sprite. The baseY will be the lower y-coordinate of the shadow).
+	float baseY;
 	float size;
 	float stateTime;
 
@@ -142,51 +144,51 @@ public class Drawable {
 		sprite.setRegion(texture);
 	}
 
-	/** 
-     * @return the shadowSprite 
-     */
-    public Sprite getShadowSprite() { 
-        return shadowSprite; 
-    }
-  
-    /** 
-     * @param shadowSprite 
-     *            the shadowSprite to set 
-     */
-    public void setShadowSprite(Sprite shadowSprite) { 
-        this.shadowSprite = shadowSprite; 
-    }
-	
-	/** 
-     * Sets the sprite for Mike's shadow to the specified texture. 
-     *  
-     * @param texture 
-     *            The Texture to use for this sprite. 
-     */
-    public void setShadowSpriteRegion(Texture texture) { 
-        shadowSprite.setRegion(texture); 
-    }
-    
-    /** 
-     * Sets the position of Mike's jumping shadow. 
-     *  
-     * @param position 
-     *            The position of Mike's jumping shadow. 
-     */
-    public void setShadowVelocity(Vector2 position) { 
-        shadowVelocity = position; 
-    } 
-  
-    /** 
-     * Returns the position of Mike's jumping shadow. 
-     *  
-     * @return The position of Mike's jumping shadow. 
-     */
-    public Vector2 getShadowVelocity() { 
-        return shadowVelocity; 
-    } 
-    
-    /**
+	/**
+	 * @return the shadowSprite
+	 */
+	public Sprite getShadowSprite() {
+		return shadowSprite;
+	}
+
+	/**
+	 * @param shadowSprite
+	 *            the shadowSprite to set
+	 */
+	public void setShadowSprite(Sprite shadowSprite) {
+		this.shadowSprite = shadowSprite;
+	}
+
+	/**
+	 * Sets the sprite for Mike's shadow to the specified texture.
+	 * 
+	 * @param texture
+	 *            The Texture to use for this sprite.
+	 */
+	public void setShadowSpriteRegion(Texture texture) {
+		shadowSprite.setRegion(texture);
+	}
+
+	/**
+	 * Sets the position of Mike's jumping shadow.
+	 * 
+	 * @param position
+	 *            The position of Mike's jumping shadow.
+	 */
+	public void setShadowVelocity(Vector2 position) {
+		shadowVelocity = position;
+	}
+
+	/**
+	 * Returns the position of Mike's jumping shadow.
+	 * 
+	 * @return The position of Mike's jumping shadow.
+	 */
+	public Vector2 getShadowVelocity() {
+		return shadowVelocity;
+	}
+
+	/**
 	 * This is used to update the Rectangle boundaries surrounding the chakram. Use this for collision detection.
 	 * 
 	 * @param position
@@ -213,21 +215,36 @@ public class Drawable {
 	public void setBounds(Rectangle bounds) {
 		this.bounds = bounds;
 	}
-	
-	/** 
-     * @return the shadowBounds 
-     */
-    public Rectangle getShadowBounds() { 
-        return shadowBounds; 
-    } 
-  
-    /** 
-     * @param shadowBounds 
-     *            the shadowBounds to set 
-     */
-    public void setShadowBounds(Rectangle shadowBounds) { 
-        this.shadowBounds = shadowBounds; 
-    }
+
+	/**
+	 * @return the damageBounds
+	 */
+	public Rectangle getDamageBounds() {
+		return damageBounds;
+	}
+
+	/**
+	 * @param damageBounds
+	 *            the damageBounds to set
+	 */
+	public void setDamageBounds(Rectangle damageBounds) {
+		this.damageBounds = damageBounds;
+	}
+
+	/**
+	 * @return the shadowBounds
+	 */
+	public Rectangle getShadowBounds() {
+		return shadowBounds;
+	}
+
+	/**
+	 * @param shadowBounds
+	 *            the shadowBounds to set
+	 */
+	public void setShadowBounds(Rectangle shadowBounds) {
+		this.shadowBounds = shadowBounds;
+	}
 
 	/**
 	 * 

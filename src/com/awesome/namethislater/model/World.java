@@ -25,7 +25,7 @@ public class World {
 	private void createDemoWorld() {
 		level = new Level();
 		room = new Room();
-		mike = new Mike(new Vector2(3, 3));
+		mike = new Mike(new Vector2(2, 2));
 	}
 
 	public List<Block> getWaterBlocks(int width, int height) {
