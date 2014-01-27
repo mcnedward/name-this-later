@@ -19,14 +19,14 @@ public class Mike extends Drawable implements IDrawable {
 	Rectangle feetBounds = new Rectangle(); // The bounds of Mike's feet
 	Rectangle jumpingBounds = new Rectangle();
 
-	State state = State.IDLE; // The state that Mike is in
-	Direction direction = Direction.DOWN; // The direction Mike is facing
+	State state = State.IDLE; 				// The state that Mike is in
+	Direction direction = Direction.DOWN; 	// The direction Mike is facing
 
 	List<Chakram> chakrams;
 
-	boolean isGrounded; // Whether Mike is on the ground or not
+	boolean isGrounded; 	// Whether Mike is on the ground or not
 	boolean isSwimming;
-	boolean isAttacking; // Whether Mike is attacking or not
+	boolean isAttacking; 	// Whether Mike is attacking or not
 	float shadowPercentage; // The amount to scale Mike's jumping shadow
 
 	public Mike(Vector2 position) {

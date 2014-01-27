@@ -107,6 +107,18 @@ public class GameScreen implements Screen, InputProcessor {
 		case Keys.S:
 			controller.attackPressed();
 			break;
+		case Keys.I:
+			worldController.upPressed();
+			break;
+		case Keys.K:
+			worldController.downPressed();
+			break;
+		case Keys.J:
+			worldController.leftPressed();
+			break;
+		case Keys.L:
+			worldController.rightPressed();
+			break;
 		}
 		return false;
 	}
@@ -134,6 +146,18 @@ public class GameScreen implements Screen, InputProcessor {
 			break;
 		case Keys.D:
 			renderer.setDebug(!renderer.isDebug());
+		case Keys.I:
+			worldController.upReleased();
+			break;
+		case Keys.K:
+			worldController.downReleased();
+			break;
+		case Keys.J:
+			worldController.leftReleased();
+			break;
+		case Keys.L:
+			worldController.rightReleased();
+			break;
 		}
 		return false;
 	}
@@ -155,13 +179,13 @@ public class GameScreen implements Screen, InputProcessor {
 	public boolean touchUp(int x, int y, int pointer, int button) {
 		// if (!Gdx.app.getType().equals(ApplicationType.Android))
 		// return false;
-		controller.onTouchUp(Gdx.input.getX(pointer), Gdx.input.getY(pointer), renderer);
+		// controller.onTouchUp(Gdx.input.getX(pointer), Gdx.input.getY(pointer), renderer);
 		return true;
 	}
 
 	@Override
 	public boolean touchDragged(int x, int y, int pointer) {
-		controller.onTouch(Gdx.input.getX(pointer), Gdx.input.getY(pointer), renderer);
+		// controller.onTouch(Gdx.input.getX(pointer), Gdx.input.getY(pointer), renderer);
 		return false;
 	}
 

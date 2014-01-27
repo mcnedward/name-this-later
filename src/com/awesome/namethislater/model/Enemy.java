@@ -9,14 +9,17 @@ import com.badlogic.gdx.math.Vector2;
 
 public class Enemy extends Drawable {
 
-	public static final float SIZE = 1f; // The size of the enemy
+	public static final float SIZE = 1f; 		// The size of the enemy
+	private static float ACCELERATION = 15f;	// The speed of walking
+	private static final float DAMP = 0.9f;		// Used to smooth out the walking animation
+	private static final float MAX_VEL = 4f;
 
 	float currentFrame;
 
 	final int distanceFromEnemy = 100;
-	Random r = new Random();
-	int x = 500;
-	final int speed = 1;
+	Random random = new Random();
+	// Defines time left for movement. set to random int below 3 will move around at most for 3 seconds
+	float enemyTime = random.nextInt(5);
 
 	public Enemy(Vector2 position) {
 		super(position, SIZE);
@@ -28,9 +31,14 @@ public class Enemy extends Drawable {
 		bounds.width = SIZE;
 
 		updateDamageBounds(position);
-		setDirection(r.nextInt(7));
+		setDirection(random.nextInt(7));
 
 		shadow = new Ellipse2D.Float();
+	}
+
+	public void update(float delta) {
+		stateTime += delta;
+		baseY = position.y;
 	}
 
 	public void loadSprite(SpriteBatch spriteBatch) {
@@ -115,5 +123,20 @@ public class Enemy extends Drawable {
 	 */
 	public void setDamageBounds(Rectangle damageBounds) {
 		this.damageBounds = damageBounds;
+	}
+
+	/**
+	 * @return the enemyTime
+	 */
+	public float getEnemyTime() {
+		return enemyTime;
+	}
+
+	/**
+	 * @param enemyTime
+	 *            the enemyTime to set
+	 */
+	public void setEnemyTime(float enemyTime) {
+		this.enemyTime = enemyTime;
 	}
 }
