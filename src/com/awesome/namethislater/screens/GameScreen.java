@@ -8,6 +8,7 @@ import com.awesome.namethislater.controller.WorldController;
 import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.World;
 import com.awesome.namethislater.view.Renderer;
+import com.awesome.namethislater.view.UIHandler;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
@@ -21,6 +22,7 @@ public class GameScreen implements Screen, InputProcessor {
 	private Renderer renderer;
 	private MikeController controller;
 	private WorldController worldController;
+	private UIHandler uiHandler;
 
 	private int width, height;
 
@@ -36,14 +38,15 @@ public class GameScreen implements Screen, InputProcessor {
 		controller.update(delta);
 		worldController.update(delta);
 		renderer.render(delta);
+		uiHandler.render(delta);
 	}
 
 	@Override
 	public void resize(int width, int height) {
-		renderer.setSize(width, height);
-		// renderer3D.setSize(width, height, 0);
 		this.width = width;
 		this.height = height;
+		renderer.setSize(width, height);
+		uiHandler.setSize(width, height);
 	}
 
 	public int getWidth() {
@@ -59,9 +62,9 @@ public class GameScreen implements Screen, InputProcessor {
 		world = new World();
 		level = world.getLevel();
 		renderer = new Renderer(world, true);
-		// renderer3D = new Basic3DRenderer(world, false);
 		controller = new MikeController(world);
 		worldController = new WorldController(world);
+		uiHandler = new UIHandler(world);
 		Gdx.input.setInputProcessor(this);
 	}
 
@@ -84,6 +87,7 @@ public class GameScreen implements Screen, InputProcessor {
 
 	@Override
 	public void dispose() {
+		uiHandler.dispose();
 	}
 
 	@Override

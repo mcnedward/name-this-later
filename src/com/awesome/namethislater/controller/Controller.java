@@ -1,6 +1,7 @@
 package com.awesome.namethislater.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.awesome.namethislater.model.Drawable;
@@ -55,14 +56,14 @@ public abstract class Controller {
 	protected World world;
 	protected Level level;
 	protected final Mike mike;
-	protected final Enemy enemy;
+	protected List<Enemy> enemies;
 	private final TiledMap map;
 
 	public Controller(World world) {
 		this.world = world;
 		this.level = world.getLevel();
 		this.mike = world.getMike();
-		this.enemy = level.getEnemy();
+		enemies = level.getEnemies();
 		map = level.getMap();
 	}
 
@@ -74,14 +75,13 @@ public abstract class Controller {
 		boolean collide = false;
 		// Check for collisions on the horizontal X axis
 		int startX, endX;
-		int startY = (int) drawable.getDamageBounds().y;
-		int endY = (int) (drawable.getDamageBounds().y + drawable.getDamageBounds().height);
+		int startY = (int) bounds.y;
+		int endY = (int) (bounds.y + bounds.height);
 		// Check for collisions with blocks on the left and right
 		if (drawable.getVelocity().x < 0) {
-			startX = endX = (int) Math.floor(drawable.getDamageBounds().x + drawable.getVelocity().x);
+			startX = endX = (int) Math.floor(bounds.x + drawable.getVelocity().x);
 		} else {
-			startX = endX = (int) Math.floor(drawable.getDamageBounds().x + drawable.getDamageBounds().width
-					+ drawable.getVelocity().x);
+			startX = endX = (int) Math.floor(bounds.x + bounds.width + drawable.getVelocity().x);
 		}
 
 		getWaterTiles(startX, endX, startY, endY);
@@ -101,13 +101,12 @@ public abstract class Controller {
 		}
 
 		// Check for collisions on the vertical Y axis
-		startX = (int) drawable.getDamageBounds().x;
-		endX = (int) (drawable.getDamageBounds().x + drawable.getDamageBounds().width);
+		startX = (int) bounds.x;
+		endX = (int) (bounds.x + bounds.width);
 		if (drawable.getVelocity().y < 0) {
-			startY = endY = (int) Math.floor(drawable.getDamageBounds().y + drawable.getVelocity().y);
+			startY = endY = (int) Math.floor(bounds.y + drawable.getVelocity().y);
 		} else {
-			startY = endY = (int) Math.floor(drawable.getDamageBounds().y + (drawable.getDamageBounds().height)
-					+ drawable.getVelocity().y);
+			startY = endY = (int) Math.floor(bounds.y + (bounds.height) + drawable.getVelocity().y);
 		}
 
 		getWaterTiles(startX, endX, startY, endY);
@@ -260,7 +259,9 @@ public abstract class Controller {
 				mike.getAcceleration().x = JUMP_ACCELERATION;
 			}
 		} else {
-			if (!mike.isJumping() && !mike.getState().equals(State.DYING) && !mike.isAttacking()) {
+			if (!mike.isJumping() && !mike.isAttacking() && !mike.getState().equals(State.DAMAGE)
+					&& !mike.getState().equals(State.DYING)) {
+				mike.getAcceleration();
 				mike.setState(State.IDLE);
 				mike.getVelocity().x = 0;
 				mike.getVelocity().y = 0;
