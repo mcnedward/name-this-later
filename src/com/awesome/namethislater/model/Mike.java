@@ -19,25 +19,33 @@ public class Mike extends Drawable implements IDrawable {
 	Rectangle feetBounds = new Rectangle(); // The bounds of Mike's feet
 	Rectangle jumpingBounds = new Rectangle();
 
-	State state = State.IDLE; 				// The state that Mike is in
+	State state = State.IDLE; // The state that Mike is in
 	Direction direction = Direction.DOWN; 	// The direction Mike is facing
 
 	List<Chakram> chakrams;
 
-	boolean isGrounded; 	// Whether Mike is on the ground or not
-	boolean isSwimming;
-	boolean isAttacking; 	// Whether Mike is attacking or not
+	boolean grounded; 	// Whether Mike is on the ground or not
+	boolean swimming;
+	boolean attacking; 	// Whether Mike is attacking or not
+	boolean hurt;
+	boolean invincible;
+	float damageAmount;
 	float shadowPercentage; // The amount to scale Mike's jumping shadow
+
+	private float health;
 
 	public Mike(Vector2 position) {
 		super(position, SIZE);
 
 		chakrams = new ArrayList<Chakram>();
 
-		isGrounded = true;
+		grounded = true;
 		updateDamageBounds(position);
 		updateFeetBounds(position);
 		shadowPercentage = 100.0f;
+
+		health = 100;
+		hurt = false;
 	}
 
 	/**
@@ -49,6 +57,13 @@ public class Mike extends Drawable implements IDrawable {
 	public void update(float delta) {
 		stateTime += delta;
 		baseY = position.y;
+
+		if (health <= 0) {
+			state = State.DYING;
+		} else {
+			// Set Mike to be invincible after he takes one hit.
+			invincible = hurt;
+		}
 	}
 
 	@Override
@@ -182,68 +197,102 @@ public class Mike extends Drawable implements IDrawable {
 		jumpingBounds.height = damageBounds.height + air;
 	}
 
+	public void takeDamage(float damage) {
+		health -= damage;
+	}
+
 	/**
 	 * Determines whether Mike is jumping, either a normal jump or a jump attack.
 	 * 
 	 * @return True if Mike is jumping, false otherwise.
 	 */
 	public boolean isJumping() {
-		if (state == State.JUMPING || state == State.JUMP_ATTACK || !isGrounded)
+		if (state == State.JUMPING || state == State.JUMP_ATTACK || !grounded)
 			return true;
 		else
 			return false;
 	}
 
 	public boolean isAttackingState() {
-		if (state == State.ATTACKING || state == State.JUMP_ATTACK || isAttacking)
+		if (state == State.ATTACKING || state == State.JUMP_ATTACK || attacking)
 			return true;
 		else
 			return false;
 	}
 
 	/**
-	 * @return the isGrounded
+	 * @return the grounded
 	 */
 	public boolean isGrounded() {
-		return isGrounded;
+		return grounded;
 	}
 
 	/**
-	 * @param isGrounded
-	 *            the isGrounded to set
+	 * @param grounded
+	 *            the grounded to set
 	 */
-	public void setGrounded(boolean isGrounded) {
-		this.isGrounded = isGrounded;
+	public void setGrounded(boolean grounded) {
+		this.grounded = grounded;
 	}
 
 	/**
-	 * @return the isSwimming
+	 * @return the swimming
 	 */
 	public boolean isSwimming() {
-		return isSwimming;
+		return swimming;
 	}
 
 	/**
-	 * @param isSwimming
-	 *            the isSwimming to set
+	 * @param swimming
+	 *            the swimming to set
 	 */
-	public void setSwimming(boolean isSwimming) {
-		this.isSwimming = isSwimming;
+	public void setSwimming(boolean swimming) {
+		this.swimming = swimming;
 	}
 
 	/**
-	 * @return the isAttacking
+	 * @return the attacking
 	 */
 	public boolean isAttacking() {
-		return isAttacking;
+		return attacking;
 	}
 
 	/**
-	 * @param isAttacking
-	 *            the isAttacking to set
+	 * @param attacking
+	 *            the attacking to set
 	 */
-	public void setAttacking(boolean isAttacking) {
-		this.isAttacking = isAttacking;
+	public void setAttacking(boolean attacking) {
+		this.attacking = attacking;
+	}
+
+	/**
+	 * @return the hurt
+	 */
+	public boolean isHurt() {
+		return hurt;
+	}
+
+	/**
+	 * @param hurt
+	 *            the hurt to set
+	 */
+	public void setHurt(boolean hurt) {
+		this.hurt = hurt;
+	}
+
+	/**
+	 * @return the invincible
+	 */
+	public boolean isInvicible() {
+		return invincible;
+	}
+
+	/**
+	 * @param invincible
+	 *            the invincible to set
+	 */
+	public void setInvincible(boolean invincible) {
+		this.invincible = invincible;
 	}
 
 	/**
@@ -259,6 +308,21 @@ public class Mike extends Drawable implements IDrawable {
 	 */
 	public void setChakrams(List<Chakram> chakrams) {
 		this.chakrams = chakrams;
+	}
+
+	/**
+	 * @return the health
+	 */
+	public float getHealth() {
+		return health;
+	}
+
+	/**
+	 * @param health
+	 *            the health to set
+	 */
+	public void setHealth(float health) {
+		this.health = health;
 	}
 
 	// TODO Add all states

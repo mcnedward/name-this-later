@@ -1,6 +1,8 @@
 package com.awesome.namethislater.model;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTile;
@@ -18,13 +20,14 @@ public class Level {
 	private Block[][] grassBlocks;
 	private Block[][] waterBlocks;
 
-	private Enemy enemy;
+	private List<Enemy> enemies;
 
 	private TiledMap map;
 
 	private Vector2 startingPosition;
 
 	public Level() {
+		enemies = new ArrayList<Enemy>();
 		loadMap();
 	}
 
@@ -33,7 +36,10 @@ public class Level {
 		map = loader.load("data/world/level/level3.tmx");
 
 		startingPosition = new Vector2(2, 2);
-		enemy = new Enemy(new Vector2(0, 4));
+		Enemy enemy1 = new Enemy(new Vector2(0, 4));
+		Enemy enemy2 = new Enemy(new Vector2(10, 10));
+		enemies.add(enemy1);
+		enemies.add(enemy2);
 
 		width = map.getProperties().get("width", Integer.class);
 		height = map.getProperties().get("height", Integer.class);
@@ -112,23 +118,21 @@ public class Level {
 
 		waterBlocks[7][3] = new Block(new Vector2(7, 3));
 		waterBlocks[8][3] = new Block(new Vector2(8, 3));
-
-		enemy = new Enemy(new Vector2(0, 4));
 	}
 
 	/**
-	 * @return the enemy
+	 * @return the enemies
 	 */
-	public Enemy getEnemy() {
-		return enemy;
+	public List<Enemy> getEnemies() {
+		return enemies;
 	}
 
 	/**
-	 * @param enemy
-	 *            the enemy to set
+	 * @param enemies
+	 *            the enemies to set
 	 */
-	public void setEnemy(Enemy enemy) {
-		this.enemy = enemy;
+	public void setEnemies(List<Enemy> enemies) {
+		this.enemies = enemies;
 	}
 
 	public Block getBlockAt(int x, int y) {
