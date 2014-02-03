@@ -155,7 +155,7 @@ public class Chakram extends Drawable implements IDrawable {
 			break;
 		}
 
-		shadow.setFrame(shadowPosition.x, shadowPosition.y - airHeight, SIZE, SIZE);
+		shadow.setFrame(shadowPosition.x + (SIZE / 4), shadowPosition.y - airHeight, SIZE / 2, SIZE / 2);
 
 		attackBounds.x = (float) shadow.getX();
 		attackBounds.y = (float) shadow.getY();
