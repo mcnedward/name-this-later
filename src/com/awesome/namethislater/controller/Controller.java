@@ -15,6 +15,7 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
 
@@ -38,7 +39,7 @@ public abstract class Controller {
 	}
 
 	// Blocks that can be collided with in any frame
-	private Array<Rectangle> tiles = new Array<Rectangle>();
+	private final Array<Rectangle> tiles = new Array<Rectangle>();
 	// This is the rectangle pool used in collision detection
 	// Good to avoid instantiation each frame
 	protected Pool<Rectangle> rectPool = new Pool<Rectangle>() {
@@ -88,8 +89,9 @@ public abstract class Controller {
 
 		// If enemy collides, set his horizontal velocity to 0
 		for (Rectangle tile : tiles) {
-			if (tile == null)
+			if (tile == null) {
 				continue;
+			}
 			if (bounds.overlaps(tile)) {
 				// Stop all movement and set enemy's state to dying. Then reset the degree used to change the float
 				// angle and get the starting x and y coordinates for the death.
@@ -112,8 +114,9 @@ public abstract class Controller {
 		getWaterTiles(startX, endX, startY, endY);
 
 		for (Rectangle tile : tiles) {
-			if (tile == null)
+			if (tile == null) {
 				continue;
+			}
 			if (bounds.overlaps(tile)) {
 				// Stop all movement and set enemy's state to dying. Then reset the degree used to change the float
 				// angle and get the starting x and y coordinates for the death.
@@ -133,7 +136,7 @@ public abstract class Controller {
 			tiles.clear();
 			for (int x = startX; x <= endX; x++) {
 				for (int y = startY; y <= endY; y++) {
-					Cell cell = layer.getCell((int) (x), (int) (y));
+					Cell cell = layer.getCell((x), (y));
 					if (cell != null) {
 						if (cell.getTile().getProperties().containsKey("water")) {
 							Rectangle rect = new Rectangle();
@@ -268,6 +271,134 @@ public abstract class Controller {
 			}
 		}
 		return false;
+	}
+
+	/** Touch Events and Key Presses **/
+
+	public boolean onTouch(float x, float y, Actor touchpad) {
+		float width = touchpad.getWidth();
+		float height = touchpad.getHeight();
+
+		float radius = (width / 5) / 2; // The radius of the touch pad
+		float cx = (width / 12) + radius; // Get the center X of the touch pad
+		float cy = height - (height / 10) - radius; // Get the center Y of the touch pad
+		// Get the maximum and minimum x and y coordinates allowed for the touch pad
+		float maxX = cx + radius;
+		float minX = Math.abs(cx - radius);
+		float maxY = cy + radius;
+		float minY = Math.abs(cy - radius);
+		// Get the maximum and minimum x and y coordinates allowed for the jump button
+		float jRadius = (width / 7) / 2;
+		float jx = width - (width / 5) + jRadius;
+		float jy = height - (height / 6) - jRadius;
+		float jMaxX = jx + jRadius;
+		float jMinX = Math.abs(jx - jRadius);
+		float jMaxY = jy + jRadius;
+		float jMinY = Math.abs(jy - jRadius);
+
+		// Find the degree that the touch event is at
+		double degree = (Math.atan2(y - cy, x - cx) / (Math.PI / 180));
+		degree *= -1;
+		degree += 360;
+		if (degree > 360) {
+			degree -= 360;
+		}
+
+		// Find the distance from the center of the circle using Pythagorian Theorem
+		// TODO This can be used later to increase the speed of the sprite
+		double a = x - cx;
+		double b = y - cy;
+		double distance = Math.abs(Math.sqrt((a * a) + (b * b)));
+		distance = distance > (maxX - minX) / 2 ? (maxX - minX) / 2 : distance;
+
+		// If the touch event is inside the touch pad, move the sprite by first releasing any keys that may be pressed
+		// down. Then set the correct keys to be pressed down that correspond to the area of the touch pad that is
+		// being touched at the moment.
+		if (x <= maxX && x >= minX && y <= maxY && y >= minY) {
+			// Move right
+			if (degree <= 23 && degree >= 0 || degree >= 338 && degree <= 360) {
+				releaseAllMovement();
+				rightPressed();
+			}
+			// Move up-right
+			if (degree > 23 && degree < 68) {
+				releaseAllMovement();
+				upPressed();
+				rightPressed();
+			}
+			// Move up
+			if (degree >= 68 && degree <= 113) {
+				releaseAllMovement();
+				upPressed();
+			}
+			// Move up-left
+			if (degree > 113 && degree < 158) {
+				releaseAllMovement();
+				upPressed();
+				leftPressed();
+			}
+			// Move left
+			if (degree >= 158 && degree <= 203) {
+				releaseAllMovement();
+				leftPressed();
+			}
+			// Move down-left
+			if (degree > 203 && degree < 258) {
+				releaseAllMovement();
+				downPressed();
+				leftPressed();
+			}
+			// Move down
+			if (degree >= 258 && degree <= 293) {
+				releaseAllMovement();
+				downPressed();
+			}
+			// Move down-right
+			if (degree > 293 && degree < 338) {
+				releaseAllMovement();
+				downPressed();
+				rightPressed();
+			} else {
+				if (!mike.getState().equals(State.JUMPING)) {
+					mike.setState(State.IDLE);
+				}
+				mike.getAcceleration().x = 0;
+				mike.getAcceleration().y = 0;
+			}
+		}
+		if (x <= jMaxX && x >= jMinX && y <= jMaxY && y >= jMinY) {
+			jumpPressed();
+		}
+		return false;
+	}
+
+	public void onTouchUp(int x, int y, Actor touchpad) {
+		float width = touchpad.getWidth();
+		float height = touchpad.getHeight();
+
+		float radius = (width / 5) / 2; // The radius of the touch pad
+		float cx = (width / 12) + radius; // Get the center X of the touch pad
+		float cy = height - (height / 10) - radius; // Get the center Y of the touch pad
+		// Get the maximum and minimum x and y coordinates allowed for the touch pad
+		float maxX = cx + radius;
+		float minX = Math.abs(cx - radius);
+		float maxY = cy + radius;
+		float minY = Math.abs(cy - radius);
+		// Get the maximum and minimum x and y coordinates allowed for the jump button
+		float jRadius = (width / 7) / 2;
+		float jx = width - (width / 5) + jRadius;
+		float jy = height - (height / 6) - jRadius;
+		float jMaxX = jx + jRadius;
+		float jMinX = Math.abs(jx - jRadius);
+		float jMaxY = jy + jRadius;
+		float jMinY = Math.abs(jy - jRadius);
+
+		if (x <= maxX && x >= minX && y <= maxY && y >= minY) {
+			releaseAllMovement();
+		}
+		if (x <= jMaxX && x >= jMinX && y <= jMaxY && y >= jMinY) {
+			jumpReleased();
+		}
 	}
 
 	public void downPressed() {
