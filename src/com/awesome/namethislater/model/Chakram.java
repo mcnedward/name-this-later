@@ -9,10 +9,9 @@ import com.badlogic.gdx.math.Vector2;
 public class Chakram extends Drawable implements IDrawable {
 
 	public static float SIZE = 0.5f; // The size of the chakram
-	private static final float ACCELERATION = 2f; // The speed the chakram is thrown
+	private static final float ACCELERATION = 4f; // The speed the chakram is thrown
 
-	// Set the bounds of the chakram. Attack bounds use the shadow position to better determine how to collide with an
-	// objects.
+	// Set the bounds of the chakram. Attack bounds use the shadow position to better determine how to collide with an objects.
 	public Rectangle bounds = new Rectangle();
 	public Rectangle attackBounds = new Rectangle();
 
@@ -23,8 +22,7 @@ public class Chakram extends Drawable implements IDrawable {
 	float rotation = 0; // How much to rotate the chakram
 
 	/**
-	 * Create a new instance of a chakram. Set the x and y coordinates, the sprite that threw the chakram, and the
-	 * height in the air that the chakram is.
+	 * Create a new instance of a chakram. Set the x and y coordinates, the sprite that threw the chakram, and the height in the air that the chakram is.
 	 * 
 	 * @param position
 	 *            The position of the chakram.
@@ -155,7 +153,8 @@ public class Chakram extends Drawable implements IDrawable {
 			break;
 		}
 
-		shadow.setFrame(shadowPosition.x + (SIZE / 4), shadowPosition.y - airHeight, SIZE / 2, SIZE / 2);
+		shadow.setFrame(shadowPosition.x + (SIZE / 4), shadowPosition.y - airHeight, SIZE / 2,
+				SIZE / 2);
 
 		attackBounds.x = (float) shadow.getX();
 		attackBounds.y = (float) shadow.getY();

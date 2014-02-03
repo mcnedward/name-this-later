@@ -36,7 +36,7 @@ public class Level {
 		map = loader.load("data/world/level/level3.tmx");
 
 		startingPosition = new Vector2(2, 2);
-		Enemy enemy1 = new Enemy(new Vector2(0, 4));
+		Enemy enemy1 = new Enemy(new Vector2(1, 4));
 		Enemy enemy2 = new Enemy(new Vector2(10, 10));
 		enemies.add(enemy1);
 		enemies.add(enemy2);
@@ -67,8 +67,9 @@ public class Level {
 
 		// for (TiledMapTile tile : grassFrameTiles)
 		// animatedGrass.getProperties().putAll(tile.getProperties());
-		for (TiledMapTile tile : waterFrameTiles)
+		for (TiledMapTile tile : waterFrameTiles) {
 			animatedWater.getProperties().putAll(tile.getProperties());
+		}
 
 		TiledMapTileLayer layer = (TiledMapTileLayer) map.getLayers().get("background");
 
@@ -76,11 +77,13 @@ public class Level {
 			for (int y = 0; y < layer.getHeight(); y++) {
 				Cell cell = layer.getCell(x, y);
 				if (cell.getTile().getProperties().containsKey("animation")
-						&& cell.getTile().getProperties().get("animation", String.class).equals("grass")) {
+						&& cell.getTile().getProperties().get("animation", String.class)
+								.equals("grass")) {
 					// cell.setTile(animatedGrass);
 				}
 				if (cell.getTile().getProperties().containsKey("animation")
-						&& cell.getTile().getProperties().get("animation", String.class).equals("water")) {
+						&& cell.getTile().getProperties().get("animation", String.class)
+								.equals("water")) {
 					cell.setTile(animatedWater);
 				}
 			}
