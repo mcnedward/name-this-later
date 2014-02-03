@@ -261,6 +261,8 @@ public class MikeController extends Controller {
 				chakram.getVelocity().x = 0;
 				chakram.getVelocity().y = 0;
 				it.remove();
+				enemy.takeDamage(20);
+				enemy.setHurt(true);
 			}
 		}
 		chakram.getVelocity().mul(1 / delta);
@@ -295,8 +297,9 @@ public class MikeController extends Controller {
 				mike.updateFeetBounds(mike.getPosition());
 				mike.setDirection(Direction.DOWN);
 				mike.setHealth(100);
-				if (mike.isHurt())
+				if (mike.isHurt()) {
 					mike.setHurt(false);
+				}
 			}
 			mike.update(delta);
 			return true;
