@@ -162,11 +162,11 @@ public class Drawable {
 	/**
 	 * Sets the sprite for Mike's shadow to the specified texture.
 	 * 
-	 * @param texture
+	 * @param shadow
 	 *            The Texture to use for this sprite.
 	 */
-	public void setShadowSpriteRegion(Texture texture) {
-		shadowSprite.setRegion(texture);
+	public void setShadowSpriteRegion(TextureRegion shadow) {
+		shadowSprite.setRegion(shadow);
 	}
 
 	/**

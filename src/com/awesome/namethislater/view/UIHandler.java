@@ -2,6 +2,7 @@ package com.awesome.namethislater.view;
 
 import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.Mike;
+import com.awesome.namethislater.model.Mike.State;
 import com.awesome.namethislater.model.World;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
@@ -20,6 +21,18 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
 public class UIHandler {
 
+	/** Textures **/
+	private Texture spriteSheet;
+	private TextureRegion idle;
+	private TextureRegion jump;
+	private TextureRegion attack;
+	private TextureRegion damage;
+	private TextureRegion swim;
+	private TextureRegion death;
+	private TextureRegion bar;
+	private TextureRegion health;
+	private TextureRegion stamina;
+
 	private Stage stage;
 	private Table table;
 	private ScrollPane scrollPane;
@@ -37,18 +50,30 @@ public class UIHandler {
 		stage = new Stage();
 		width = stage.getWidth();
 		height = stage.getHeight();
+		loadImages();
 	}
 
 	public void render(float delta) {
 		stage.clear();
 		drawIcon();
 		drawHealth();
+		drawStamina();
 		drawFps();
 		stage.draw();
 	}
 
 	private void drawIcon() {
-		Image mikeFace = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/mikeface.png"))));
+		Image mikeFace;
+		if (mike.isJumping())
+			mikeFace = new Image(jump);
+		else if (mike.isAttackingState())
+			mikeFace = new Image(attack);
+		else if (mike.isHurt())
+			mikeFace = new Image(damage);
+		else if (mike.getState().equals(State.DYING))
+			mikeFace = new Image(death);
+		else
+			mikeFace = new Image(idle);
 		mikeFace.setScale(2, 2);
 		mikeFace.setX(10);
 		mikeFace.setY((height - mikeFace.getHeight() * 2) - 10);
@@ -58,19 +83,32 @@ public class UIHandler {
 	}
 
 	private void drawHealth() {
-		Image healthBar = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/healthbar.png"))));
+		Image healthBar = new Image(bar);
 		healthBar.setX(healthX);
 		healthBar.setY(height - 20);
 
-		Image health = new Image(new TextureRegion(new Texture(Gdx.files.internal("images/health.png"))));
-		health.setX(healthX);
-		health.setY(height - 20);
+		Image h = new Image(health);
+		h.setX(healthX);
+		h.setY(height - 20);
 
-		float h = mike.getHealth() / 100;
-		health.setScaleX(h);
+		float mikeHealth = mike.getHealth() / 100;
+		h.setScaleX(mikeHealth);
 
 		stage.addActor(healthBar);
-		stage.addActor(health);
+		stage.addActor(h);
+	}
+
+	private void drawStamina() {
+		Image staminaBar = new Image(bar);
+		staminaBar.setX(healthX);
+		staminaBar.setY(height - 30);
+
+		Image s = new Image(stamina);
+		s.setX(healthX);
+		s.setY(height - 30);
+
+		stage.addActor(staminaBar);
+		stage.addActor(s);
 	}
 
 	private void drawFps() {
@@ -87,6 +125,20 @@ public class UIHandler {
 		label.setY(height - 50);
 
 		stage.addActor(label);
+	}
+
+	private void loadImages() {
+		spriteSheet = new Texture(Gdx.files.internal("images/ui.png"));
+
+		idle = new TextureRegion(spriteSheet, 0, 48, 16, 16);
+		jump = new TextureRegion(spriteSheet, 16, 48, 16, 16);
+		attack = new TextureRegion(spriteSheet, 32, 48, 16, 16);
+		damage = new TextureRegion(spriteSheet, 48, 48, 16, 16);
+		swim = new TextureRegion(spriteSheet, 64, 48, 16, 16);
+		death = new TextureRegion(spriteSheet, 80, 48, 16, 16);
+		bar = new TextureRegion(spriteSheet, 0, 0, 64, 16);
+		health = new TextureRegion(spriteSheet, 0, 16, 64, 16);
+		stamina = new TextureRegion(spriteSheet, 0, 32, 64, 16);
 	}
 
 	public void dispose() {

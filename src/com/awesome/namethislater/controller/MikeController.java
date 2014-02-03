@@ -176,6 +176,7 @@ public class MikeController extends Controller {
 							mike.setHurt(true);
 							if (!mike.isInvicible()) {
 								mike.takeDamage(20);
+								deadStartX = mike.getPosition().x;
 							}
 							jumpPressed = false;
 							mike.getVelocity().x = 0;
@@ -190,6 +191,7 @@ public class MikeController extends Controller {
 						mike.setHurt(true);
 						if (!mike.isInvicible()) {
 							mike.takeDamage(20);
+							deadStartX = mike.getPosition().x;
 						}
 					}
 				}
@@ -284,6 +286,7 @@ public class MikeController extends Controller {
 			deadDegree += 3;
 			if (deadDegree >= 360) {
 				deadDegree = 0;
+				deadStartX = 0;
 				riseX = 0;
 				mike.setState(State.IDLE);
 				mike.getPosition().x = level.getStartingPosition().x;

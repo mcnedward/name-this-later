@@ -53,11 +53,11 @@ public class Renderer {
 	private Texture jumpAttackSheet; 	// The sprite sheet for jump attacks
 	private Texture swimSheet;			// The sprite sheet for the swim state
 	private TextureRegion mikeFrame; 	// The region of the current frame for Mike
-	private Texture dead; 				// The texture for the death state
-	private Texture damage; 			// The texture for the damage state
-	private Texture chakram; 			// The texture for chakrams
-	private Texture shadow; 			// The texture for the jump shadow
-	private Texture enemyTexture; 		// The texture for the enemy
+	private TextureRegion dead; 				// The texture for the death state
+	private TextureRegion damage; 			// The texture for the damage state
+	private TextureRegion chakram; 			// The texture for chakrams
+	private TextureRegion shadow; 			// The texture for the jump shadow
+	private TextureRegion enemyTexture; 		// The texture for the enemy
 	private Texture touchPad; 			// The texture for the touch pad buttons
 	private Texture grass; 				// The texture for grass blocks
 	private Texture water; 				// The texture for water blocks
@@ -66,9 +66,10 @@ public class Renderer {
 	private final Map<Direction, Animation> animationMap = new HashMap<Direction, Animation>();
 	private final Map<Direction, TextureRegion> idleMap = new HashMap<Direction, TextureRegion>();
 	private final Map<Direction, TextureRegion> jumpMap = new HashMap<Direction, TextureRegion>();
-	private final Map<Direction, TextureRegion> swimMap = new HashMap<Direction, TextureRegion>();
 	private final Map<Direction, Animation> attackMap = new HashMap<Direction, Animation>();
 	private final Map<Direction, Animation> jumpAttackMap = new HashMap<Direction, Animation>();
+	private final Map<Direction, TextureRegion> damageMap = new HashMap<Direction, TextureRegion>();
+	private final Map<Direction, TextureRegion> swimMap = new HashMap<Direction, TextureRegion>();
 
 	private final SpriteBatch spriteBatch;
 	private boolean debug = false;
@@ -107,7 +108,126 @@ public class Renderer {
 		spriteBatch = new SpriteBatch();
 		stateTime = 0f;
 
-		loadTextures();
+		load();
+	}
+
+	private void load() {
+		spriteSheet = new Texture(Gdx.files.internal("images/spritesheet.png"));
+		int width = 16;
+		int height = 32;
+
+		TextureRegion[][] animationFrames = new TextureRegion[8][3];
+		TextureRegion[][] jumpFrames = new TextureRegion[8][1];
+		TextureRegion[][] attackFrames = new TextureRegion[8][2];
+		TextureRegion[][] jumpAttackFrames = new TextureRegion[8][2];
+		TextureRegion[][] damageFrames = new TextureRegion[8][1];
+		TextureRegion[][] swimFrames = new TextureRegion[8][1];
+
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 13; j++) {
+				int x = j * width;
+				int y = i * height;
+				if (j == 0 || j == 1 || j == 2) {
+					animationFrames[i][j] = new TextureRegion(spriteSheet, x, y, width, height);
+				}
+				if (j == 3) {
+					jumpFrames[i][0] = new TextureRegion(spriteSheet, x, y, width, height);
+				}
+				if (j == 4 || j == 5) {
+					int m = 0;
+					if (j == 4)
+						m = 0;
+					if (j == 5)
+						m = 1;
+					attackFrames[i][m] = new TextureRegion(spriteSheet, x, y, width, height);
+				}
+				if (j == 6 || j == 7) {
+					int m = 0;
+					if (j == 6)
+						m = 0;
+					if (j == 7)
+						m = 1;
+					jumpAttackFrames[i][m] = new TextureRegion(spriteSheet, x, y, width, height);
+				}
+				if (j == 8) {
+					damageFrames[i][0] = new TextureRegion(spriteSheet, x, y, width, height);
+				}
+				if (j == 9) {
+					swimFrames[i][0] = new TextureRegion(spriteSheet, x, y, width, height);
+				}
+			}
+		}
+
+		// Set the frames for the Idle state
+		idleMap.put(Direction.DOWN, new TextureRegion(animationFrames[0][0]));
+		idleMap.put(Direction.LEFT, new TextureRegion(animationFrames[1][0]));
+		idleMap.put(Direction.UP, new TextureRegion(animationFrames[2][0]));
+		idleMap.put(Direction.RIGHT, new TextureRegion(animationFrames[3][0]));
+		idleMap.put(Direction.DOWN_LEFT, new TextureRegion(animationFrames[4][0]));
+		idleMap.put(Direction.UP_LEFT, new TextureRegion(animationFrames[5][0]));
+		idleMap.put(Direction.UP_RIGHT, new TextureRegion(animationFrames[6][0]));
+		idleMap.put(Direction.DOWN_RIGHT, new TextureRegion(animationFrames[7][0]));
+		// Set the running animation for each direction
+		animationMap.put(Direction.DOWN, new Animation(RUNNING_FRAME_DURATION, animationFrames[0]));
+		animationMap.put(Direction.LEFT, new Animation(RUNNING_FRAME_DURATION, animationFrames[1]));
+		animationMap.put(Direction.UP, new Animation(RUNNING_FRAME_DURATION, animationFrames[2]));
+		animationMap.put(Direction.RIGHT, new Animation(RUNNING_FRAME_DURATION, animationFrames[3]));
+		animationMap.put(Direction.DOWN_LEFT, new Animation(RUNNING_FRAME_DURATION, animationFrames[4]));
+		animationMap.put(Direction.UP_LEFT, new Animation(RUNNING_FRAME_DURATION, animationFrames[5]));
+		animationMap.put(Direction.UP_RIGHT, new Animation(RUNNING_FRAME_DURATION, animationFrames[6]));
+		animationMap.put(Direction.DOWN_RIGHT, new Animation(RUNNING_FRAME_DURATION, animationFrames[7]));
+		// Set the jump for each direction
+		jumpMap.put(Direction.DOWN, new TextureRegion(jumpFrames[0][0]));
+		jumpMap.put(Direction.LEFT, new TextureRegion(jumpFrames[1][0]));
+		jumpMap.put(Direction.UP, new TextureRegion(jumpFrames[2][0]));
+		jumpMap.put(Direction.RIGHT, new TextureRegion(jumpFrames[3][0]));
+		jumpMap.put(Direction.DOWN_LEFT, new TextureRegion(jumpFrames[4][0]));
+		jumpMap.put(Direction.UP_LEFT, new TextureRegion(jumpFrames[5][0]));
+		jumpMap.put(Direction.UP_RIGHT, new TextureRegion(jumpFrames[6][0]));
+		jumpMap.put(Direction.DOWN_RIGHT, new TextureRegion(jumpFrames[7][0]));
+		// Set the attacking animation for each direction
+		attackMap.put(Direction.DOWN, new Animation(ATTACKING_FRAME_DURATION, attackFrames[0]));
+		attackMap.put(Direction.LEFT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[1]));
+		attackMap.put(Direction.UP, new Animation(ATTACKING_FRAME_DURATION, attackFrames[2]));
+		attackMap.put(Direction.RIGHT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[3]));
+		attackMap.put(Direction.DOWN_LEFT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[4]));
+		attackMap.put(Direction.UP_LEFT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[5]));
+		attackMap.put(Direction.UP_RIGHT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[6]));
+		attackMap.put(Direction.DOWN_RIGHT, new Animation(ATTACKING_FRAME_DURATION, attackFrames[7]));
+		// Set the jump attacking animation for each direction
+		jumpAttackMap.put(Direction.DOWN, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[0]));
+		jumpAttackMap.put(Direction.LEFT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[1]));
+		jumpAttackMap.put(Direction.UP, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[2]));
+		jumpAttackMap.put(Direction.RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[3]));
+		jumpAttackMap.put(Direction.DOWN_LEFT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[4]));
+		jumpAttackMap.put(Direction.UP_LEFT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[5]));
+		jumpAttackMap.put(Direction.UP_RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[6]));
+		jumpAttackMap.put(Direction.DOWN_RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[7]));
+		// Set the swim for each direction
+		damageMap.put(Direction.DOWN, new TextureRegion(damageFrames[0][0]));
+		damageMap.put(Direction.LEFT, new TextureRegion(damageFrames[1][0]));
+		damageMap.put(Direction.UP, new TextureRegion(damageFrames[2][0]));
+		damageMap.put(Direction.RIGHT, new TextureRegion(damageFrames[3][0]));
+		damageMap.put(Direction.DOWN_LEFT, new TextureRegion(damageFrames[4][0]));
+		damageMap.put(Direction.UP_LEFT, new TextureRegion(damageFrames[5][0]));
+		damageMap.put(Direction.UP_RIGHT, new TextureRegion(damageFrames[6][0]));
+		damageMap.put(Direction.DOWN_RIGHT, new TextureRegion(damageFrames[7][0]));
+		// Set the swim for each direction
+		swimMap.put(Direction.DOWN, new TextureRegion(swimFrames[0][0]));
+		swimMap.put(Direction.LEFT, new TextureRegion(swimFrames[1][0]));
+		swimMap.put(Direction.UP, new TextureRegion(swimFrames[2][0]));
+		swimMap.put(Direction.RIGHT, new TextureRegion(swimFrames[3][0]));
+		swimMap.put(Direction.DOWN_LEFT, new TextureRegion(swimFrames[4][0]));
+		swimMap.put(Direction.UP_LEFT, new TextureRegion(swimFrames[5][0]));
+		swimMap.put(Direction.UP_RIGHT, new TextureRegion(swimFrames[6][0]));
+		swimMap.put(Direction.DOWN_RIGHT, new TextureRegion(swimFrames[7][0]));
+
+		dead = new TextureRegion(spriteSheet, 160, 0, width, height);
+		enemyTexture = new TextureRegion(spriteSheet, 176, 0, width, height);
+		chakram = new TextureRegion(spriteSheet, 192, 0, width, 16);
+		shadow = new TextureRegion(spriteSheet, 208, 0, 32, 32);
+		mike.setShadowSpriteRegion(shadow);
+
 	}
 
 	private void loadTextures() {
@@ -117,8 +237,7 @@ public class Renderer {
 		int width = spriteSheet.getWidth() / 4;
 		int height = spriteSheet.getHeight() / 8;
 
-		// 2-Dimensional array that will hold all the frames for animating the
-		// sprite
+		// 2-Dimensional array that will hold all the frames for animating the sprite
 		TextureRegion[][] animationFrames = new TextureRegion[8][3];
 		TextureRegion[][] jumpFrames = new TextureRegion[8][1];
 
@@ -228,14 +347,14 @@ public class Renderer {
 		jumpAttackMap.put(Direction.UP_RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[6]));
 		jumpAttackMap.put(Direction.DOWN_RIGHT, new Animation(ATTACKING_FRAME_DURATION, jumpAttackFrames[7]));
 
-		dead = new Texture(Gdx.files.internal("images/dead.png"));
-		damage = new Texture(Gdx.files.internal("images/damage.png"));
-
-		shadow = new Texture(Gdx.files.internal("images/shadow.png"));
-		chakram = new Texture(Gdx.files.internal("images/chakra.png"));
-		mike.setShadowSpriteRegion(shadow);
-
-		enemyTexture = new Texture(Gdx.files.internal("images/enemy.png"));
+		// dead = new Texture(Gdx.files.internal("images/dead.png"));
+		// damage = new Texture(Gdx.files.internal("images/damage.png"));
+		//
+		// shadow = new Texture(Gdx.files.internal("images/shadow.png"));
+		// chakram = new Texture(Gdx.files.internal("images/chakra.png"));
+		// mike.setShadowSpriteRegion(shadow);
+		//
+		// enemyTexture = new Texture(Gdx.files.internal("images/enemy.png"));
 
 		touchPad = new Texture(Gdx.files.internal("images/touchpad.png"));
 		grass = new Texture(Gdx.files.internal("images/grass.png"));
@@ -360,16 +479,11 @@ public class Renderer {
 		if (mike.getState().equals(State.SWIMMING)) {
 			mikeFrame = swimMap.get(direction);
 		}
-
-		if (mike.getState().equals(State.DYING)) {
-			mike.setSpriteRegion(dead);
-			mike.loadSprite(spriteBatch);
-		} else if (mike.isHurt()) {
+		if (mike.isHurt()) {
+			mikeFrame = damageMap.get(direction);
 			stateTime += delta;
 			currentFrame += (int) (stateTime / RUNNING_FRAME_DURATION);
 			if (currentFrame <= 120) {
-				mike.setSpriteRegion(damage);
-				mike.loadSprite(spriteBatch);
 				currentFrame += 1;
 			} else {
 				mike.setHurt(false);
@@ -378,6 +492,11 @@ public class Renderer {
 				currentFrame = 0;
 				stateTime = 0;
 			}
+		}
+
+		if (mike.getState().equals(State.DYING)) {
+			mike.setSpriteRegion(dead);
+			mike.loadSprite(spriteBatch);
 		} else { // TODO Check this...
 			mike.setSpriteRegion(mikeFrame);
 			// if (direction == Mike.Direction.DOWN || direction == Mike.Direction.DOWN_LEFT

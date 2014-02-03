@@ -174,7 +174,7 @@ public class Mike extends Drawable implements IDrawable {
 	 */
 	public void updateShadow(float x, float y, float percentage) {
 		shadowPercentage = (percentage / 100);
-		shadow.setFrame(x, y, SIZE, SIZE);
+		shadow.setFrame(x + (SIZE / 4), y, SIZE / 2, SIZE / 2);
 		shadowBounds.x = x + (SIZE / 3);
 		shadowBounds.y = y;
 		shadowBounds.width = SIZE * 0.3f;
