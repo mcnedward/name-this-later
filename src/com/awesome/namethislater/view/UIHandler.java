@@ -13,18 +13,23 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Button.ButtonStyle;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
-import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad.TouchpadStyle;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
 public class UIHandler {
+
+	/** Viewport Width and Height **/
+	private static final int VIEWPORT_WIDTH = 400;
+	private static final int VIEWPORT_HEIGHT = 240;
 
 	/** Textures **/
 	private Texture spriteSheet;
@@ -39,42 +44,86 @@ public class UIHandler {
 	private TextureRegion stamina;
 	private TextureRegion touch;
 	private TextureRegion knob;
+	private Texture fontTexture;
+
+	/** Images **/
+	private Image mikeFace = null;
+	private Image healthBar = null;
+	private Image currentHealth = null;
+
+	/** Drawables **/
+	private Drawable backgroundDrawable;
+	private Drawable knobDrawable;
+	private Drawable jumpButtonUp;
+	private Drawable jumpButtonDown;
+	private Drawable attackButtonUp;
+	private Drawable attackButtonDown;
+
+	/** Text Stuff **/
+	private Label fpsLabel = null;
+	private LabelStyle labelStyle = null;
+	private TextureRegion fontRegion = null;
+	private BitmapFont font = null;
+
+	/** Touchpad **/
+	private Skin touchSkin;
+	private TouchpadStyle touchpadStyle;
+	private Touchpad touchpad;
+
+	/** Jump Button **/
+	private Skin jumpSkin;
+	private ButtonStyle jumpStyle;
+	private Button jumpButton;
+
+	/** Jump Button **/
+	private Skin attackSkin;
+	private ButtonStyle attackStyle;
+	private Button attackButton;
 
 	private final Stage stage;
-	private Table table;
-	private ScrollPane scrollPane;
-	private final Skin skin = new Skin();
-	private float width, height, healthX;
-
 	private final World world;
 	private final Level level;
 	private final Mike mike;
+	private final Controller controller;
 
-	private Controller controller;
+	private float width, height, healthX;
+	private final boolean android;
 
-	public UIHandler(World world, Controller controller) {
+	public UIHandler(World world, Controller controller, boolean android) {
 		this.world = world;
+		this.controller = controller;
+		this.android = android;
+
 		level = world.getLevel();
 		mike = world.getMike();
-		stage = new Stage();
+		stage = new Stage(VIEWPORT_WIDTH, VIEWPORT_HEIGHT, true);
 		width = stage.getWidth();
 		height = stage.getHeight();
+
 		loadImages();
-		Gdx.input.setInputProcessor(stage);
+		loadText();
+		drawTouchpad();
+		drawJumpButton();
+		drawAttackButton();
+
+		if (android) {
+			Gdx.input.setInputProcessor(stage);
+		}
 	}
 
 	public void render(float delta) {
-		stage.clear();
 		drawIcon();
 		drawHealth();
 		drawStamina();
 		drawFps();
-		drawTouchpad();
+		stage.act(delta);
 		stage.draw();
 	}
 
 	private void drawIcon() {
-		Image mikeFace;
+		// Remove the actor to clear his state
+		stage.getRoot().removeActor(mikeFace);
+
 		if (mike.isHurt()) {
 			mikeFace = new Image(damage);
 		} else if (mike.isAttackingState()) {
@@ -88,26 +137,26 @@ public class UIHandler {
 		}
 		mikeFace.setScale(2, 2);
 		mikeFace.setX(10);
-		mikeFace.setY((height - mikeFace.getHeight() * 2) - 10);
+		mikeFace.setY(height - (mikeFace.getHeight() * 2) - 10);
 		healthX = (10 + mikeFace.getWidth() * 2);
 
 		stage.addActor(mikeFace);
 	}
 
 	private void drawHealth() {
-		Image healthBar = new Image(bar);
+		healthBar = new Image(bar);
 		healthBar.setX(healthX);
 		healthBar.setY(height - 20);
 
-		Image h = new Image(health);
-		h.setX(healthX);
-		h.setY(height - 20);
+		currentHealth = new Image(health);
+		currentHealth.setX(healthX);
+		currentHealth.setY(height - 20);
 
 		float mikeHealth = mike.getHealth() / 100;
-		h.setScaleX(mikeHealth);
+		currentHealth.setScaleX(mikeHealth);
 
 		stage.addActor(healthBar);
-		stage.addActor(h);
+		stage.addActor(currentHealth);
 	}
 
 	private void drawStamina() {
@@ -124,31 +173,19 @@ public class UIHandler {
 	}
 
 	private void drawFps() {
-		Texture fontTexture = new Texture(Gdx.files.internal("skins/default.png"));
-		fontTexture.setFilter(TextureFilter.Linear, TextureFilter.MipMapLinearLinear);
-		TextureRegion fontRegion = new TextureRegion(fontTexture);
-		BitmapFont font = new BitmapFont(Gdx.files.internal("skins/default.fnt"), fontRegion, false);
-		font.setUseIntegerPositions(false);
-
-		LabelStyle style = new LabelStyle();
-		style.font = font;
-		Label label = new Label("FPS: " + Gdx.graphics.getFramesPerSecond(), style);
-		label.setX(healthX);
-		label.setY(height - 50);
-
-		stage.addActor(label);
+		fpsLabel.setText("FPS: " + Gdx.graphics.getFramesPerSecond());
 	}
 
 	private void drawTouchpad() {
-		TouchpadStyle style = new TouchpadStyle();
-		// Texture touchpadTexture = new Texture(Gdx.files.internal("data/touchpad.png"));
-		// touchpadTexture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-		// TextureRegion background = new TextureRegion(touchpadTexture, 0, 0, 75, 75);
-		// TextureRegion knob = new TextureRegion(touchpadTexture, 80, 0, 120, 120);
-		TextureRegionDrawable backgroundDrawable = new TextureRegionDrawable(touch);
-		TextureRegionDrawable knobDrawable = new TextureRegionDrawable(knob);
-		final Touchpad touchpad = new Touchpad(10, new Touchpad.TouchpadStyle(backgroundDrawable,
-				knobDrawable));
+		touchSkin = new Skin();
+		touchSkin.add("touchBackground", touch);
+		touchSkin.add("knob", knob);
+		backgroundDrawable = touchSkin.getDrawable("touchBackground");
+		knobDrawable = touchSkin.getDrawable("knob");
+		touchpadStyle = new TouchpadStyle();
+		touchpadStyle.knob = knobDrawable;
+		touchpadStyle.background = backgroundDrawable;
+		touchpad = new Touchpad(10, touchpadStyle);
 		touchpad.setBounds(10, 10, 100, 100);
 
 		touchpad.addListener(new InputListener() {
@@ -161,21 +198,87 @@ public class UIHandler {
 			public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
 				// if (!Gdx.app.getType().equals(ApplicationType.Android))
 				// return false;
-				controller.onTouchUp(Gdx.input.getX(pointer), Gdx.input.getY(pointer), touchpad);
+				// controller.onTouchUp(x, y, touchpad);
+				controller.onTouchpadUp();
 			}
 
 			@Override
 			public void touchDragged(InputEvent event, float x, float y, int pointer) {
-				controller.onTouch(Gdx.input.getX(pointer), Gdx.input.getY(pointer), touchpad);
+				controller.onTouchpadDragged(x, y, touchpad);
 			}
 		});
 
 		stage.addActor(touchpad);
 	}
 
+	private void drawJumpButton() {
+		jumpSkin = new Skin();
+		jumpSkin.add("buttonUp", knob);
+		jumpSkin.add("buttonDown", touch);
+		jumpButtonUp = jumpSkin.getDrawable("buttonUp");
+		jumpButtonDown = jumpSkin.getDrawable("buttonDown");
+
+		jumpStyle = new ButtonStyle();
+		jumpStyle.up = jumpButtonUp;
+		jumpStyle.down = jumpButtonDown;
+		jumpButton = new Button(jumpStyle);
+		jumpButton.setBounds(width - 80 - jumpButton.getWidth(), 15, 50, 50);
+
+		jumpButton.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				return controller.onJumpButtonDown();
+			}
+
+			@Override
+			public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+				controller.onJumpButtonUp();
+			}
+
+			@Override
+			public void touchDragged(InputEvent event, float x, float y, int pointer) {
+
+			}
+		});
+
+		stage.addActor(jumpButton);
+	}
+
+	private void drawAttackButton() {
+		attackSkin = new Skin();
+		attackSkin.add("buttonUp", knob);
+		attackSkin.add("buttonDown", touch);
+		attackButtonUp = attackSkin.getDrawable("buttonUp");
+		attackButtonDown = attackSkin.getDrawable("buttonDown");
+
+		attackStyle = new ButtonStyle();
+		attackStyle.up = attackButtonUp;
+		attackStyle.down = attackButtonDown;
+		attackButton = new Button(attackStyle);
+		attackButton.setBounds(width - 60, 25, 50, 50);
+
+		attackButton.addListener(new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				return controller.onAttackButtonDown();
+			}
+
+			@Override
+			public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+				controller.onAttackButtonUp();
+			}
+
+			@Override
+			public void touchDragged(InputEvent event, float x, float y, int pointer) {
+
+			}
+		});
+
+		stage.addActor(attackButton);
+	}
+
 	private void loadImages() {
 		spriteSheet = new Texture(Gdx.files.internal("images/ui.png"));
-
 		idle = new TextureRegion(spriteSheet, 0, 48, 16, 16);
 		jump = new TextureRegion(spriteSheet, 16, 48, 16, 16);
 		attack = new TextureRegion(spriteSheet, 32, 48, 16, 16);
@@ -187,6 +290,22 @@ public class UIHandler {
 		stamina = new TextureRegion(spriteSheet, 0, 32, 64, 16);
 		touch = new TextureRegion(spriteSheet, 64, 0, 32, 32);
 		knob = new TextureRegion(spriteSheet, 96, 0, 32, 32);
+	}
+
+	private void loadText() {
+		fontTexture = new Texture(Gdx.files.internal("skins/default.png"));
+		fontTexture.setFilter(TextureFilter.Linear, TextureFilter.MipMapLinearLinear);
+		fontRegion = new TextureRegion(fontTexture);
+		font = new BitmapFont(Gdx.files.internal("skins/default.fnt"), fontRegion, false);
+		font.setUseIntegerPositions(false);
+
+		labelStyle = new LabelStyle();
+		labelStyle.font = font;
+		fpsLabel = new Label("FPS: " + Gdx.graphics.getFramesPerSecond(), labelStyle);
+		fpsLabel.setX(width - 60);
+		fpsLabel.setY(height - 30);
+
+		stage.addActor(fpsLabel);
 	}
 
 	public void dispose() {

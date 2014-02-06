@@ -1,7 +1,5 @@
 package com.awesome.namethislater.model;
 
-import java.awt.geom.Ellipse2D;
-
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -14,21 +12,21 @@ public class Drawable {
 		DOWN, LEFT, UP, RIGHT, DOWN_LEFT, UP_LEFT, UP_RIGHT, DOWN_RIGHT
 	}
 
-	Vector2 position = new Vector2();		// The current position
-	Vector2 acceleration = new Vector2();	// The speed of movement
-	Vector2 velocity = new Vector2();		// The acceleration and direction of movement
+	Vector2 position = new Vector2(); // The current position
+	Vector2 acceleration = new Vector2(); // The speed of movement
+	Vector2 velocity = new Vector2(); // The acceleration and direction of movement
 	Vector2 shadowPosition = new Vector2();
 	Vector2 shadowVelocity = new Vector2();
-	Ellipse2D shadow = new Ellipse2D.Float();   // An ellipse used to determine the bounds of the shadow
+	// Ellipse2D shadow = new Ellipse2D.Float(); // An ellipse used to determine the bounds of the shadow
 
 	Sprite sprite = new Sprite();
 	Sprite shadowSprite = new Sprite();
 
-	Rectangle bounds = new Rectangle();			// The bounds of this drawable
-	Rectangle damageBounds = new Rectangle();	// The bounds were damage will occur
+	Rectangle bounds = new Rectangle(); // The bounds of this drawable
+	Rectangle damageBounds = new Rectangle(); // The bounds were damage will occur
 	Rectangle shadowBounds = new Rectangle();
 
-	Direction direction = Direction.DOWN;	// The direction
+	Direction direction = Direction.DOWN; // The direction
 
 	// This is the base of the drawable. Used for drawables that have multiple sprites to draw (ex: Mike when jumping
 	// has the Mike sprite and the shadow sprite. The baseY will be the lower y-coordinate of the shadow).
@@ -101,13 +99,13 @@ public class Drawable {
 		this.shadowPosition = shadowPosition;
 	}
 
-	public Ellipse2D getShadow() {
-		return shadow;
-	}
-
-	public void setShadow(Ellipse2D shadow) {
-		this.shadow = shadow;
-	}
+	// public Ellipse2D getShadow() {
+	// return shadow;
+	// }
+	//
+	// public void setShadow(Ellipse2D shadow) {
+	// this.shadow = shadow;
+	// }
 
 	/**
 	 * @return the sprite
