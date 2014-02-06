@@ -21,6 +21,7 @@ public class Level {
 	private Block[][] waterBlocks;
 
 	private List<Enemy> enemies;
+	private Iterator<Enemy> enemyIterator;
 
 	private TiledMap map;
 
@@ -36,10 +37,12 @@ public class Level {
 		map = loader.load("data/world/level/level3.tmx");
 
 		startingPosition = new Vector2(2, 2);
+
 		Enemy enemy1 = new Enemy(new Vector2(1, 4));
 		Enemy enemy2 = new Enemy(new Vector2(10, 10));
 		enemies.add(enemy1);
 		enemies.add(enemy2);
+		enemyIterator = enemies.iterator();
 
 		width = map.getProperties().get("width", Integer.class);
 		height = map.getProperties().get("height", Integer.class);
@@ -136,6 +139,14 @@ public class Level {
 	 */
 	public void setEnemies(List<Enemy> enemies) {
 		this.enemies = enemies;
+	}
+
+	public Iterator getEnemyIterator() {
+		return enemyIterator;
+	}
+
+	public void setEnemyIterator(Iterator enemyIterator) {
+		this.enemyIterator = enemyIterator;
 	}
 
 	public Block getBlockAt(int x, int y) {

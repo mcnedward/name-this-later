@@ -156,7 +156,8 @@ public class MikeController extends Controller {
 		mikeFeet.set(fl, fb, fr, ft);
 		mikeShadow.set(l, b, r, t);
 
-		for (Enemy enemy : enemies) {
+		while (enemies.hasNext()) {
+			Enemy enemy = enemies.next();
 			enemy.getVelocity().mul(delta);
 
 			Rectangle enemyRect = rectPool.obtain();
@@ -262,7 +263,8 @@ public class MikeController extends Controller {
 		chakramRect.x += chakram.getVelocity().x;
 		chakramRect.y += chakram.getVelocity().y;
 
-		for (Enemy enemy : enemies) {
+		while (enemies.hasNext()) {
+			Enemy enemy = enemies.next();
 			// Check for collisions
 			if (chakramRect.overlaps(enemy.getDamageBounds())) {
 				chakram.getVelocity().x = 0;
