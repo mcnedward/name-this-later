@@ -196,6 +196,7 @@ public class MikeController extends Controller {
 					}
 				}
 			}
+			rectPool.free(enemyRect);
 			enemy.getVelocity().mul(1 / delta);
 		}
 
@@ -219,6 +220,8 @@ public class MikeController extends Controller {
 		}
 
 		rectPool.free(mikeFeet);
+		rectPool.free(mikeDamage);
+		rectPool.free(mikeShadow);
 
 		// Update the position
 		mike.getPosition().add(mike.getVelocity());
@@ -242,8 +245,12 @@ public class MikeController extends Controller {
 		// Multiply by the delta to convert velocity to frame units
 		chakram.getVelocity().mul(delta);
 
+		// Get the width and height of the level
+		int width = level.getWidth();
+		int height = level.getHeight();
+
 		// Create the bounds of the chakram
-		Rectangle chakramRect = new Rectangle();
+		Rectangle chakramRect = rectPool.obtain();
 		float left = chakram.getAttackBounds().x;
 		float bottom = chakram.getAttackBounds().y;
 		float right = chakram.getAttackBounds().width;
@@ -264,6 +271,17 @@ public class MikeController extends Controller {
 				enemy.takeDamage(20);
 				enemy.setHurt(true);
 			}
+		}
+
+		// Check for collisions with the left and right sides of the level
+		if (chakramRect.x <= 0
+				|| chakramRect.x > width - chakramRect.width - chakram.getVelocity().x) {
+			it.remove();
+		}
+		// Check for collisions with the bottom and top sides of the levels
+		if (chakramRect.y <= 0
+				|| chakramRect.y > height - chakramRect.height - chakram.getVelocity().y) {
+			it.remove();
 		}
 		chakram.getVelocity().mul(1 / delta);
 	}

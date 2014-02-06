@@ -97,24 +97,24 @@ public class Mike extends Drawable implements IDrawable {
 	@Override
 	public void drawShadow(SpriteBatch spriteBatch) {
 		// Get the origin x and y. These are used to scale the shadow around the center of the ellipse.
-		// float originX = (float) shadow.getCenterX();
-		// float originY = (float) shadow.getCenterY();
-		//
-		// // Get the x and y coordinates to draw. These are the lower left corners of the ellipse.
-		// float x = (float) shadow.getX();
-		// float y = (float) shadow.getY();
-		//
-		// // Get the width and height of the shadow, and scale them according to the scale percentage.
-		// float width = (float) shadow.getWidth() * shadowPercentage;
-		// float height = (float) shadow.getHeight() * shadowPercentage;
-		//
-		// // Determine the amount of pixels to move the shadow's x and y coordinates. These are used to keep the scaling
-		// // of the shadow around the center of the ellipse.
-		// float moveX = (originX - x) - ((originX - x) * shadowPercentage);
-		// float moveY = (originY - y) - ((originY - y) * shadowPercentage);
-		//
-		// shadowSprite.setOrigin(width / 2, height / 2); // Set the origin in the middle
-		// shadowSprite.setBounds(x + moveX, y + moveY, width, height - moveY); // Set the bounds
+		float originX = shadow.getX() + shadow.getWidth() / 2;
+		float originY = shadow.getY() + shadow.getHeight() / 2;
+
+		// Get the x and y coordinates to draw. These are the lower left corners of the ellipse.
+		float x = shadow.getX();
+		float y = shadow.getY();
+
+		// Get the width and height of the shadow, and scale them according to the scale percentage.
+		float width = shadow.getWidth() * shadowPercentage;
+		float height = shadow.getHeight() * shadowPercentage;
+
+		// Determine the amount of pixels to move the shadow's x and y coordinates. These are used to keep the scaling
+		// of the shadow around the center of the ellipse.
+		float moveX = (originX - x) - ((originX - x) * shadowPercentage);
+		float moveY = (originY - y) - ((originY - y) * shadowPercentage);
+
+		shadowSprite.setOrigin(width / 2, height / 2); // Set the origin in the middle
+		shadowSprite.setBounds(x + moveX, y + moveY, width, height - moveY); // Set the bounds
 	}
 
 	/**
@@ -169,8 +169,12 @@ public class Mike extends Drawable implements IDrawable {
 	 *            The current position of Mike.
 	 */
 	public void updateShadow(float x, float y, float percentage) {
+		shadow.x = x + (SIZE / 5);
+		shadow.y = y;
+		shadow.width = SIZE / 2;
+		shadow.height = SIZE / 2;
+
 		shadowPercentage = (percentage / 100);
-		// shadow.setFrame(x + (SIZE / 4), y, SIZE / 2, SIZE / 2);
 		shadowBounds.x = x + (SIZE / 3);
 		shadowBounds.y = y;
 		shadowBounds.width = SIZE * 0.3f;

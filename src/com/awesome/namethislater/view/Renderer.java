@@ -309,7 +309,7 @@ public class Renderer {
 		sprites.sort(comparator);
 		// Render shadows first
 		for (Sprite shadow : shadows) {
-			// shadow.draw(spriteBatch);
+			shadow.draw(spriteBatch);
 		}
 
 		for (Drawable sprite : sprites) {
