@@ -9,8 +9,8 @@ import com.badlogic.gdx.math.Rectangle;
 
 public class WorldController extends Controller {
 
-	private static float ACCELERATION = 10f;	// The speed of walking
-	private static final float DAMP = 0.9f;		// Used to smooth out the walking animation
+	private static float ACCELERATION = 10f; // The speed of walking
+	private static final float DAMP = 0.9f; // Used to smooth out the walking animation
 	private static final float MAX_VEL = 4f;
 
 	Random random = new Random();
@@ -26,7 +26,8 @@ public class WorldController extends Controller {
 
 	@Override
 	public void checkCollisions(float delta) {
-		for (Enemy enemy : enemies) {
+		while (enemies.hasNext()) {
+			Enemy enemy = enemies.next();
 			// processInput(delta);
 			enemy.setEnemyTime(enemy.getEnemyTime() - delta);
 			enemy.getAcceleration().mul(delta);
@@ -54,7 +55,7 @@ public class WorldController extends Controller {
 				enemy.getAcceleration().x = ACCELERATION;
 				enemy.getAcceleration().y = -ACCELERATION;
 			}
-			if (enemy.getEnemyTime() < 0) {	// Reset the enemy time and direction
+			if (enemy.getEnemyTime() < 0) { // Reset the enemy time and direction
 				enemy.setEnemyTime(random.nextInt(5));
 				enemy.setDirection(random.nextInt(7));
 			}
@@ -129,5 +130,4 @@ public class WorldController extends Controller {
 			enemy.update(delta);
 		}
 	}
-
 }
