@@ -20,13 +20,13 @@ public class Mike extends Drawable implements IDrawable {
 	Rectangle jumpingBounds = new Rectangle();
 
 	State state = State.IDLE; // The state that Mike is in
-	Direction direction = Direction.DOWN; 	// The direction Mike is facing
+	Direction direction = Direction.DOWN; // The direction Mike is facing
 
 	List<Chakram> chakrams;
 
-	boolean grounded; 	// Whether Mike is on the ground or not
+	boolean grounded; // Whether Mike is on the ground or not
 	boolean swimming;
-	boolean attacking; 	// Whether Mike is attacking or not
+	boolean attacking; // Whether Mike is attacking or not
 	boolean hurt;
 	boolean invincible;
 	float damageAmount;
@@ -97,24 +97,24 @@ public class Mike extends Drawable implements IDrawable {
 	@Override
 	public void drawShadow(SpriteBatch spriteBatch) {
 		// Get the origin x and y. These are used to scale the shadow around the center of the ellipse.
-		float originX = (float) shadow.getCenterX();
-		float originY = (float) shadow.getCenterY();
-
-		// Get the x and y coordinates to draw. These are the lower left corners of the ellipse.
-		float x = (float) shadow.getX();
-		float y = (float) shadow.getY();
-
-		// Get the width and height of the shadow, and scale them according to the scale percentage.
-		float width = (float) shadow.getWidth() * shadowPercentage;
-		float height = (float) shadow.getHeight() * shadowPercentage;
-
-		// Determine the amount of pixels to move the shadow's x and y coordinates. These are used to keep the scaling
-		// of the shadow around the center of the ellipse.
-		float moveX = (originX - x) - ((originX - x) * shadowPercentage);
-		float moveY = (originY - y) - ((originY - y) * shadowPercentage);
-
-		shadowSprite.setOrigin(width / 2, height / 2); // Set the origin in the middle
-		shadowSprite.setBounds(x + moveX, y + moveY, width, height - moveY); // Set the bounds
+		// float originX = (float) shadow.getCenterX();
+		// float originY = (float) shadow.getCenterY();
+		//
+		// // Get the x and y coordinates to draw. These are the lower left corners of the ellipse.
+		// float x = (float) shadow.getX();
+		// float y = (float) shadow.getY();
+		//
+		// // Get the width and height of the shadow, and scale them according to the scale percentage.
+		// float width = (float) shadow.getWidth() * shadowPercentage;
+		// float height = (float) shadow.getHeight() * shadowPercentage;
+		//
+		// // Determine the amount of pixels to move the shadow's x and y coordinates. These are used to keep the scaling
+		// // of the shadow around the center of the ellipse.
+		// float moveX = (originX - x) - ((originX - x) * shadowPercentage);
+		// float moveY = (originY - y) - ((originY - y) * shadowPercentage);
+		//
+		// shadowSprite.setOrigin(width / 2, height / 2); // Set the origin in the middle
+		// shadowSprite.setBounds(x + moveX, y + moveY, width, height - moveY); // Set the bounds
 	}
 
 	/**
@@ -126,8 +126,7 @@ public class Mike extends Drawable implements IDrawable {
 	}
 
 	/**
-	 * Throw a chakram. This creates a new Chakram and adds it to Mike's list of thrown chakrams. The air height is used
-	 * to determine shadow position of the chakram.
+	 * Throw a chakram. This creates a new Chakram and adds it to Mike's list of thrown chakrams. The air height is used to determine shadow position of the chakram.
 	 * 
 	 * @param airHeight
 	 *            The height that Mike is in the air.
@@ -138,9 +137,7 @@ public class Mike extends Drawable implements IDrawable {
 	}
 
 	/**
-	 * This is used to update the Rectangle boundaries surrounding the area where Mike will recieve damage. Use this for
-	 * collision detection with
-	 * damage and death tiles, and for enemy attacks.
+	 * This is used to update the Rectangle boundaries surrounding the area where Mike will recieve damage. Use this for collision detection with damage and death tiles, and for enemy attacks.
 	 * 
 	 * @param position
 	 *            The current position of Mike.
@@ -153,8 +150,7 @@ public class Mike extends Drawable implements IDrawable {
 	}
 
 	/**
-	 * This is used to update the Rectangle boundaries surrounding Mike's feet. Use this for collision detection with
-	 * floor tiles (pits, water).
+	 * This is used to update the Rectangle boundaries surrounding Mike's feet. Use this for collision detection with floor tiles (pits, water).
 	 * 
 	 * @param position
 	 *            The current position of Mike.
@@ -174,7 +170,7 @@ public class Mike extends Drawable implements IDrawable {
 	 */
 	public void updateShadow(float x, float y, float percentage) {
 		shadowPercentage = (percentage / 100);
-		shadow.setFrame(x + (SIZE / 4), y, SIZE / 2, SIZE / 2);
+		// shadow.setFrame(x + (SIZE / 4), y, SIZE / 2, SIZE / 2);
 		shadowBounds.x = x + (SIZE / 3);
 		shadowBounds.y = y;
 		shadowBounds.width = SIZE * 0.3f;
@@ -183,8 +179,7 @@ public class Mike extends Drawable implements IDrawable {
 	}
 
 	/**
-	 * This is used to update the Rectangle boundaries surrounding Mike's shadow when jumping. Use this for collision
-	 * detection with enemies.
+	 * This is used to update the Rectangle boundaries surrounding Mike's shadow when jumping. Use this for collision detection with enemies.
 	 * 
 	 * @param position
 	 *            The current position of Mike.

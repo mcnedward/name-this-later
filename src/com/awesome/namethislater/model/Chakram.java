@@ -1,7 +1,5 @@
 package com.awesome.namethislater.model;
 
-import java.awt.geom.Ellipse2D;
-
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -51,7 +49,7 @@ public class Chakram extends Drawable implements IDrawable {
 		updateBounds(position);
 
 		// Set the ellipse for the shadow and update its bounds
-		shadow = new Ellipse2D.Float();
+		// shadow = new Ellipse2D.Float();
 		update(new Vector2(shadowPosition.x, shadowPosition.y), rotation);
 
 		// Set the position and acceleration of the chakram based on Mike's direction
@@ -153,13 +151,13 @@ public class Chakram extends Drawable implements IDrawable {
 			break;
 		}
 
-		shadow.setFrame(shadowPosition.x + (SIZE / 4), shadowPosition.y - airHeight, SIZE / 2,
-				SIZE / 2);
+		// shadow.setFrame(shadowPosition.x + (SIZE / 4), shadowPosition.y - airHeight, SIZE / 2,
+		// SIZE / 2);
 
-		attackBounds.x = (float) shadow.getX();
-		attackBounds.y = (float) shadow.getY();
-		attackBounds.width = (float) shadow.getHeight();
-		attackBounds.height = (float) shadow.getHeight() / 2;
+		// attackBounds.x = (float) shadow.getX();
+		// attackBounds.y = (float) shadow.getY();
+		// attackBounds.width = (float) shadow.getHeight();
+		// attackBounds.height = (float) shadow.getHeight() / 2;
 	}
 
 	/**
@@ -206,15 +204,15 @@ public class Chakram extends Drawable implements IDrawable {
 	@Override
 	public void drawShadow(SpriteBatch spriteBatch) {
 		// Get the x and y coordinates to draw. These are the lower left corners of the ellipse.
-		float x = (float) shadow.getX();
-		float y = (float) shadow.getY();
-
-		// Get the width and height of the shadow, and scale them according to the scale percentage.
-		float width = (float) shadow.getWidth();
-		float height = (float) shadow.getHeight();
-
-		shadowSprite.setOrigin(width / 2, height / 2); // Set the origin in the middle
-		shadowSprite.setBounds(x, y, width, height); // Set the bounds
+		// float x = (float) shadow.getX();
+		// float y = (float) shadow.getY();
+		//
+		// // Get the width and height of the shadow, and scale them according to the scale percentage.
+		// float width = (float) shadow.getWidth();
+		// float height = (float) shadow.getHeight();
+		//
+		// shadowSprite.setOrigin(width / 2, height / 2); // Set the origin in the middle
+		// shadowSprite.setBounds(x, y, width, height); // Set the bounds
 	}
 
 	/**

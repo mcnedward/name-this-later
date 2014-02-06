@@ -1,6 +1,5 @@
 package com.awesome.namethislater.model;
 
-import java.awt.geom.Ellipse2D;
 import java.util.Random;
 
 import com.badlogic.gdx.graphics.Color;
@@ -40,7 +39,7 @@ public class Enemy extends Drawable {
 		updateDamageBounds(position);
 		setDirection(random.nextInt(7));
 
-		shadow = new Ellipse2D.Float();
+		// shadow = new Ellipse2D.Float();
 		health = 100;
 	}
 
