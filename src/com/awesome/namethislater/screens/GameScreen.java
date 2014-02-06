@@ -9,6 +9,7 @@ import com.awesome.namethislater.model.Level;
 import com.awesome.namethislater.model.World;
 import com.awesome.namethislater.view.Renderer;
 import com.awesome.namethislater.view.UIHandler;
+import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
@@ -26,14 +27,17 @@ public class GameScreen implements Screen, InputProcessor {
 
 	private int width, height;
 
+	private boolean android = true;
+	private boolean desktop = true;
+
 	@Override
 	public void render(float delta) {
 		Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-		// Gdx.gl.glEnable(GL10.GL_LINE_SMOOTH);
-		// Gdx.gl.glEnable(GL10.GL_POINT_SMOOTH);
-		// Gdx.gl.glHint(GL10.GL_POLYGON_SMOOTH_HINT, GL10.GL_NICEST);
-		// Gdx.gl.glHint(GL10.GL_POINT_SMOOTH_HINT, GL10.GL_NICEST);
+		Gdx.gl.glEnable(GL10.GL_LINE_SMOOTH);
+		Gdx.gl.glEnable(GL10.GL_POINT_SMOOTH);
+		Gdx.gl.glHint(GL10.GL_POLYGON_SMOOTH_HINT, GL10.GL_NICEST);
+		Gdx.gl.glHint(GL10.GL_POINT_SMOOTH_HINT, GL10.GL_NICEST);
 
 		controller.update(delta);
 		worldController.update(delta);
@@ -46,7 +50,6 @@ public class GameScreen implements Screen, InputProcessor {
 		this.width = width;
 		this.height = height;
 		renderer.setSize(width, height);
-		// uiHandler.setSize(width, height);
 	}
 
 	public int getWidth() {
@@ -61,11 +64,19 @@ public class GameScreen implements Screen, InputProcessor {
 	public void show() {
 		world = new World();
 		level = world.getLevel();
-		renderer = new Renderer(world, true);
+
 		controller = new MikeController(world);
 		worldController = new WorldController(world);
-		uiHandler = new UIHandler(world, controller);
-		// Gdx.input.setInputProcessor(this);
+
+		android = Gdx.app.getType().equals(ApplicationType.Android);
+		desktop = Gdx.app.getType().equals(ApplicationType.Desktop);
+
+		renderer = new Renderer(world, true);
+		uiHandler = new UIHandler(world, controller, android);
+
+		if (desktop) {
+			Gdx.input.setInputProcessor(this);
+		}
 	}
 
 	@Override

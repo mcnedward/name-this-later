@@ -201,7 +201,7 @@ public class MikeController extends Controller {
 
 		if (!mike.isJumping() && !mike.getState().equals(State.DYING)) {
 			if (checkForTiles(mike, mikeFeet)) {
-				mike.setState(State.DYING);
+				// mike.setState(State.DYING);
 				deadDegree = 0;
 				deadStartX = mike.getPosition().x;
 			}
