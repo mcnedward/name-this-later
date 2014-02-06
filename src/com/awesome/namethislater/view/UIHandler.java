@@ -48,8 +48,15 @@ public class UIHandler {
 
 	/** Images **/
 	private Image mikeFace = null;
+	private Image idleIcon = null;
+	private Image jumpIcon = null;
+	private Image attackIcon = null;
+	private Image damageIcon = null;
+	private Image deathIcon = null;
 	private Image healthBar = null;
 	private Image currentHealth = null;
+	private Image staminaBar = null;
+	private Image currentStamina = null;
 
 	/** Drawables **/
 	private Drawable backgroundDrawable;
@@ -125,15 +132,15 @@ public class UIHandler {
 		stage.getRoot().removeActor(mikeFace);
 
 		if (mike.isHurt()) {
-			mikeFace = new Image(damage);
+			mikeFace = damageIcon;
 		} else if (mike.isAttackingState()) {
-			mikeFace = new Image(attack);
+			mikeFace = attackIcon;
 		} else if (mike.isJumping()) {
-			mikeFace = new Image(jump);
+			mikeFace = jumpIcon;
 		} else if (mike.getState().equals(State.DYING)) {
-			mikeFace = new Image(death);
+			mikeFace = deathIcon;
 		} else {
-			mikeFace = new Image(idle);
+			mikeFace = idleIcon;
 		}
 		mikeFace.setScale(2, 2);
 		mikeFace.setX(10);
@@ -144,11 +151,9 @@ public class UIHandler {
 	}
 
 	private void drawHealth() {
-		healthBar = new Image(bar);
 		healthBar.setX(healthX);
 		healthBar.setY(height - 20);
 
-		currentHealth = new Image(health);
 		currentHealth.setX(healthX);
 		currentHealth.setY(height - 20);
 
@@ -160,16 +165,14 @@ public class UIHandler {
 	}
 
 	private void drawStamina() {
-		Image staminaBar = new Image(bar);
 		staminaBar.setX(healthX);
 		staminaBar.setY(height - 30);
 
-		Image s = new Image(stamina);
-		s.setX(healthX);
-		s.setY(height - 30);
+		currentStamina.setX(healthX);
+		currentStamina.setY(height - 30);
 
 		stage.addActor(staminaBar);
-		stage.addActor(s);
+		stage.addActor(currentStamina);
 	}
 
 	private void drawFps() {
@@ -290,6 +293,17 @@ public class UIHandler {
 		stamina = new TextureRegion(spriteSheet, 0, 32, 64, 16);
 		touch = new TextureRegion(spriteSheet, 64, 0, 32, 32);
 		knob = new TextureRegion(spriteSheet, 96, 0, 32, 32);
+
+		idleIcon = new Image(idle);
+		jumpIcon = new Image(jump);
+		attackIcon = new Image(attack);
+		damageIcon = new Image(damage);
+		deathIcon = new Image(death);
+
+		healthBar = new Image(bar);
+		currentHealth = new Image(health);
+		staminaBar = new Image(bar);
+		currentStamina = new Image(stamina);
 	}
 
 	private void loadText() {

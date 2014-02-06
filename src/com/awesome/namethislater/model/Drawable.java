@@ -17,13 +17,13 @@ public class Drawable {
 	Vector2 velocity = new Vector2(); // The acceleration and direction of movement
 	Vector2 shadowPosition = new Vector2();
 	Vector2 shadowVelocity = new Vector2();
-	// Ellipse2D shadow = new Ellipse2D.Float(); // An ellipse used to determine the bounds of the shadow
 
 	Sprite sprite = new Sprite();
 	Sprite shadowSprite = new Sprite();
 
 	Rectangle bounds = new Rectangle(); // The bounds of this drawable
 	Rectangle damageBounds = new Rectangle(); // The bounds were damage will occur
+	Rectangle shadow = new Rectangle();
 	Rectangle shadowBounds = new Rectangle();
 
 	Direction direction = Direction.DOWN; // The direction
@@ -99,13 +99,13 @@ public class Drawable {
 		this.shadowPosition = shadowPosition;
 	}
 
-	// public Ellipse2D getShadow() {
-	// return shadow;
-	// }
-	//
-	// public void setShadow(Ellipse2D shadow) {
-	// this.shadow = shadow;
-	// }
+	public Rectangle getShadow() {
+		return shadow;
+	}
+
+	public void setShadow(Rectangle shadow) {
+		this.shadow = shadow;
+	}
 
 	/**
 	 * @return the sprite
