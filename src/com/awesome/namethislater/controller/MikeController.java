@@ -28,13 +28,12 @@ public class MikeController extends Controller {
 
 	@Override
 	public void update(float delta) {
-
-		checkForDeath(delta);
-
 		if (!mike.getState().equals(State.DYING) && !mike.getState().equals(State.ATTACKING)
 				&& !mike.getState().equals(State.JUMP_ATTACK)) {
 			processInput(delta); // Allow for movement unless dead
 		}
+
+		checkForDeath(delta);
 
 		// Multiply by the delta to convert acceleration to frame units
 		mike.getAcceleration().mul(delta);
@@ -156,8 +155,7 @@ public class MikeController extends Controller {
 		mikeFeet.set(fl, fb, fr, ft);
 		mikeShadow.set(l, b, r, t);
 
-		while (enemies.hasNext()) {
-			Enemy enemy = enemies.next();
+		for (Enemy enemy : enemies) {
 			enemy.getVelocity().mul(delta);
 
 			Rectangle enemyRect = rectPool.obtain();
@@ -203,7 +201,7 @@ public class MikeController extends Controller {
 
 		if (!mike.isJumping() && !mike.getState().equals(State.DYING)) {
 			if (checkForTiles(mike, mikeFeet)) {
-				// mike.setState(State.DYING);
+				mike.setState(State.SWIMMING);
 				deadDegree = 0;
 				deadStartX = mike.getPosition().x;
 			}
@@ -263,9 +261,7 @@ public class MikeController extends Controller {
 		chakramRect.x += chakram.getVelocity().x;
 		chakramRect.y += chakram.getVelocity().y;
 
-		while (enemies.hasNext()) {
-			Enemy enemy = enemies.next();
-			// Check for collisions
+		for (Enemy enemy : enemies) { // Check for collisions
 			if (chakramRect.overlaps(enemy.getDamageBounds())) {
 				chakram.getVelocity().x = 0;
 				chakram.getVelocity().y = 0;

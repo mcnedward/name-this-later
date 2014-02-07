@@ -15,6 +15,9 @@ public class Chakram extends Drawable implements IDrawable {
 
 	Direction direction; // The direction that the chakram is thrown
 
+	float startingX = 0;
+	float startingY = 0;
+
 	float stateTime = 0;
 	float airHeight = 0; // If thrown in jump attack, adjust the height of the shadow
 	float rotation = 0; // How much to rotate the chakram
@@ -35,6 +38,9 @@ public class Chakram extends Drawable implements IDrawable {
 		this.position = position;
 		shadowPosition.x = position.x;
 		shadowPosition.y = position.y;
+
+		startingX = mike.getPosition().x;
+		startingY = mike.getPosition().y;
 
 		// Set the bounds of the chakram
 		bounds.x = position.x;
@@ -226,5 +232,21 @@ public class Chakram extends Drawable implements IDrawable {
 	 */
 	public void setAttackBounds(Rectangle attackBounds) {
 		this.attackBounds = attackBounds;
+	}
+
+	public float getStartingX() {
+		return startingX;
+	}
+
+	public void setStartingX(float startingX) {
+		this.startingX = startingX;
+	}
+
+	public float getStartingY() {
+		return startingY;
+	}
+
+	public void setStartingY(float startingY) {
+		this.startingY = startingY;
 	}
 }

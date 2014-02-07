@@ -1,8 +1,8 @@
 package com.awesome.namethislater.controller;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Vector;
 
 import com.awesome.namethislater.model.Drawable;
 import com.awesome.namethislater.model.Drawable.Direction;
@@ -57,14 +57,14 @@ public abstract class Controller {
 	protected World world;
 	protected Level level;
 	protected final Mike mike;
-	protected Iterator<Enemy> enemies;
+	protected Vector<Enemy> enemies;
 	private final TiledMap map;
 
 	public Controller(World world) {
 		this.world = world;
 		this.level = world.getLevel();
 		this.mike = world.getMike();
-		enemies = level.getEnemyIterator();
+		enemies = level.getEnemies();
 		map = level.getMap();
 	}
 

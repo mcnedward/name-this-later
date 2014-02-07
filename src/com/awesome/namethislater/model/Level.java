@@ -1,8 +1,7 @@
 package com.awesome.namethislater.model;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Vector;
 
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTile;
@@ -20,15 +19,13 @@ public class Level {
 	private Block[][] grassBlocks;
 	private Block[][] waterBlocks;
 
-	private List<Enemy> enemies;
-	private Iterator<Enemy> enemyIterator;
+	private Vector<Enemy> enemies;
 
 	private TiledMap map;
 
 	private Vector2 startingPosition;
 
 	public Level() {
-		enemies = new ArrayList<Enemy>();
 		loadMap();
 	}
 
@@ -40,9 +37,10 @@ public class Level {
 
 		Enemy enemy1 = new Enemy(new Vector2(1, 4));
 		Enemy enemy2 = new Enemy(new Vector2(10, 10));
+
+		enemies = new Vector<Enemy>();
 		enemies.add(enemy1);
 		enemies.add(enemy2);
-		enemyIterator = enemies.iterator();
 
 		width = map.getProperties().get("width", Integer.class);
 		height = map.getProperties().get("height", Integer.class);
@@ -93,43 +91,14 @@ public class Level {
 		}
 	}
 
-	private void loadDemoLevel() {
-		loadMap();
-		startingPosition = new Vector2(2, 2);
-		width = 10;
-		height = 7;
-		grassBlocks = new Block[width][height];
-		waterBlocks = new Block[width][height];
-		for (int col = 0; col < width; col++) {
-			for (int row = 0; row < height; row++) {
-				grassBlocks[col][row] = new Block(new Vector2(col, row));
-			}
-		}
-
-		for (int col = 0; col < 10; col++) {
-			waterBlocks[col][0] = new Block(new Vector2(col, 0));
-			waterBlocks[col][6] = new Block(new Vector2(col, 6));
-			if (col > 2) {
-				waterBlocks[col][1] = new Block(new Vector2(col, 1));
-			}
-		}
-		waterBlocks[9][2] = new Block(new Vector2(9, 2));
-		waterBlocks[9][3] = new Block(new Vector2(9, 3));
-		waterBlocks[9][4] = new Block(new Vector2(9, 4));
-		waterBlocks[9][5] = new Block(new Vector2(9, 5));
-
-		waterBlocks[6][3] = new Block(new Vector2(6, 3));
-		waterBlocks[6][4] = new Block(new Vector2(6, 4));
-		waterBlocks[6][5] = new Block(new Vector2(6, 5));
-
-		waterBlocks[7][3] = new Block(new Vector2(7, 3));
-		waterBlocks[8][3] = new Block(new Vector2(8, 3));
+	public void removeDeadEnemy(Enemy enemy) {
+		enemies.remove(enemy);
 	}
 
 	/**
 	 * @return the enemies
 	 */
-	public List<Enemy> getEnemies() {
+	public Vector<Enemy> getEnemies() {
 		return enemies;
 	}
 
@@ -137,16 +106,8 @@ public class Level {
 	 * @param enemies
 	 *            the enemies to set
 	 */
-	public void setEnemies(List<Enemy> enemies) {
+	public void setEnemies(Vector<Enemy> enemies) {
 		this.enemies = enemies;
-	}
-
-	public Iterator getEnemyIterator() {
-		return enemyIterator;
-	}
-
-	public void setEnemyIterator(Iterator enemyIterator) {
-		this.enemyIterator = enemyIterator;
 	}
 
 	public Block getBlockAt(int x, int y) {

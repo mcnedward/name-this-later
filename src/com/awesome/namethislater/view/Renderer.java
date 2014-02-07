@@ -2,8 +2,8 @@ package com.awesome.namethislater.view;
 
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import com.awesome.namethislater.model.Chakram;
 import com.awesome.namethislater.model.Drawable;
@@ -37,7 +37,8 @@ public class Renderer {
 	/** Camera Width and Height **/
 	private static final float CAMERA_WIDTH = 10f;
 	private static final float CAMERA_HEIGHT = 7f;
-	// The duration of each frame
+
+	/** Frame Durations **/
 	private static final float RUNNING_FRAME_DURATION = 0.1f; // 10 FPS
 	private static final float ATTACKING_FRAME_DURATION = 0.2f;
 
@@ -77,7 +78,8 @@ public class Renderer {
 	private float ppuY; // Pixels per unit on the Y axis
 
 	float stateTime; // The time since last render
-	float currentFrame; // The current frame, based on the state time
+	float currentFrameAttack; // The current frame for attacking, based on the state time
+	float currentFrameHurt; // The current frame for damage, based on the state time.
 	float enemyStateTime;
 	private float enemyFrame;
 
@@ -85,7 +87,7 @@ public class Renderer {
 	private final Level level;
 	private final Room room;
 	private final Mike mike;
-	private final List<Enemy> enemies;
+	private final Vector<Enemy> enemies;
 
 	private TiledMap map;
 	private final OrthogonalTiledMapRenderer renderer;
@@ -111,6 +113,8 @@ public class Renderer {
 		this.debug = debug;
 		spriteBatch = new SpriteBatch();
 		stateTime = 0f;
+		currentFrameAttack = 0f;
+		currentFrameHurt = 0f;
 		enemyStateTime = 0f;
 
 		loadTextures();
@@ -170,19 +174,19 @@ public class Renderer {
 			// the attack animation is finished,
 			// set his state back to idle.
 			stateTime += delta;
-			currentFrame += (int) (stateTime / ATTACKING_FRAME_DURATION);
+			currentFrameAttack += (int) (stateTime / ATTACKING_FRAME_DURATION);
 			mikeFrame = attackMap.get(direction).getKeyFrame(stateTime, false);
-			if (currentFrame == 1) {
+			if (currentFrameAttack == 1) {
 				mike.setAttacking(true); // Attack!
-				currentFrame += 1; // Increase the frame count so this will be
-									// skipped on the next render
+				currentFrameAttack += 1; // Increase the frame count so this will be
+				// skipped on the next render
 			} else {
 				mike.setAttacking(false);
 			}
 			if (attackMap.get(direction).isAnimationFinished(stateTime)) {
 				mike.setState(State.IDLE);
 				stateTime = 0;
-				currentFrame = 0;
+				currentFrameAttack = 0;
 			}
 		}
 		if (mike.getState().equals(State.JUMP_ATTACK)) {
@@ -191,17 +195,17 @@ public class Renderer {
 			// check whether he is in the air or not, and set his state
 			// accordingly.
 			stateTime += delta;
-			currentFrame += (int) (stateTime / ATTACKING_FRAME_DURATION);
+			currentFrameAttack += (int) (stateTime / ATTACKING_FRAME_DURATION);
 			mikeFrame = jumpAttackMap.get(direction).getKeyFrame(stateTime, false);
-			if (currentFrame == 1) {
+			if (currentFrameAttack == 1) {
 				mike.setAttacking(true); // Attack!
-				currentFrame += 1; // Increase the frame count so this will be
-									// skipped on the next render
+				currentFrameAttack += 1; // Increase the frame count so this will be
+				// skipped on the next render
 			} else {
 				mike.setAttacking(false);
 			}
 			if (jumpAttackMap.get(direction).isAnimationFinished(stateTime)) {
-				currentFrame = 0;
+				currentFrameAttack = 0;
 				stateTime = 0;
 				if (mike.isGrounded()) {
 					mike.setState(State.IDLE);
@@ -216,14 +220,14 @@ public class Renderer {
 		if (mike.isHurt()) {
 			mikeFrame = damageMap.get(direction);
 			stateTime += delta;
-			currentFrame += (int) (stateTime / RUNNING_FRAME_DURATION);
-			if (currentFrame <= 120) {
-				currentFrame += 1;
+			currentFrameHurt += (int) (stateTime / RUNNING_FRAME_DURATION);
+			if (currentFrameHurt <= 120) {
+				currentFrameHurt += 1;
 			} else {
 				mike.setHurt(false);
 				mike.setInvincible(false);
 				mike.setState(State.IDLE);
-				currentFrame = 0;
+				currentFrameHurt = 0;
 				stateTime = 0;
 			}
 		}
@@ -245,6 +249,14 @@ public class Renderer {
 			c.setShadowSpriteRegion(shadow);
 			c.setSpriteRegion(chakram);
 			c.loadSprite(spriteBatch);
+
+			if (mike.getStamina() > 0) {
+				debugRenderer.begin(ShapeType.Line);
+				debugRenderer.setColor(Color.RED);
+				debugRenderer.line(c.getStartingX(), c.getStartingY(), c.getShadowPosition().x,
+						c.getShadowPosition().y);
+				debugRenderer.end();
+			}
 		}
 	}
 
@@ -262,7 +274,7 @@ public class Renderer {
 				enemy.loadSprite(spriteBatch);
 				if (enemy.isHurt()) {
 					enemyStateTime += delta;
-					enemyFrame += (int) (stateTime / ATTACKING_FRAME_DURATION);
+					enemyFrame += (int) (enemyStateTime / ATTACKING_FRAME_DURATION);
 					if (enemyFrame <= 120) {
 						enemyFrame += 1;
 						enemy.drawHealth(debugRenderer);
