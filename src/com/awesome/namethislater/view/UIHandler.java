@@ -171,6 +171,9 @@ public class UIHandler {
 		currentStamina.setX(healthX);
 		currentStamina.setY(height - 30);
 
+		float mikeStamina = mike.getStamina() / 100;
+		currentStamina.setScaleX(mikeStamina);
+
 		stage.addActor(staminaBar);
 		stage.addActor(currentStamina);
 	}

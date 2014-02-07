@@ -33,6 +33,7 @@ public class Mike extends Drawable implements IDrawable {
 	float shadowPercentage; // The amount to scale Mike's jumping shadow
 
 	private float health;
+	private float stamina;
 
 	public Mike(Vector2 position) {
 		super(position, SIZE);
@@ -45,6 +46,7 @@ public class Mike extends Drawable implements IDrawable {
 		shadowPercentage = 100.0f;
 
 		health = 100;
+		stamina = 100;
 		hurt = false;
 	}
 
@@ -63,6 +65,10 @@ public class Mike extends Drawable implements IDrawable {
 		} else {
 			// Set Mike to be invincible after he takes one hit.
 			invincible = hurt;
+		}
+
+		if (stamina <= 0) {
+			stamina = 100;
 		}
 	}
 
@@ -123,6 +129,7 @@ public class Mike extends Drawable implements IDrawable {
 	public void attack() {
 		Chakram chakram = new Chakram(new Vector2(position.x, position.y), this, 0);
 		chakrams.add(chakram);
+		stamina -= 10;
 	}
 
 	/**
@@ -322,6 +329,14 @@ public class Mike extends Drawable implements IDrawable {
 	 */
 	public void setHealth(float health) {
 		this.health = health;
+	}
+
+	public float getStamina() {
+		return stamina;
+	}
+
+	public void setStamina(float stamina) {
+		this.stamina = stamina;
 	}
 
 	// TODO Add all states
