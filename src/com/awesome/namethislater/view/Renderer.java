@@ -77,7 +77,8 @@ public class Renderer {
 	private float ppuX; // Pixels per unit on the X axis
 	private float ppuY; // Pixels per unit on the Y axis
 
-	float stateTime; // The time since last render
+	float attackStateTime;
+	float hurtStateTime;
 	float currentFrameAttack; // The current frame for attacking, based on the state time
 	float currentFrameHurt; // The current frame for damage, based on the state time.
 	float enemyStateTime;
@@ -112,10 +113,6 @@ public class Renderer {
 
 		this.debug = debug;
 		spriteBatch = new SpriteBatch();
-		stateTime = 0f;
-		currentFrameAttack = 0f;
-		currentFrameHurt = 0f;
-		enemyStateTime = 0f;
 
 		loadTextures();
 	}
@@ -173,9 +170,9 @@ public class Renderer {
 			// boolean to true so that he will attack on the next update. When
 			// the attack animation is finished,
 			// set his state back to idle.
-			stateTime += delta;
-			currentFrameAttack += (int) (stateTime / ATTACKING_FRAME_DURATION);
-			mikeFrame = attackMap.get(direction).getKeyFrame(stateTime, false);
+			attackStateTime += delta;
+			currentFrameAttack += (int) (attackStateTime / ATTACKING_FRAME_DURATION);
+			mikeFrame = attackMap.get(direction).getKeyFrame(attackStateTime, false);
 			if (currentFrameAttack == 1) {
 				mike.setAttacking(true); // Attack!
 				currentFrameAttack += 1; // Increase the frame count so this will be
@@ -183,9 +180,9 @@ public class Renderer {
 			} else {
 				mike.setAttacking(false);
 			}
-			if (attackMap.get(direction).isAnimationFinished(stateTime)) {
+			if (attackMap.get(direction).isAnimationFinished(attackStateTime)) {
 				mike.setState(State.IDLE);
-				stateTime = 0;
+				attackStateTime = 0;
 				currentFrameAttack = 0;
 			}
 		}
@@ -194,9 +191,9 @@ public class Renderer {
 			// When the attack animation is finished,
 			// check whether he is in the air or not, and set his state
 			// accordingly.
-			stateTime += delta;
-			currentFrameAttack += (int) (stateTime / ATTACKING_FRAME_DURATION);
-			mikeFrame = jumpAttackMap.get(direction).getKeyFrame(stateTime, false);
+			attackStateTime += delta;
+			currentFrameAttack += (int) (attackStateTime / ATTACKING_FRAME_DURATION);
+			mikeFrame = jumpAttackMap.get(direction).getKeyFrame(attackStateTime, false);
 			if (currentFrameAttack == 1) {
 				mike.setAttacking(true); // Attack!
 				currentFrameAttack += 1; // Increase the frame count so this will be
@@ -204,9 +201,9 @@ public class Renderer {
 			} else {
 				mike.setAttacking(false);
 			}
-			if (jumpAttackMap.get(direction).isAnimationFinished(stateTime)) {
+			if (jumpAttackMap.get(direction).isAnimationFinished(attackStateTime)) {
 				currentFrameAttack = 0;
-				stateTime = 0;
+				attackStateTime = 0;
 				if (mike.isGrounded()) {
 					mike.setState(State.IDLE);
 				} else {
@@ -219,8 +216,8 @@ public class Renderer {
 		}
 		if (mike.isHurt()) {
 			mikeFrame = damageMap.get(direction);
-			stateTime += delta;
-			currentFrameHurt += (int) (stateTime / RUNNING_FRAME_DURATION);
+			hurtStateTime += delta;
+			currentFrameHurt += (int) (hurtStateTime / RUNNING_FRAME_DURATION);
 			if (currentFrameHurt <= 120) {
 				currentFrameHurt += 1;
 			} else {
@@ -228,7 +225,7 @@ public class Renderer {
 				mike.setInvincible(false);
 				mike.setState(State.IDLE);
 				currentFrameHurt = 0;
-				stateTime = 0;
+				attackStateTime = 0;
 			}
 		}
 

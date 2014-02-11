@@ -109,11 +109,11 @@ public class UIHandler {
 
 		loadImages();
 		loadText();
-		drawTouchpad();
-		drawJumpButton();
-		drawAttackButton();
 
 		if (android) {
+			drawTouchpad();
+			drawJumpButton();
+			drawAttackButton();
 			Gdx.input.setInputProcessor(stage);
 		}
 	}

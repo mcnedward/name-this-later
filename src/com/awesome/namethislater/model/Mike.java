@@ -220,7 +220,7 @@ public class Mike extends Drawable implements IDrawable {
 	}
 
 	public boolean isAttackingState() {
-		if (state == State.ATTACKING || state == State.JUMP_ATTACK || attacking)
+		if (state == State.ATTACKING || state == State.JUMP_ATTACK)
 			return true;
 		else
 			return false;
