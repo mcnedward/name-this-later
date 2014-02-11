@@ -51,7 +51,9 @@ public abstract class Controller {
 
 	protected float jumpDegree;
 	protected float shadowPercentage;
-	protected boolean jumpPressed = false; // Used to prevent auto-jump by holding down jump button
+
+	// Used to prevent auto-jump and auto-attack
+	protected boolean jumpPressed = false;
 	protected boolean attackPressed = false;
 
 	protected World world;
@@ -262,7 +264,8 @@ public abstract class Controller {
 				mike.getAcceleration().x = JUMP_ACCELERATION;
 			}
 		} else {
-			if (!mike.isJumping() && !mike.isAttacking() && !mike.getState().equals(State.DAMAGE)
+			if (!mike.isJumping() && !mike.isAttackingState()
+					&& !mike.getState().equals(State.DAMAGE)
 					&& !mike.getState().equals(State.DYING)) {
 				mike.getAcceleration();
 				mike.setState(State.IDLE);
@@ -389,6 +392,7 @@ public abstract class Controller {
 
 	public void attackPressed() {
 		keys.get(keys.put(Keys.ATTACK, true));
+		attackPressed = false;
 	}
 
 	public void downReleased() {
